@@ -54,8 +54,8 @@
 ## 📸 Screenshots
 
 <div align="center">
-  <img src="https://via.placeholder.com/800x500/2D3748/FFFFFF?text=CASfolio+Dashboard" alt="Dashboard Preview" width="45%">
-  <img src="https://via.placeholder.com/800x500/4A5568/FFFFFF?text=Activity+Details" alt="Activity Details" width="45%">
+  <img src="https://i.ibb.co/chZpgg5K/Screenshot-2025-09-01-at-11-14-21-p-m.png" alt="Dashboard Preview" width="45%">
+  <img src="https://i.ibb.co/4wWRy3Q3/Screenshot-2025-09-01-at-11-14-28-p-m.png" alt="Activity Details" width="45%">
 </div>
 
 ## 📊 Project Structure
