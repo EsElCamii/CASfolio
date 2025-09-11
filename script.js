@@ -1081,6 +1081,12 @@ function initializeEventListeners() {
             });
         }
     });
+
+    // View All Photos
+    const viewAllPhotosBtn = document.querySelector('[data-testid="button-view-all-photos"]');
+    if (viewAllPhotosBtn) {
+        viewAllPhotosBtn.addEventListener('click', openPhotosModal);
+    }
 }
 
 // Initialization
@@ -1097,3 +1103,47 @@ function initializeApp() {
 
 // Start the app when DOM is loaded
 document.addEventListener('DOMContentLoaded', initializeApp);
+
+// Photos modal
+function openPhotosModal() {
+    const modal = document.getElementById('photos-modal');
+    const grid = document.getElementById('photos-grid');
+    const empty = document.getElementById('photos-empty');
+
+    const photos = currentActivities
+        .filter(a => !!a.headerImage)
+        .map(a => ({ url: a.headerImage, title: a.title, id: a.id }));
+
+    if (!grid || !empty || !modal) return;
+
+    if (photos.length === 0) {
+        grid.innerHTML = '';
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+    } else {
+        empty.style.display = 'none';
+        grid.style.display = 'grid';
+        grid.innerHTML = photos.map(p => `
+            <div class="gallery-card" data-testid="photo-item-${p.id}">
+                <div class="gallery-card-clickable" onclick="viewActivityDetail('${p.id}')">
+                    <div class="activity-image" style="background-image: url('${p.url}');"></div>
+                    <div class="gallery-content">
+                        <h4 class="gallery-title">${p.title}</h4>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+}
+
+function closePhotosModal() {
+    const modal = document.getElementById('photos-modal');
+    if (modal) {
+        modal.classList.remove('show');
+    }
+    document.body.style.overflow = 'auto';
+    document.documentElement.style.overflow = 'auto';
+}

@@ -308,7 +308,7 @@
     </section>
 
     <!-- Activity Gallery -->
-    <section class="activity-gallery">
+    <section id="gallery" class="activity-gallery">
         <div class="container">
             <div class="section-header">
                 <h2 data-testid="text-section-title">Activity Gallery</h2>
@@ -622,6 +622,22 @@
                 </button>
             </div>
             <div id="activity-detail-content"></div>
+        </div>
+    </div>
+
+    <!-- Photos Gallery Dialog -->
+    <div class="modal" id="photos-modal">
+        <div class="modal-content" data-testid="dialog-photos-gallery">
+            <div class="modal-header">
+                <h3 data-testid="text-dialog-title">All Photos</h3>
+                <button class="modal-close" onclick="closePhotosModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div id="photos-grid" class="gallery-grid"></div>
+            <div id="photos-empty" class="empty-state" style="display: none;">
+                <p data-testid="text-no-photos">No photos available yet. Add header images to your activities to see them here.</p>
+            </div>
         </div>
     </div>
 
