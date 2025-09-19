@@ -28,6 +28,7 @@
   const contentFields = [
     // Brand
     { key: 'brand_title', label: 'Brand Title', selector: '.nav-brand h1', type: 'text', group: 'Brand' },
+    { key: 'brand_icon', label: 'Brand Icon Class', selector: '#brand-icon', type: 'text', group: 'Brand' },
     // Hero
     { key: 'hero_title', label: 'Hero Title', selector: '#hero-title', type: 'text', group: 'Hero' },
     { key: 'hero_subtitle', label: 'Hero Subtitle', selector: '#hero-subtitle', type: 'text', group: 'Hero' },
@@ -131,7 +132,12 @@
       if (!content.hasOwnProperty(f.key)) return;
       const el = document.querySelector(f.selector);
       if (!el) return;
-      setText(el, content[f.key]);
+      // Special handling for brand icon class
+      if (el.id === 'brand-icon') {
+        setIcon(el, content[f.key]);
+      } else {
+        setText(el, content[f.key]);
+      }
     });
     // Hero image
     const img = $('#hero-profile-image');
@@ -160,6 +166,12 @@
       return;
     }
     el.textContent = text;
+  }
+
+  function setIcon(el, classNames) {
+    const classes = String(classNames || '').trim();
+    el.className = classes || 'fas fa-graduation-cap';
+    el.setAttribute('aria-hidden', 'true');
   }
 
   // Ensure custom sections are in the DOM
@@ -501,21 +513,23 @@
           inputEl.className = 'small-input';
         }
         inputEl.id = 'input-' + field.key;
-        let initialValue = (content && content[field.key]) || el.textContent.trim();
+        let initialValue = (content && content[field.key]) || (el.id === 'brand-icon' ? el.className : el.textContent.trim());
         if (field.type === 'number') {
           initialValue = String(parseInt(String(initialValue).replace(/[^0-9-]/g, ''), 10) || 0);
         }
         inputEl.value = initialValue;
         inputEl.addEventListener('input', () => {
           content = content || {};
-          if (field.type === 'number') {
+          if (el.id === 'brand-icon') {
+            setIcon(el, inputEl.value);
+          } else if (field.type === 'number') {
             const num = parseInt(inputEl.value, 10);
             content[field.key] = isNaN(num) ? 0 : num;
           } else {
             content[field.key] = inputEl.value;
           }
           save(KEYS.CONTENT, content);
-          setText(el, inputEl.value);
+          if (el.id !== 'brand-icon') setText(el, inputEl.value);
         });
         formGroup.appendChild(inputEl);
         section.appendChild(formGroup);
