@@ -466,6 +466,14 @@
     const img = $('#hero-profile-image');
     const input = $('#hero-image-url');
     if (img && input && !input.dataset.bound) {
+      // Fallback to default if provided URL fails
+      const DEFAULT_HERO = 'hero-default.svg';
+      img.addEventListener('error', () => {
+        if (img.dataset.fallbackApplied !== '1') {
+          img.src = DEFAULT_HERO;
+          img.dataset.fallbackApplied = '1';
+        }
+      });
       input.value = (content && content.heroImageUrl) || img.src || '';
       input.addEventListener('change', () => {
         content = content || {};

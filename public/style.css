@@ -351,6 +351,7 @@ body {
     border-radius: 1rem;
     overflow: hidden;
     box-shadow: var(--shadow-lg);
+    background: #f3f4f6; /* soft gray fallback background */
 }
 
 .profile-card img {
