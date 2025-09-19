@@ -261,7 +261,7 @@ function renderCategoriesGrid() {
             description: 'Exploring artistic expression, design thinking, and innovative problem-solving through various creative mediums.',
             icon: 'fas fa-palette',
             stats: stats.categoryStats.creativity,
-            progress: Math.min(100, (stats.categoryStats.creativity.hours / 50) * 100),
+            progress: Math.min(100, (stats.categoryStats.creativity.hours / 80) * 100),
         },
         {
             id: 'activity',
@@ -269,7 +269,7 @@ function renderCategoriesGrid() {
             description: 'Physical challenges and team sports that promote health, teamwork, and personal endurance.',
             icon: 'fas fa-users',
             stats: stats.categoryStats.activity,
-            progress: Math.min(100, (stats.categoryStats.activity.hours / 50) * 100),
+            progress: Math.min(100, (stats.categoryStats.activity.hours / 80) * 100),
         },
         {
             id: 'service',
@@ -277,7 +277,7 @@ function renderCategoriesGrid() {
             description: 'Community engagement and volunteer work focused on making a positive impact in society.',
             icon: 'fas fa-heart',
             stats: stats.categoryStats.service,
-            progress: Math.min(100, (stats.categoryStats.service.hours / 50) * 100),
+            progress: Math.min(100, (stats.categoryStats.service.hours / 80) * 100),
         },
     ];
     
@@ -435,9 +435,9 @@ function renderProgressDashboard() {
     // Render progress categories
     const progressContainer = document.getElementById('progress-categories');
     const categories = [
-        { name: 'Creativity', current: stats.categoryStats.creativity.hours, target: 50, color: 'creativity' },
-        { name: 'Activity', current: stats.categoryStats.activity.hours, target: 50, color: 'activity' },
-        { name: 'Service', current: stats.categoryStats.service.hours, target: 50, color: 'service' }
+        { name: 'Creativity', current: stats.categoryStats.creativity.hours, target: 80, color: 'creativity' },
+        { name: 'Activity', current: stats.categoryStats.activity.hours, target: 80, color: 'activity' },
+        { name: 'Service', current: stats.categoryStats.service.hours, target: 80, color: 'service' }
     ];
     
     progressContainer.innerHTML = categories.map(category => {
