@@ -34,7 +34,63 @@
     { key: 'hero_subtitle', label: 'Hero Subtitle', selector: '#hero-subtitle', type: 'text', group: 'Hero' },
     { key: 'hero_description', label: 'Hero Description', selector: '#hero-description', type: 'textarea', group: 'Hero' },
     { key: 'hero_months', label: 'Hero Months Counter', selector: '#total-months', type: 'number', group: 'Hero' },
+    // Overview section
+    { key: 'overview_title', label: 'Overview Title', selector: '#overview .section-header h2', type: 'text', group: 'CAS Overview' },
+    { key: 'overview_description', label: 'Overview Description', selector: '#overview .section-header p', type: 'textarea', group: 'CAS Overview' },
+    // Recent
+    { key: 'recent_title', label: 'Recent Activities Title', selector: '#recent .section-header-with-button h2', type: 'text', group: 'Recent Activities' },
+    { key: 'recent_subtitle', label: 'Recent Activities Subtitle', selector: '#recent .section-header-with-button p', type: 'text', group: 'Recent Activities' },
+    // Timeline
+    { key: 'timeline_title', label: 'Timeline Title', selector: '#timeline .section-header h2', type: 'text', group: 'Timeline' },
+    { key: 'timeline_description', label: 'Timeline Description', selector: '#timeline .section-header p', type: 'textarea', group: 'Timeline' },
+    // Reflection
+    { key: 'reflection_title', label: 'Reflection Title', selector: '#reflection .section-header h2', type: 'text', group: 'Reflection' },
+    { key: 'reflection_description', label: 'Reflection Description', selector: '#reflection .section-header p', type: 'textarea', group: 'Reflection' },
+    // Progress
+    { key: 'progress_title', label: 'Progress Title', selector: '#progress .section-header h2', type: 'text', group: 'Progress' },
+    { key: 'progress_description', label: 'Progress Description', selector: '#progress .section-header p', type: 'textarea', group: 'Progress' },
+    // Gallery
+    { key: 'gallery_title', label: 'Gallery Title', selector: '#gallery .section-header h2', type: 'text', group: 'Gallery' },
+    { key: 'gallery_description', label: 'Gallery Description', selector: '#gallery .section-header p', type: 'textarea', group: 'Gallery' },
+    // Contact / Portfolio Information
+    { key: 'contact_title', label: 'Contact Title', selector: '#contact .section-header h2', type: 'text', group: 'Contact' },
+    { key: 'contact_description', label: 'Contact Description', selector: '#contact .section-header p', type: 'textarea', group: 'Contact' },
+    { key: 'student_info_title', label: 'Student Info Card Title', selector: '#contact .contact-grid .card:nth-of-type(1) h3', type: 'text', group: 'Contact' },
+    { key: 'student_name', label: 'Student Name', selector: 'p[data-testid="text-student-name"]', type: 'text', group: 'Contact' },
+    { key: 'student_role', label: 'Student Role', selector: '#contact .contact-grid .card:nth-of-type(1) .contact-item:nth-of-type(1) span', type: 'text', group: 'Contact' },
+    { key: 'student_school', label: 'Student School', selector: 'p[data-testid="text-student-school"]', type: 'text', group: 'Contact' },
+    { key: 'student_class', label: 'Graduation Class', selector: '#contact .contact-grid .card:nth-of-type(1) .contact-item:nth-of-type(2) span', type: 'text', group: 'Contact' },
+    { key: 'student_email', label: 'Student Email', selector: 'p[data-testid="text-student-email"]', type: 'text', group: 'Contact' },
+    { key: 'cas_period', label: 'CAS Period', selector: 'p[data-testid="text-cas-period"]', type: 'text', group: 'Contact' },
+    { key: 'supervisor_card_title', label: 'Coordinator Card Title', selector: 'h3[data-testid="text-supervisor-info-title"]', type: 'text', group: 'Contact' },
+    { key: 'supervisor_name', label: 'Coordinator Name', selector: 'p[data-testid="text-supervisor-name"]', type: 'text', group: 'Contact' },
+    { key: 'supervisor_title', label: 'Coordinator Title', selector: '#contact .contact-grid .card:nth-of-type(2) .contact-item:nth-of-type(1) span', type: 'text', group: 'Contact' },
+    { key: 'supervisor_email', label: 'Coordinator Email', selector: 'p[data-testid="text-supervisor-email"]', type: 'text', group: 'Contact' },
+    { key: 'supervisor_phone', label: 'Coordinator Phone', selector: 'p[data-testid="text-supervisor-phone"]', type: 'text', group: 'Contact' },
+    { key: 'portfolio_verified', label: 'Portfolio Verified', selector: 'p[data-testid="text-portfolio-verified"]', type: 'text', group: 'Contact' },
+    { key: 'last_reviewed', label: 'Last Reviewed', selector: 'span[data-testid="text-last-review"]', type: 'text', group: 'Contact' },
+    { key: 'supervisor_comment', label: 'Coordinator Comment', selector: 'p[data-testid="text-supervisor-comment"]', type: 'textarea', group: 'Contact' },
+    { key: 'supervisor_signature', label: 'Coordinator Signature', selector: 'p[data-testid="text-supervisor-signature"]', type: 'text', group: 'Contact' },
+    // Export card
+    { key: 'export_title', label: 'Export Card Title', selector: 'h3[data-testid="text-export-title"]', type: 'text', group: 'Export' },
+    { key: 'export_description', label: 'Export Card Description', selector: 'p[data-testid="text-export-description"]', type: 'textarea', group: 'Export' },
+    // Footer
+    { key: 'footer_brand', label: 'Footer Brand', selector: '.footer-brand span', type: 'text', group: 'Footer' },
+    { key: 'footer_privacy', label: 'Footer Link: Privacy', selector: '.footer-links a:nth-of-type(1)', type: 'text', group: 'Footer' },
+    { key: 'footer_help', label: 'Footer Link: Help', selector: '.footer-links a:nth-of-type(2)', type: 'text', group: 'Footer' }
   ];
+
+  const HIDDEN_CONTENT_GROUPS = new Set([
+    'CAS Overview',
+    'Recent Activities',
+    'Timeline',
+    'Reflection',
+    'Progress',
+    'Gallery',
+    'Contact',
+    'Export',
+    'Footer'
+  ]);
 
   // Utilities
   function save(key, value) {
@@ -473,21 +529,22 @@
     // Build grouped fields
     const groups = {};
     contentFields.forEach(f => {
+      if (HIDDEN_CONTENT_GROUPS.has(f.group)) return;
       if (!groups[f.group]) groups[f.group] = [];
       groups[f.group].push(f);
     });
     container.innerHTML = '';
 
     Object.keys(groups).forEach(groupName => {
+      const displayFields = groups[groupName].filter(field => field.type !== 'text' && field.type !== 'textarea');
+      if (displayFields.length === 0) return;
       const section = document.createElement('div');
       section.className = 'panel-section';
       const title = document.createElement('h4');
       title.textContent = groupName;
       section.appendChild(title);
 
-      groups[groupName].forEach(field => {
-        // Skip text fields in the panel; use inline editing on page
-        if (field.type === 'text' || field.type === 'textarea') return;
+      displayFields.forEach(field => {
         const el = document.querySelector(field.selector);
         if (!el) return; // skip missing elements
         const formGroup = document.createElement('div');
