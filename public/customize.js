@@ -102,6 +102,24 @@
   function $(sel) { return document.querySelector(sel); }
   function $all(sel) { return Array.from(document.querySelectorAll(sel)); }
 
+  function lockScroll() {
+    if (typeof window.lockBodyScroll === 'function') {
+      window.lockBodyScroll();
+    } else {
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    }
+  }
+
+  function unlockScroll() {
+    if (typeof window.unlockBodyScroll === 'function') {
+      window.unlockBodyScroll();
+    } else if (!document.querySelector('.modal.show')) {
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+  }
+
   function hexToRgb(hex) {
     const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
     if (!m) return null;
@@ -600,7 +618,7 @@
   function openAddSectionModal() {
     const modal = $('#add-section-modal');
     if (modal) modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
+    lockScroll();
     const form = $('#add-section-form');
     if (form && !form.dataset.bound) {
       form.addEventListener('submit', (e) => {
@@ -629,7 +647,7 @@
   function closeAddSectionModal() {
     const modal = $('#add-section-modal');
     if (modal) modal.classList.remove('show');
-    document.body.style.overflow = '';
+    unlockScroll();
   }
 
   // Reset customization

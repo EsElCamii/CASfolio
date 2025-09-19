@@ -110,6 +110,18 @@ function saveData() {
 let currentFilter = 'all';
 let learningOutcomes = [];
 
+function lockBodyScroll() {
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+}
+
+function unlockBodyScroll() {
+    if (!document.querySelector('.modal.show')) {
+        document.body.style.overflow = '';
+        document.documentElement.style.overflow = '';
+    }
+}
+
 // Utility functions
 function formatDate(dateString) {
     const date = new Date(dateString);
@@ -571,10 +583,6 @@ function openAddActivityDialog(activityId = null) {
     // Close any open modals first
     document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
     
-    // Show the modal
-    modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
-    
     if (activityId) {
         // Edit mode
         currentActivityId = activityId;
@@ -628,7 +636,7 @@ function openAddActivityDialog(activityId = null) {
     }
     
     modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
 }
 
 function openAddReflectionDialog() {
@@ -642,9 +650,7 @@ function closeAddActivityDialog() {
     if (modal) {
         modal.classList.remove('show');
     }
-    // Re-enable body scrolling
-    document.body.style.overflow = 'auto';
-    document.documentElement.style.overflow = 'auto';
+    unlockBodyScroll();
     // Reset modal scroll position
     if (modal) {
         modal.scrollTop = 0;
@@ -708,10 +714,6 @@ function viewActivityDetail(activityId) {
     const reflections = currentReflections.filter(r => r.activityId === activityId);
     const modal = document.getElementById('activity-detail-modal');
     const content = document.getElementById('activity-detail-content');
-    
-    // Disable body scrolling when modal is open
-    document.body.style.overflow = 'hidden';
-    
     content.innerHTML = `
         <div class="activity-detail-grid">
             <div class="activity-detail-main">
@@ -802,7 +804,7 @@ function viewActivityDetail(activityId) {
     `;
     
     modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
 }
 
 function deleteActivity(activityId) {
@@ -817,8 +819,11 @@ function deleteActivity(activityId) {
         saveData();
         
         // Close the modal and reset body overflow
-        document.body.style.overflow = '';
-        document.getElementById('activity-detail-modal').classList.remove('show');
+        const detailModal = document.getElementById('activity-detail-modal');
+        if (detailModal) {
+            detailModal.classList.remove('show');
+        }
+        unlockBodyScroll();
         
         // Re-render the UI
         renderActivitiesGrid();
@@ -838,13 +843,9 @@ function closeActivityDetail() {
     const modal = document.getElementById('activity-detail-modal');
     if (modal) {
         modal.classList.remove('show');
+        modal.scrollTop = 0;
     }
-    // Re-enable body scrolling
-    document.body.style.overflow = 'auto';
-    document.documentElement.style.overflow = 'auto';
-    document.body.style.overflow = '';
-    // Reset modal scroll position
-    modal.scrollTop = 0;
+    unlockBodyScroll();
 }
 
 // Form submission handlers
@@ -1089,6 +1090,7 @@ function initializeEventListeners() {
         modal.addEventListener('click', function(e) {
             if (e.target === modal) {
                 modal.classList.remove('show');
+                unlockBodyScroll();
             }
         });
     });
@@ -1099,6 +1101,7 @@ function initializeEventListeners() {
             document.querySelectorAll('.modal.show').forEach(modal => {
                 modal.classList.remove('show');
             });
+            unlockBodyScroll();
         }
     });
 
@@ -1154,9 +1157,9 @@ function openPhotosModal() {
             </div>
         `).join('');
     }
-
+    
     modal.classList.add('show');
-    document.body.style.overflow = 'hidden';
+    lockBodyScroll();
 }
 
 function closePhotosModal() {
@@ -1164,6 +1167,5 @@ function closePhotosModal() {
     if (modal) {
         modal.classList.remove('show');
     }
-    document.body.style.overflow = 'auto';
-    document.documentElement.style.overflow = 'auto';
+    unlockBodyScroll();
 }
