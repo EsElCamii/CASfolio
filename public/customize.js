@@ -447,6 +447,30 @@
     // Build the content editor form list
     buildContentEditor();
 
+    // Brand image URL & fallback icon class
+    const brandImgInput = document.getElementById('brand-image-url');
+    const brandIconInput = document.getElementById('brand-icon-class');
+    if (brandImgInput && !brandImgInput.dataset.bound) {
+      brandImgInput.value = (content && content.brand_image_url) || '';
+      brandImgInput.addEventListener('change', () => {
+        content = content || {};
+        content.brand_image_url = brandImgInput.value.trim();
+        save(KEYS.CONTENT, content);
+        applyBrandVisual();
+      });
+      brandImgInput.dataset.bound = '1';
+    }
+    if (brandIconInput && !brandIconInput.dataset.bound) {
+      brandIconInput.value = (content && content.brand_icon) || 'fas fa-graduation-cap';
+      brandIconInput.addEventListener('input', () => {
+        content = content || {};
+        content.brand_icon = brandIconInput.value;
+        save(KEYS.CONTENT, content);
+        applyBrandVisual();
+      });
+      brandIconInput.dataset.bound = '1';
+    }
+
     // Inline editable fields save on blur
     $all('[data-editable="true"]').forEach(el => {
       if (el.dataset.editBound) return;
@@ -487,6 +511,8 @@
       section.appendChild(title);
 
       groups[groupName].forEach(field => {
+        // Skip text fields in the panel; use inline editing on page
+        if (field.type === 'text' || field.type === 'textarea') return;
         const el = document.querySelector(field.selector);
         if (!el) return; // skip missing elements
         const formGroup = document.createElement('div');

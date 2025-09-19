@@ -26,6 +26,7 @@
             <div class="nav-content">
                 <div class="nav-brand" data-testid="link-home">
                     <div class="nav-logo">
+                        <img id="brand-image" alt="Brand logo" style="display:none;" />
                         <i id="brand-icon" class="fas fa-graduation-cap" aria-hidden="true"></i>
                     </div>
                     <h1>IB CAS Portfolio</h1>
@@ -712,6 +713,18 @@
                         <input type="checkbox" id="toggle-inline-editing" role="switch" aria-checked="true">
                     </div>
                     <p class="helper-text">Tip: With inline editing on, click any highlighted text to edit directly.</p>
+                </div>
+                <div class="panel-section">
+                    <h4>Brand</h4>
+                    <div class="panel-row">
+                        <label for="brand-image-url">Brand Image URL</label>
+                        <input id="brand-image-url" class="small-input" type="url" placeholder="https://..." aria-label="Brand image URL">
+                    </div>
+                    <div class="panel-row">
+                        <label for="brand-icon-class">Fallback Icon Class</label>
+                        <input id="brand-icon-class" class="small-input" type="text" placeholder="fas fa-graduation-cap" aria-label="Brand icon class">
+                    </div>
+                    <p class="helper-text">Si no hay imagen, se usa el ícono configurado o el predeterminado.</p>
                 </div>
                 <div id="content-editor" class="panel-section" aria-live="polite"></div>
             </div>
