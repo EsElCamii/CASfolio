@@ -236,7 +236,7 @@ function renderHeroStats() {
     }
 }
 
-// Approximate duration in months based on activities
+// Approximate duration in months based on activities (earliest start → latest end or today)
 function calculateDurationMonths() {
     if (currentActivities.length === 0) return 0;
     const starts = currentActivities.map(a => new Date(a.startDate)).filter(d => !isNaN(d));
@@ -434,6 +434,7 @@ function renderProgressDashboard() {
     
     // Render progress categories
     const progressContainer = document.getElementById('progress-categories');
+    // Targets adjusted to 80 hours per category
     const categories = [
         { name: 'Creativity', current: stats.categoryStats.creativity.hours, target: 80, color: 'creativity' },
         { name: 'Activity', current: stats.categoryStats.activity.hours, target: 80, color: 'activity' },

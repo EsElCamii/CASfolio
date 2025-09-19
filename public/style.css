@@ -109,6 +109,7 @@ body {
     font-size: 1.25rem;
 }
 
+/* Brand image in nav-logo (fallback to icon when not provided) */
 .nav-logo img {
     width: 100%;
     height: 100%;
@@ -1163,7 +1164,7 @@ section {
     opacity: 1;
 }
 
-/* Customize UI */
+/* Customize UI (panel, overlay replacement, and FAB) */
 .customize-fab {
     position: fixed;
     right: 1rem;

@@ -168,10 +168,29 @@
     el.textContent = text;
   }
 
+  // Sets icon class for brand fallback icon
   function setIcon(el, classNames) {
     const classes = String(classNames || '').trim();
     el.className = classes || 'fas fa-graduation-cap';
     el.setAttribute('aria-hidden', 'true');
+  }
+
+  // Toggle between brand image and brand icon based on Content settings
+  function applyBrandVisual() {
+    const icon = document.getElementById('brand-icon');
+    const img = document.getElementById('brand-image');
+    const url = content && content.brand_image_url ? String(content.brand_image_url).trim() : '';
+    if (img && icon) {
+      if (url) {
+        img.src = url;
+        img.style.display = 'block';
+        icon.style.display = 'none';
+      } else {
+        img.style.display = 'none';
+        icon.style.display = 'inline-flex';
+        setIcon(icon, (content && content.brand_icon) || 'fas fa-graduation-cap');
+      }
+    }
   }
 
   // Ensure custom sections are in the DOM
