@@ -21,6 +21,8 @@
   // State
   let layout = null; // { order: [], visibility: { id: boolean } }
   let theme = null;  // { primary, secondary, accent, radius, dark }
+  const DEFAULT_HERO_IMAGE = 'https://i.ibb.co/My6BRxMH/A-adir-un-t-tulo.png';
+
   let content = null; // { heroTitle, heroSubtitle, heroDescription, heroImageUrl }
   let customSections = []; // [{ id, name, content, visible }]
 
@@ -171,7 +173,7 @@
     });
     // Hero image
     const img = $('#hero-profile-image');
-    if (img && content.heroImageUrl) img.src = content.heroImageUrl;
+    if (img) img.src = content.heroImageUrl || DEFAULT_HERO_IMAGE;
   }
 
   function migrateContentSchema() {
