@@ -22,6 +22,7 @@ body {
     --background: #ffffff;
     --foreground: #1a1a1a;
     --primary: #3b82f6;
+    --primary-rgb: 59, 130, 246;
     --primary-foreground: #ffffff;
     --secondary: #10b981;
     --secondary-foreground: #064e3b;
@@ -185,6 +186,8 @@ body {
     text-decoration: none;
     white-space: nowrap;
 }
+
+.btn-sm { padding: 0.4rem 0.6rem; font-size: 0.8rem; }
 
 .btn-primary {
     background: var(--primary);
@@ -1151,6 +1154,126 @@ section {
 .footer-links a:hover {
     opacity: 1;
 }
+
+/* Customize UI */
+.customize-fab {
+    position: fixed;
+    right: 1rem;
+    bottom: 1rem;
+    z-index: 1100;
+}
+
+.customize-panel-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1300;
+}
+
+.customize-panel-overlay.show { display: block; }
+
+.customize-panel {
+    position: fixed;
+    top: 0;
+    right: -420px;
+    width: 420px;
+    max-width: 100vw;
+    height: 100vh;
+    background: var(--card);
+    border-left: 1px solid var(--border);
+    box-shadow: var(--shadow-lg);
+    z-index: 1400;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.25s ease-in-out;
+}
+
+.customize-panel.show { right: 0; }
+
+.customize-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.customize-panel-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.customize-panel-body {
+    padding: 1rem;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.customize-tabs {
+    display: flex;
+    gap: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1rem;
+}
+
+.customize-tab {
+    background: transparent;
+    border: none;
+    padding: 0.5rem 0.75rem;
+    color: var(--muted-foreground);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+}
+
+.customize-tab.active {
+    color: var(--primary);
+    border-color: var(--primary);
+}
+
+.panel-section { margin-bottom: 1.25rem; }
+.panel-section h4 { font-size: 0.95rem; margin-bottom: 0.5rem; }
+.panel-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.panel-row label { font-size: 0.875rem; color: var(--muted-foreground); }
+.panel-row input[type="color"] { width: 2rem; height: 2rem; padding: 0; border: none; background: transparent; }
+.panel-footer { border-top: 1px solid var(--border); padding: 0.75rem 1rem; display: flex; gap: 0.5rem; justify-content: space-between; align-items: center; }
+
+/* Sections list */
+.sections-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.section-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 0.5rem;
+}
+.section-item[draggable="true"] { cursor: grab; }
+.section-item.dragging { opacity: 0.6; }
+.drag-handle { color: var(--muted-foreground); cursor: grab; padding: 0 0.25rem; }
+.section-item .section-name { flex: 1; font-size: 0.9rem; }
+.reorder-controls { display: inline-flex; gap: 0.25rem; }
+.reorder-controls .btn { padding: 0.4rem 0.6rem; }
+
+/* Editable focus styling */
+[contenteditable="true"].editable, .editable:focus {
+    outline: 2px dashed var(--primary);
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Custom Section */
+.custom-section { background: var(--muted); }
+.custom-section .custom-content { max-width: 800px; margin: 0 auto; }
+.custom-section .custom-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); }
+.custom-section .custom-title { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--foreground); }
+.custom-section .custom-text { color: var(--muted-foreground); line-height: 1.7; font-size: 1.05rem; }
+
+/* Add Section Modal */
+.small-input { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--background); color: var(--foreground); }
+.small-textarea { width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--background); color: var(--foreground); }
+
 
 /* Modal Styles */
 .modal {

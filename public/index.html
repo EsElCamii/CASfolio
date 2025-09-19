@@ -17,7 +17,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <!-- Navigation -->
@@ -39,6 +39,7 @@
                     <button onclick="scrollToSection('service')" data-testid="nav-service">Service</button>
                     <button onclick="scrollToSection('timeline')" data-testid="nav-timeline">Timeline</button>
                     <button onclick="scrollToSection('contact')" data-testid="nav-contact">Contact</button>
+                    <button onclick="openCustomizePanel()" aria-label="Customize" title="Customize" data-testid="nav-customize">Customize</button>
                 </div>
                 
                 <!-- Mobile Menu Button -->
@@ -55,6 +56,7 @@
                 <button onclick="scrollToSection('service')" data-testid="nav-mobile-service">Service</button>
                 <button onclick="scrollToSection('timeline')" data-testid="nav-mobile-timeline">Timeline</button>
                 <button onclick="scrollToSection('contact')" data-testid="nav-mobile-contact">Contact</button>
+                <button onclick="openCustomizePanel()" data-testid="nav-mobile-customize">Customize</button>
             </div>
         </div>
     </nav>
@@ -64,9 +66,9 @@
         <div class="container">
             <div class="hero-content">
                 <div class="hero-text">
-                    <h1 data-testid="text-hero-title">IB CAS Journey</h1>
-                    <p class="hero-subtitle" data-testid="text-hero-subtitle">Documenting Creativity, Activity & Service</p>
-                    <p class="hero-description" data-testid="text-hero-description">
+                    <h1 id="hero-title" data-testid="text-hero-title" data-editable="true">IB CAS Journey</h1>
+                    <p id="hero-subtitle" class="hero-subtitle" data-testid="text-hero-subtitle" data-editable="true">Documenting Creativity, Activity & Service</p>
+                    <p id="hero-description" class="hero-description" data-testid="text-hero-description" data-editable="true">
                         Welcome to my IB CAS portfolio documenting my journey through creative projects, 
                         physical activities, and community service. This collection showcases my growth, 
                         reflections, and impact over the past two years.
@@ -82,7 +84,7 @@
                             <div class="stat-label">Hours</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number" data-testid="text-duration">-</div>
+                            <div class="stat-number" id="total-months" data-testid="text-duration">-</div>
                             <div class="stat-label">Months</div>
                         </div>
                     </div>
@@ -101,7 +103,7 @@
                 
                 <div class="hero-image">
                     <div class="profile-card">
-                        <img src="https://i.ibb.co/d441QJ0S/IMG-3197.jpg" 
+                        <img id="hero-profile-image" src="https://i.ibb.co/d441QJ0S/IMG-3197.jpg" 
                              alt="Student profile photo" 
                              data-testid="img-student-profile">
                         <div class="achievement-badge">
@@ -115,7 +117,7 @@
     </section>
 
     <!-- CAS Overview -->
-    <section class="cas-overview">
+    <section id="overview" class="cas-overview" role="region" aria-label="CAS Overview">
         <div class="container">
             <div class="section-header">
                 <h2 data-testid="text-section-title">CAS Categories</h2>
@@ -177,7 +179,7 @@
     </section>
 
     <!-- Reflection Journal -->
-    <section class="reflection-journal">
+    <section id="reflection" class="reflection-journal" role="region" aria-label="Reflection Journal">
         <div class="container">
             <div class="section-header">
                 <h2 data-testid="text-section-title">Reflection Journal</h2>
@@ -248,7 +250,7 @@
     </section>
 
     <!-- Progress Dashboard -->
-    <section class="progress-dashboard">
+    <section id="progress" class="progress-dashboard" role="region" aria-label="Progress Overview">
         <div class="container">
             <div class="section-header">
                 <h2 data-testid="text-section-title">Progress Overview</h2>
@@ -641,7 +643,115 @@
         </div>
     </div>
 
+    <!-- Customize Floating Button -->
+    <button class="btn btn-primary customize-fab" id="customize-fab" aria-label="Customize portfolio" onclick="openCustomizePanel()">
+        <i class="fas fa-sliders-h" aria-hidden="true"></i>
+    </button>
+
+    <!-- Customization Panel -->
+    <aside id="customize-panel" class="customize-panel" role="dialog" aria-modal="true" aria-labelledby="customize-title">
+        <div class="customize-panel-header">
+            <h3 class="customize-panel-title" id="customize-title">Customize Portfolio</h3>
+            <button class="modal-close" aria-label="Close customization" onclick="closeCustomizePanel()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="customize-panel-body">
+            <div class="customize-tabs" role="tablist">
+                <button class="customize-tab active" role="tab" aria-selected="true" data-tab="layout">Layout</button>
+                <button class="customize-tab" role="tab" aria-selected="false" data-tab="theme">Theme</button>
+                <button class="customize-tab" role="tab" aria-selected="false" data-tab="content">Content</button>
+            </div>
+            <!-- Layout Tab -->
+            <div id="tab-layout" class="panel-tab" aria-labelledby="tab-layout" >
+                <div class="panel-section">
+                    <h4>Sections</h4>
+                    <div id="sections-list" class="sections-list" aria-describedby="sections-help"></div>
+                    <p id="sections-help" class="helper-text">Drag to reorder. Toggle to show/hide. Use arrows for keyboard.</p>
+                    <div class="panel-row">
+                        <button class="btn btn-outline" onclick="openAddSectionModal()"><i class="fas fa-plus"></i> Add Section</button>
+                        <button class="btn btn-outline" onclick="resetCustomization()"><i class="fas fa-undo"></i> Reset</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Theme Tab -->
+            <div id="tab-theme" class="panel-tab" hidden>
+                <div class="panel-section">
+                    <h4>Colors</h4>
+                    <div class="panel-row">
+                        <label for="color-primary">Primary</label>
+                        <input type="color" id="color-primary" aria-label="Primary color">
+                    </div>
+                    <div class="panel-row">
+                        <label for="color-secondary">Secondary</label>
+                        <input type="color" id="color-secondary" aria-label="Secondary color">
+                    </div>
+                    <div class="panel-row">
+                        <label for="color-accent">Accent</label>
+                        <input type="color" id="color-accent" aria-label="Accent color">
+                    </div>
+                </div>
+                <div class="panel-section">
+                    <h4>Appearance</h4>
+                    <div class="panel-row">
+                        <label for="radius-range">Corner radius</label>
+                        <input type="range" id="radius-range" min="0" max="16" step="1" aria-label="Corner radius">
+                    </div>
+                </div>
+            </div>
+            <!-- Content Tab -->
+            <div id="tab-content" class="panel-tab" hidden>
+                <div class="panel-section">
+                    <h4>Hero</h4>
+                    <div class="panel-row">
+                        <label for="hero-image-url">Profile Image URL</label>
+                        <input id="hero-image-url" class="small-input" type="url" placeholder="https://..." aria-label="Hero image URL">
+                    </div>
+                    <div class="panel-row">
+                        <label for="toggle-inline-editing">Inline editing</label>
+                        <input type="checkbox" id="toggle-inline-editing" role="switch" aria-checked="true">
+                    </div>
+                    <p class="helper-text">Tip: With inline editing on, click any highlighted text to edit directly.</p>
+                </div>
+                <div id="content-editor" class="panel-section" aria-live="polite"></div>
+            </div>
+        </div>
+        <div class="panel-footer">
+            <span class="helper-text">Changes save automatically.</span>
+            <div>
+                <button class="btn btn-outline" onclick="closeCustomizePanel()">Close</button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Add Custom Section Modal -->
+    <div class="modal" id="add-section-modal">
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="add-section-title">
+            <div class="modal-header">
+                <h3 id="add-section-title">Add Custom Section</h3>
+                <button class="modal-close" onclick="closeAddSectionModal()" aria-label="Close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="add-section-form" class="modal-form">
+                <div class="form-group">
+                    <label for="new-section-title">Section Title</label>
+                    <input id="new-section-title" name="title" type="text" class="small-input" placeholder="e.g., Volunteering Impact" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-section-content">Section Content</label>
+                    <textarea id="new-section-content" name="content" class="small-textarea" placeholder="Write your content..." required></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Add Section</button>
+                    <button type="button" class="btn btn-outline" onclick="closeAddSectionModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Scripts -->
     <script src="script.js"></script>
+    <script src="customize.js"></script>
 </body>
 </html>

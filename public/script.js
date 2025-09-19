@@ -229,6 +229,25 @@ function renderHeroStats() {
     const stats = calculateStats();
     document.getElementById('total-activities').textContent = stats.totalActivities + '+';
     document.getElementById('total-hours').textContent = stats.totalHours + '+';
+    const monthsEl = document.getElementById('total-months');
+    if (monthsEl) {
+        const months = calculateDurationMonths();
+        monthsEl.textContent = months + '+';
+    }
+}
+
+// Approximate duration in months based on activities
+function calculateDurationMonths() {
+    if (currentActivities.length === 0) return 0;
+    const starts = currentActivities.map(a => new Date(a.startDate)).filter(d => !isNaN(d));
+    const ends = currentActivities.map(a => a.endDate ? new Date(a.endDate) : new Date()).filter(d => !isNaN(d));
+    if (starts.length === 0 || ends.length === 0) return 0;
+    const minStart = new Date(Math.min.apply(null, starts));
+    const maxEnd = new Date(Math.max.apply(null, ends));
+    const years = maxEnd.getFullYear() - minStart.getFullYear();
+    const months = maxEnd.getMonth() - minStart.getMonth();
+    const total = years * 12 + months + (maxEnd.getDate() >= minStart.getDate() ? 0 : -1);
+    return Math.max(0, total + 1); // inclusive month rounding
 }
 
 function renderCategoriesGrid() {
