@@ -18,6 +18,41 @@
     
     <!-- Styles -->
     <link rel="stylesheet" href="style.css">
+    <script>
+        (function () {
+            if (typeof window === 'undefined') {
+                return;
+            }
+
+            if (!window.si) {
+                window.si = function () {
+                    (window.siq = window.siq || []).push(arguments);
+                };
+            }
+
+            var scriptSrc = '/_vercel/speed-insights/script.js';
+            if (document.head.querySelector('script[src*="' + scriptSrc + '"]')) {
+                return;
+            }
+
+            var script = document.createElement('script');
+            script.src = scriptSrc;
+            script.defer = true;
+            script.dataset.sdkn = '@vercel/speed-insights';
+            script.dataset.sdkv = '1.2.0';
+            var route = (window.location && window.location.pathname) || '/';
+            script.dataset.route = route || '/';
+            script.onerror = function () {
+                console.log(
+                    '[Vercel Speed Insights] Failed to load script from ' +
+                        scriptSrc +
+                        '. Please check if any content blockers are enabled and try again.'
+                );
+            };
+
+            document.head.appendChild(script);
+        })();
+    </script>
 </head>
 <body>
     <!-- Navigation -->
