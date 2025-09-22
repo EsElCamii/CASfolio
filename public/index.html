@@ -139,14 +139,21 @@
                 </div>
                 
                 <div class="hero-image">
-                    <div class="profile-card">
-                        <img id="hero-profile-image" src="https://i.ibb.co/My6BRxMH/A-adir-un-t-tulo.png" 
-                             alt="Student profile photo" 
-                             data-testid="img-student-profile">
-                        <div class="achievement-badge">
-                            <i class="fas fa-trophy"></i>
-                            <span data-testid="text-achievement">CAS Coordinator's Award</span>
+                    <div class="hero-dropzone" id="hero-image-dropzone" role="button" tabindex="0" aria-label="Upload hero image">
+                        <input id="hero-image-input" type="file" accept="image/*" aria-label="Choose hero image">
+                        <div class="hero-dropzone-content" id="hero-dropzone-content">
+                            <i class="fas fa-cloud-upload-alt" aria-hidden="true"></i>
+                            <p class="hero-dropzone-title">Drop an image or click to upload</p>
+                            <p class="hero-dropzone-subtitle">PNG, JPG, GIF up to 5MB</p>
                         </div>
+                        <img id="hero-profile-image"
+                             alt="Student profile photo"
+                             data-testid="img-student-profile"
+                             hidden>
+                    </div>
+                    <div class="achievement-badge" id="hero-achievement-badge" hidden>
+                        <i class="fas fa-trophy"></i>
+                        <span data-testid="text-achievement">CAS Coordinator's Award</span>
                     </div>
                 </div>
             </div>
@@ -743,6 +750,12 @@
                     <div class="panel-row">
                         <label for="hero-image-url">Profile Image URL</label>
                         <input id="hero-image-url" class="small-input" type="url" placeholder="https://..." aria-label="Hero image URL">
+                    </div>
+                    <div class="panel-row panel-row-actions">
+                        <button type="button" class="btn btn-outline btn-sm" id="hero-image-reset" data-testid="button-reset-hero-image">
+                            <i class="fas fa-redo"></i>
+                            Reset to default
+                        </button>
                     </div>
                     <div class="panel-row">
                         <label for="toggle-inline-editing">Inline editing</label>

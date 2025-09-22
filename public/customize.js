@@ -21,7 +21,7 @@
   // State
   let layout = null; // { order: [], visibility: { id: boolean } }
   let theme = null;  // { primary, secondary, accent, radius, dark }
-  const DEFAULT_HERO_IMAGE = 'https://i.ibb.co/My6BRxMH/A-adir-un-t-tulo.png';
+  const MAX_HERO_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB limit keeps localStorage usage reasonable.
 
   let content = null; // { heroTitle, heroSubtitle, heroDescription, heroImageUrl }
   let customSections = []; // [{ id, name, content, visible }]
@@ -157,23 +157,22 @@
 
   // Apply content (hero)
   function applyContent() {
-    if (!content) return;
-    migrateContentSchema();
-    // Generic fields
-    contentFields.forEach(f => {
-      if (!content.hasOwnProperty(f.key)) return;
-      const el = document.querySelector(f.selector);
-      if (!el) return;
-      // Special handling for brand icon class
-      if (el.id === 'brand-icon') {
-        setIcon(el, content[f.key]);
-      } else {
-        setText(el, content[f.key]);
-      }
-    });
-    // Hero image
-    const img = $('#hero-profile-image');
-    if (img) img.src = content.heroImageUrl || DEFAULT_HERO_IMAGE;
+    if (content) {
+      migrateContentSchema();
+      // Generic fields
+      contentFields.forEach(f => {
+        if (!content.hasOwnProperty(f.key)) return;
+        const el = document.querySelector(f.selector);
+        if (!el) return;
+        // Special handling for brand icon class
+        if (el.id === 'brand-icon') {
+          setIcon(el, content[f.key]);
+        } else {
+          setText(el, content[f.key]);
+        }
+      });
+    }
+    renderHeroImage((content && content.heroImageUrl) || '');
   }
 
   function migrateContentSchema() {
@@ -188,6 +187,139 @@
       if (content && content[oldK] && !content[newK]) { content[newK] = content[oldK]; changed = true; }
     });
     if (changed) save(KEYS.CONTENT, content);
+  }
+
+  function getHeroElements() {
+    return {
+      dropzone: document.getElementById('hero-image-dropzone'),
+      fileInput: document.getElementById('hero-image-input'),
+      image: document.getElementById('hero-profile-image'),
+      badge: document.getElementById('hero-achievement-badge'),
+      urlInput: document.getElementById('hero-image-url')
+    };
+  }
+
+  function renderHeroImage(src) {
+    const { dropzone, image, badge } = getHeroElements();
+    if (!dropzone || !image) return;
+    const hasImage = typeof src === 'string' && src.trim() !== '';
+    if (hasImage) {
+      image.hidden = false;
+      if (image.src !== src) image.src = src;
+      dropzone.classList.add('has-image');
+      dropzone.setAttribute('aria-label', 'Change hero image');
+      if (badge) badge.hidden = false;
+    } else {
+      image.dataset.suppressError = '1';
+      image.hidden = true;
+      if (image.hasAttribute('src')) image.removeAttribute('src');
+      dropzone.classList.remove('has-image');
+      dropzone.setAttribute('aria-label', 'Upload hero image');
+      if (badge) badge.hidden = true;
+      requestAnimationFrame(() => { delete image.dataset.suppressError; });
+    }
+  }
+
+  function setHeroImage(src, { persist = true } = {}) {
+    const normalized = (typeof src === 'string' && src.trim() !== '') ? src.trim() : '';
+    renderHeroImage(normalized);
+    if (!persist) return;
+    content = content || {};
+    if (normalized) {
+      content.heroImageUrl = normalized;
+    } else {
+      delete content.heroImageUrl;
+    }
+    save(KEYS.CONTENT, content);
+    const { urlInput } = getHeroElements();
+    if (urlInput) {
+      urlInput.value = normalized;
+    }
+  }
+
+  function clearHeroImage(options) {
+    setHeroImage('', options);
+  }
+
+  function processHeroImageFile(file) {
+    if (!file) return;
+    if (!file.type || !file.type.startsWith('image/')) {
+      alert('Please choose a valid image file.');
+      return;
+    }
+    if (file.size > MAX_HERO_IMAGE_SIZE) {
+      alert('Please choose an image up to 5MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setHeroImage(reader.result);
+        const { urlInput } = getHeroElements();
+        if (urlInput) urlInput.value = '';
+      }
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function setupHeroImageControls() {
+    const { dropzone, fileInput, image } = getHeroElements();
+    if (!dropzone || dropzone.dataset.bound) return;
+    dropzone.dataset.bound = '1';
+
+    const openPicker = () => { if (fileInput) fileInput.click(); };
+    dropzone.addEventListener('click', (event) => {
+      if (event.target === fileInput) return;
+      event.preventDefault();
+      openPicker();
+    });
+    dropzone.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        openPicker();
+      }
+    });
+
+    dropzone.addEventListener('dragenter', (event) => {
+      event.preventDefault();
+      dropzone.classList.add('is-dragover');
+    });
+    dropzone.addEventListener('dragover', (event) => {
+      event.preventDefault();
+      dropzone.classList.add('is-dragover');
+    });
+    dropzone.addEventListener('dragleave', () => {
+      dropzone.classList.remove('is-dragover');
+    });
+    dropzone.addEventListener('dragend', () => {
+      dropzone.classList.remove('is-dragover');
+    });
+    dropzone.addEventListener('drop', (event) => {
+      event.preventDefault();
+      dropzone.classList.remove('is-dragover');
+      const files = event.dataTransfer && event.dataTransfer.files;
+      if (files && files.length) {
+        processHeroImageFile(files[0]);
+      }
+    });
+
+    if (fileInput) {
+      fileInput.addEventListener('change', () => {
+        const files = fileInput.files;
+        if (files && files.length) {
+          processHeroImageFile(files[0]);
+        }
+        fileInput.value = '';
+      });
+    }
+
+    if (image) {
+      image.addEventListener('error', () => {
+        if (image.dataset.suppressError === '1') return;
+        console.warn('Hero image failed to load and has been cleared.');
+        clearHeroImage({ persist: true });
+      });
+    }
   }
 
   function setText(el, text) {
@@ -465,25 +597,23 @@
     applyContent();
 
     // Hero image input
-    const img = $('#hero-profile-image');
-    const input = $('#hero-image-url');
-    if (img && input && !input.dataset.bound) {
-      // Fallback to default if provided URL fails
-      const DEFAULT_HERO = 'hero-default.svg';
-      img.addEventListener('error', () => {
-        if (img.dataset.fallbackApplied !== '1') {
-          img.src = DEFAULT_HERO;
-          img.dataset.fallbackApplied = '1';
-        }
-      });
-      input.value = (content && content.heroImageUrl) || img.src || '';
+    const input = document.getElementById('hero-image-url');
+    if (input && !input.dataset.bound) {
+      input.value = (content && content.heroImageUrl) || '';
       input.addEventListener('change', () => {
-        content = content || {};
-        content.heroImageUrl = input.value.trim();
-        img.src = content.heroImageUrl;
-        save(KEYS.CONTENT, content);
+        setHeroImage(input.value.trim());
       });
       input.dataset.bound = '1';
+    }
+
+    const resetButton = document.getElementById('hero-image-reset');
+    if (resetButton && !resetButton.dataset.bound) {
+      resetButton.addEventListener('click', () => {
+        clearHeroImage({ persist: true });
+        const { fileInput } = getHeroElements();
+        if (fileInput) fileInput.value = '';
+      });
+      resetButton.dataset.bound = '1';
     }
 
     // Inline editing toggle
@@ -682,8 +812,9 @@
     loadState();
     ensureCustomSectionsInDOM();
     applyLayout();
+    setupHeroImageControls();
     if (theme) applyTheme();
-    if (content) applyContent();
+    applyContent();
   });
 
   function markEditable(enable) {
