@@ -85,17 +85,19 @@ const sampleData = {
     ]
 };
 
-// Data storage keys
+// Data storage keys used to namespace everything we keep in localStorage
 const STORAGE_KEYS = {
     ACTIVITIES: 'casfolio_activities',
     REFLECTIONS: 'casfolio_reflections'
 };
 
-// Load data from localStorage or initialize with empty arrays
+const PORTFOLIO_ONBOARDING_KEY = 'casfolio_portfolio_onboarding';
+
+// Load data from localStorage or initialize with empty arrays so a new visitor starts fresh
 let currentActivities = JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIVITIES)) || [];
 let currentReflections = JSON.parse(localStorage.getItem(STORAGE_KEYS.REFLECTIONS)) || [];
 
-// Save data to localStorage
+// Persist the latest activities and reflections to localStorage, warning the user if the write fails
 function saveData() {
     try {
         localStorage.setItem(STORAGE_KEYS.ACTIVITIES, JSON.stringify(currentActivities));
@@ -103,6 +105,170 @@ function saveData() {
     } catch (error) {
         console.error('Error saving data to localStorage:', error);
         alert('There was an error saving your data. Please try again.');
+    }
+}
+
+// Snapshot the current DOM values so the onboarding form can fall back to what is already rendered
+function getPortfolioOnboardingDefaults() {
+    const defaults = {};
+    const studentName = document.querySelector('[data-testid="text-student-name"]');
+    const studentRole = document.querySelector('[data-testid="text-student-role"]');
+    const studentSchool = document.querySelector('[data-testid="text-student-school"]');
+    const graduationClass = document.querySelector('[data-testid="text-graduation-class"]');
+    const studentEmail = document.querySelector('[data-testid="text-student-email"]');
+    const casPeriod = document.querySelector('[data-testid="text-cas-period"]');
+    const casSummary = document.querySelector('[data-testid="text-cas-summary"]');
+    const status = document.querySelector('[data-testid="text-portfolio-verified"]');
+    const lastReview = document.querySelector('[data-testid="text-last-review"]');
+    const notes = document.querySelector('[data-testid="text-supervisor-comment"]');
+    const signature = document.querySelector('[data-testid="text-supervisor-signature"]');
+    const coordinatorCard = document.getElementById('coordinator-card');
+    const supervisorName = document.querySelector('[data-testid="text-supervisor-name"]');
+    const supervisorRole = document.querySelector('[data-testid="text-supervisor-role"]');
+    const supervisorEmail = document.querySelector('[data-testid="text-supervisor-email"]');
+    const supervisorPhone = document.querySelector('[data-testid="text-supervisor-phone"]');
+
+    defaults.student_name = studentName ? studentName.textContent.trim() : '';
+    defaults.student_role = studentRole ? studentRole.textContent.trim() : '';
+    defaults.student_school = studentSchool ? studentSchool.textContent.trim() : '';
+    defaults.graduation_class = graduationClass ? graduationClass.textContent.trim() : '';
+    defaults.student_email = studentEmail ? studentEmail.textContent.trim() : '';
+    defaults.cas_period = casPeriod ? casPeriod.textContent.replace(/^CAS\s+Period:\s*/i, '').trim() : '';
+    defaults.cas_summary = casSummary ? casSummary.textContent.trim() : '';
+
+    const statusText = status ? status.textContent.trim() : '';
+    defaults.portfolio_status = mapStatusTextToValue(statusText);
+
+    if (lastReview) {
+        const lastReviewText = lastReview.textContent.replace(/^Last reviewed:\s*/i, '').trim();
+        const parsedDate = lastReviewText ? new Date(lastReviewText) : null;
+        defaults.last_reviewed = parsedDate && !isNaN(parsedDate.getTime()) ? parsedDate.toISOString().split('T')[0] : '';
+    } else {
+        defaults.last_reviewed = '';
+    }
+
+    defaults.verification_notes = notes ? notes.textContent.trim() : '';
+    defaults.coordinator_signature = signature ? signature.textContent.trim() : '';
+
+    defaults.include_coordinator = coordinatorCard ? !coordinatorCard.hidden : false;
+    defaults.coordinator_name = supervisorName ? supervisorName.textContent.trim() : '';
+    defaults.coordinator_role = supervisorRole ? supervisorRole.textContent.trim() : '';
+    defaults.coordinator_email = supervisorEmail ? supervisorEmail.textContent.trim() : '';
+    defaults.coordinator_phone = supervisorPhone ? supervisorPhone.textContent.trim() : '';
+
+    return defaults;
+}
+
+// Convert the portfolio card status text into the select option value used by the questionnaire
+function mapStatusTextToValue(text) {
+    const normalized = (text || '').toLowerCase();
+    if (normalized.includes('verified')) return 'verified';
+    if (normalized.includes('pending')) return 'pending';
+    if (normalized.includes('progress')) return 'in-progress';
+    return '';
+}
+
+// Convert stored select values back to the friendly labels rendered on the portfolio card
+function mapStatusValueToText(value) {
+    switch (value) {
+        case 'pending':
+            return 'Portfolio Pending Review';
+        case 'in-progress':
+            return 'Portfolio In Progress';
+        case 'verified':
+            return 'Portfolio Verified';
+        default:
+            return 'Portfolio Status';
+    }
+}
+
+// Load the saved questionnaire state, layering it on top of the current DOM defaults if necessary
+function getPortfolioOnboardingState() {
+    const defaults = getPortfolioOnboardingDefaults();
+    try {
+        const stored = localStorage.getItem(PORTFOLIO_ONBOARDING_KEY);
+        if (!stored) {
+            return { completed: false, data: defaults };
+        }
+        const parsed = JSON.parse(stored);
+        return {
+            completed: Boolean(parsed && parsed.completed),
+            data: parsed && parsed.data ? Object.assign({}, defaults, parsed.data) : defaults
+        };
+    } catch (error) {
+        console.warn('Failed to parse onboarding state, resetting.', error);
+        return { completed: false, data: defaults };
+    }
+}
+
+// Persist the questionnaire draft/completion flag so it survives reloads
+function savePortfolioOnboardingState(state) {
+    try {
+        localStorage.setItem(PORTFOLIO_ONBOARDING_KEY, JSON.stringify(state));
+    } catch (error) {
+        console.error('Error saving portfolio onboarding state:', error);
+    }
+}
+
+// Reflect questionnaire answers onto the live portfolio card elements
+function applyPortfolioInformation(data) {
+    const defaults = getPortfolioOnboardingDefaults();
+
+    function setText(selector, value, fallback) {
+        const el = document.querySelector(selector);
+        if (!el) return;
+        const text = value && value.trim() !== '' ? value.trim() : fallback;
+        if (typeof text === 'string') {
+            el.textContent = text;
+        }
+    }
+
+    setText('[data-testid="text-student-name"]', data.student_name, defaults.student_name);
+    setText('[data-testid="text-student-role"]', data.student_role, defaults.student_role);
+    setText('[data-testid="text-student-school"]', data.student_school, defaults.student_school);
+    setText('[data-testid="text-graduation-class"]', data.graduation_class, defaults.graduation_class);
+    setText('[data-testid="text-student-email"]', data.student_email, defaults.student_email);
+
+    const casPeriodValue = data.cas_period && data.cas_period.trim() !== '' ? `CAS Period: ${data.cas_period.trim()}` : `CAS Period: ${defaults.cas_period}`;
+    setText('[data-testid="text-cas-period"]', casPeriodValue, `CAS Period: ${defaults.cas_period}`);
+    setText('[data-testid="text-cas-summary"]', data.cas_summary, defaults.cas_summary);
+
+    const statusText = mapStatusValueToText(data.portfolio_status);
+    setText('[data-testid="text-portfolio-verified"]', statusText, mapStatusValueToText(defaults.portfolio_status));
+
+    const reviewEl = document.querySelector('[data-testid="text-last-review"]');
+    if (reviewEl) {
+        const rawDate = data.last_reviewed && data.last_reviewed.trim() !== '' ? data.last_reviewed : defaults.last_reviewed;
+        if (rawDate) {
+            const formatted = formatFullDate(rawDate);
+            reviewEl.textContent = `Last reviewed: ${formatted}`;
+        } else {
+            reviewEl.textContent = defaults.last_reviewed ? `Last reviewed: ${formatFullDate(defaults.last_reviewed)}` : 'Last reviewed: —';
+        }
+    }
+
+    setText('[data-testid="text-supervisor-comment"]', data.verification_notes, defaults.verification_notes);
+    setText('[data-testid="text-supervisor-signature"]', data.coordinator_signature, defaults.coordinator_signature);
+
+    const coordinatorCard = document.getElementById('coordinator-card');
+    const includeCoordinator = Boolean(data.include_coordinator);
+    if (coordinatorCard) {
+        const shouldHide = !includeCoordinator && !data.coordinator_name && !data.coordinator_email && !data.coordinator_phone;
+        coordinatorCard.hidden = shouldHide;
+        coordinatorCard.setAttribute('aria-hidden', shouldHide ? 'true' : 'false');
+    }
+
+    if (includeCoordinator) {
+        setText('[data-testid="text-supervisor-name"]', data.coordinator_name, defaults.coordinator_name);
+        setText('[data-testid="text-supervisor-role"]', data.coordinator_role, defaults.coordinator_role);
+        setText('[data-testid="text-supervisor-email"]', data.coordinator_email, defaults.coordinator_email);
+        setText('[data-testid="text-supervisor-phone"]', data.coordinator_phone, defaults.coordinator_phone);
+    } else if (coordinatorCard) {
+        // When hidden, clear aria-hidden line above ensures screen readers skip it
+        setText('[data-testid="text-supervisor-name"]', data.coordinator_name || defaults.coordinator_name, defaults.coordinator_name);
+        setText('[data-testid="text-supervisor-role"]', data.coordinator_role || defaults.coordinator_role, defaults.coordinator_role);
+        setText('[data-testid="text-supervisor-email"]', data.coordinator_email || defaults.coordinator_email, defaults.coordinator_email);
+        setText('[data-testid="text-supervisor-phone"]', data.coordinator_phone || defaults.coordinator_phone, defaults.coordinator_phone);
     }
 }
 
@@ -162,7 +328,7 @@ function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
-// Statistics calculation
+// Derived statistics shown in the hero counters and progress dashboard
 function calculateStats() {
     const totalActivities = currentActivities.length;
     const totalHours = currentActivities.reduce((sum, activity) => sum + activity.hours, 0);
@@ -191,7 +357,7 @@ function calculateStats() {
     };
 }
 
-// Navigation functions
+// Smooth scrolling helpers used by the navigation buttons
 function scrollToSection(sectionId) {
     const element = document.getElementById(sectionId);
     if (element) {
@@ -217,7 +383,7 @@ function toggleMobileMenu() {
     }
 }
 
-// Action handlers
+// Quick actions wired to CTA buttons in the hero and gallery
 function handleDownload() {
     window.print();
 }
@@ -639,6 +805,184 @@ function openAddActivityDialog(activityId = null) {
     lockBodyScroll();
 }
 
+function toggleCoordinatorFields(include, fieldsEl) {
+    if (!fieldsEl) return;
+    if (include) {
+        fieldsEl.hidden = false;
+    } else {
+        fieldsEl.hidden = true;
+    }
+}
+
+// Pre-fill the questionnaire inputs from whatever data source we currently trust (defaults or saved state)
+function populatePortfolioForm(form, data) {
+    if (!form) return;
+    const values = Object.assign({}, getPortfolioOnboardingDefaults(), data || {});
+    form.elements['student_name'].value = values.student_name || '';
+    form.elements['student_role'].value = values.student_role || '';
+    form.elements['student_school'].value = values.student_school || '';
+    form.elements['graduation_class'].value = values.graduation_class || '';
+    form.elements['student_email'].value = values.student_email || '';
+    form.elements['cas_period'].value = values.cas_period || '';
+    form.elements['cas_summary'].value = values.cas_summary || '';
+    form.elements['portfolio_status'].value = values.portfolio_status || '';
+    form.elements['last_reviewed'].value = values.last_reviewed || '';
+    form.elements['verification_notes'].value = values.verification_notes || '';
+    form.elements['coordinator_signature'].value = values.coordinator_signature || '';
+
+    const includeCoordinator = Boolean(values.include_coordinator);
+    const includeCheckbox = form.elements['include_coordinator'];
+    const coordinatorFields = document.getElementById('onboarding-coordinator-fields');
+    if (includeCheckbox) includeCheckbox.checked = includeCoordinator;
+    toggleCoordinatorFields(includeCoordinator, coordinatorFields);
+
+    if (includeCoordinator) {
+        if (form.elements['coordinator_name']) form.elements['coordinator_name'].value = values.coordinator_name || '';
+        if (form.elements['coordinator_role']) form.elements['coordinator_role'].value = values.coordinator_role || '';
+        if (form.elements['coordinator_email']) form.elements['coordinator_email'].value = values.coordinator_email || '';
+        if (form.elements['coordinator_phone']) form.elements['coordinator_phone'].value = values.coordinator_phone || '';
+    } else {
+        if (form.elements['coordinator_name']) form.elements['coordinator_name'].value = values.coordinator_name || '';
+        if (form.elements['coordinator_role']) form.elements['coordinator_role'].value = values.coordinator_role || '';
+        if (form.elements['coordinator_email']) form.elements['coordinator_email'].value = values.coordinator_email || '';
+        if (form.elements['coordinator_phone']) form.elements['coordinator_phone'].value = values.coordinator_phone || '';
+    }
+}
+
+// Read the questionnaire form into a normalized object so it can be saved or applied
+function collectPortfolioFormData(form) {
+    const data = {};
+    const formData = new FormData(form);
+
+    const getValue = (key) => {
+        const value = formData.get(key);
+        return typeof value === 'string' ? value.trim() : '';
+    };
+
+    data.student_name = getValue('student_name');
+    data.student_role = getValue('student_role');
+    data.student_school = getValue('student_school');
+    data.graduation_class = getValue('graduation_class');
+    data.student_email = getValue('student_email');
+    data.cas_period = getValue('cas_period');
+    data.cas_summary = getValue('cas_summary');
+    data.portfolio_status = getValue('portfolio_status');
+    data.last_reviewed = getValue('last_reviewed');
+    data.verification_notes = getValue('verification_notes');
+    data.coordinator_signature = getValue('coordinator_signature');
+
+    data.include_coordinator = formData.get('include_coordinator') === 'on';
+    if (data.include_coordinator) {
+        data.coordinator_name = getValue('coordinator_name');
+        data.coordinator_role = getValue('coordinator_role');
+        data.coordinator_email = getValue('coordinator_email');
+        data.coordinator_phone = getValue('coordinator_phone');
+    } else {
+        data.coordinator_name = '';
+        data.coordinator_role = '';
+        data.coordinator_email = '';
+        data.coordinator_phone = '';
+    }
+
+    return data;
+}
+
+// Save the current form state and optionally push changes back into the DOM
+function persistPortfolioOnboardingState(form, completed, options = {}) {
+    const data = collectPortfolioFormData(form);
+    const state = { completed: Boolean(completed), data };
+    savePortfolioOnboardingState(state);
+    if (options.syncDom) {
+        applyPortfolioInformation(data);
+    }
+    return state;
+}
+
+// Mount the first-visit questionnaire, handle partial saves, and hide it once the student finishes
+function initializePortfolioQuestionnaire() {
+    const modal = document.getElementById('portfolio-onboarding-modal');
+    const form = document.getElementById('portfolio-onboarding-form');
+    if (!modal || !form) return;
+
+    const closeBtn = document.getElementById('portfolio-onboarding-close');
+    const saveLaterBtn = document.getElementById('portfolio-onboarding-save-later');
+    const includeCheckbox = document.getElementById('onboarding-include-coordinator');
+    const coordinatorFields = document.getElementById('onboarding-coordinator-fields');
+
+    let state = getPortfolioOnboardingState();
+    populatePortfolioForm(form, state.data);
+    applyPortfolioInformation(state.data);
+
+    const firstInput = form.querySelector('input, select, textarea');
+
+    const showModal = () => {
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+        lockBodyScroll();
+        if (firstInput) {
+            setTimeout(() => {
+                firstInput.focus();
+            }, 50);
+        }
+    };
+
+    const hideModal = () => {
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+        unlockBodyScroll();
+    };
+
+    if (!state.completed) {
+        showModal();
+    }
+
+    form.addEventListener('input', () => {
+        state = persistPortfolioOnboardingState(form, false, { syncDom: false });
+    });
+
+    form.addEventListener('change', (event) => {
+        if (event.target === includeCheckbox) {
+            toggleCoordinatorFields(includeCheckbox.checked, coordinatorFields);
+        }
+    });
+
+    if (includeCheckbox) {
+        includeCheckbox.addEventListener('change', () => {
+            state = persistPortfolioOnboardingState(form, false, { syncDom: false });
+        });
+    }
+
+    if (saveLaterBtn) {
+        saveLaterBtn.addEventListener('click', () => {
+            state = persistPortfolioOnboardingState(form, false, { syncDom: true });
+            hideModal();
+        });
+    }
+
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            state = persistPortfolioOnboardingState(form, false, { syncDom: true });
+            hideModal();
+        });
+    }
+
+    modal.addEventListener('click', (event) => {
+        if (event.target === modal) {
+            state = persistPortfolioOnboardingState(form, false, { syncDom: true });
+        }
+    });
+
+    form.addEventListener('submit', (event) => {
+        event.preventDefault();
+        if (!form.checkValidity()) {
+            form.reportValidity();
+            return;
+        }
+        state = persistPortfolioOnboardingState(form, true, { syncDom: true });
+        hideModal();
+    });
+}
+
 function openAddReflectionDialog() {
     document.getElementById('add-reflection-modal').classList.add('show');
     clearReflectionForm();
@@ -679,7 +1023,7 @@ function populateActivitySelect() {
         ).join('');
 }
 
-// Learning outcomes management
+// Learning outcomes management keeps the tag UI in sync with the underlying array
 function addLearningOutcome() {
     const input = document.getElementById('learning-outcome-input');
     const value = input.value.trim();
@@ -706,7 +1050,7 @@ function renderLearningOutcomes() {
     `).join('');
 }
 
-// Activity detail view
+// Activity detail view assembles a richer modal with reflections and metadata
 function viewActivityDetail(activityId) {
     const activity = currentActivities.find(a => a.id === activityId);
     if (!activity) return;
@@ -848,7 +1192,7 @@ function closeActivityDetail() {
     unlockBodyScroll();
 }
 
-// Form submission handlers
+// Form submission handlers capture and persist user input from the activity and reflection modals
 function handleActivityFormSubmit(e) {
     e.preventDefault();
     
@@ -961,7 +1305,7 @@ function handleReflectionFormSubmit(e) {
     alert('Reflection created successfully!');
 }
 
-// Image upload and URL handler
+// Image upload and URL handler powers the activity header image picker
 document.addEventListener('DOMContentLoaded', function() {
     // Elements
     const imageUpload = document.getElementById('header-image-upload');
@@ -1071,7 +1415,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// Event listeners
+// Wire up event listeners that cannot be attached inline for accessibility reasons
 function initializeEventListeners() {
     // Form submissions
     document.getElementById('add-activity-form').addEventListener('submit', handleActivityFormSubmit);
@@ -1112,7 +1456,7 @@ function initializeEventListeners() {
     }
 }
 
-// Initialization
+// Kick off the initial render pipeline once the DOM is ready
 function initializeApp() {
     renderHeroStats();
     renderCategoriesGrid();
@@ -1122,6 +1466,7 @@ function initializeApp() {
     renderProgressDashboard();
     renderGallery();
     initializeEventListeners();
+    initializePortfolioQuestionnaire();
 }
 
 // Start the app when DOM is loaded

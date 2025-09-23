@@ -59,20 +59,22 @@
     { key: 'contact_description', label: 'Contact Description', selector: '#contact .section-header p', type: 'textarea', group: 'Contact' },
     { key: 'student_info_title', label: 'Student Info Card Title', selector: '#contact .contact-grid .card:nth-of-type(1) h3', type: 'text', group: 'Contact' },
     { key: 'student_name', label: 'Student Name', selector: 'p[data-testid="text-student-name"]', type: 'text', group: 'Contact' },
-    { key: 'student_role', label: 'Student Role', selector: '#contact .contact-grid .card:nth-of-type(1) .contact-item:nth-of-type(1) span', type: 'text', group: 'Contact' },
+    { key: 'student_role', label: 'Student Role', selector: 'span[data-testid="text-student-role"]', type: 'text', group: 'Contact' },
     { key: 'student_school', label: 'Student School', selector: 'p[data-testid="text-student-school"]', type: 'text', group: 'Contact' },
-    { key: 'student_class', label: 'Graduation Class', selector: '#contact .contact-grid .card:nth-of-type(1) .contact-item:nth-of-type(2) span', type: 'text', group: 'Contact' },
+    { key: 'student_class', label: 'Graduation Class', selector: 'span[data-testid="text-graduation-class"]', type: 'text', group: 'Contact' },
     { key: 'student_email', label: 'Student Email', selector: 'p[data-testid="text-student-email"]', type: 'text', group: 'Contact' },
-    { key: 'cas_period', label: 'CAS Period', selector: 'p[data-testid="text-cas-period"]', type: 'text', group: 'Contact' },
-    { key: 'supervisor_card_title', label: 'Coordinator Card Title', selector: 'h3[data-testid="text-supervisor-info-title"]', type: 'text', group: 'Contact' },
-    { key: 'supervisor_name', label: 'Coordinator Name', selector: 'p[data-testid="text-supervisor-name"]', type: 'text', group: 'Contact' },
-    { key: 'supervisor_title', label: 'Coordinator Title', selector: '#contact .contact-grid .card:nth-of-type(2) .contact-item:nth-of-type(1) span', type: 'text', group: 'Contact' },
-    { key: 'supervisor_email', label: 'Coordinator Email', selector: 'p[data-testid="text-supervisor-email"]', type: 'text', group: 'Contact' },
-    { key: 'supervisor_phone', label: 'Coordinator Phone', selector: 'p[data-testid="text-supervisor-phone"]', type: 'text', group: 'Contact' },
-    { key: 'portfolio_verified', label: 'Portfolio Verified', selector: 'p[data-testid="text-portfolio-verified"]', type: 'text', group: 'Contact' },
-    { key: 'last_reviewed', label: 'Last Reviewed', selector: 'span[data-testid="text-last-review"]', type: 'text', group: 'Contact' },
-    { key: 'supervisor_comment', label: 'Coordinator Comment', selector: 'p[data-testid="text-supervisor-comment"]', type: 'textarea', group: 'Contact' },
-    { key: 'supervisor_signature', label: 'Coordinator Signature', selector: 'p[data-testid="text-supervisor-signature"]', type: 'text', group: 'Contact' },
+    { key: 'cas_period', label: 'CAS Period Line', selector: 'p[data-testid="text-cas-period"]', type: 'text', group: 'Contact' },
+    { key: 'cas_summary', label: 'CAS Program Summary', selector: 'span[data-testid="text-cas-summary"]', type: 'text', group: 'Contact' },
+    { key: 'supervisor_card_title', label: 'Advisor Card Title', selector: 'h3[data-testid="text-supervisor-info-title"]', type: 'text', group: 'Contact' },
+    { key: 'show_coordinator_card', label: 'Show Advisor Card', selector: '#coordinator-card', type: 'toggle', group: 'Contact' },
+    { key: 'supervisor_name', label: 'Advisor Name', selector: 'p[data-testid="text-supervisor-name"]', type: 'text', group: 'Contact' },
+    { key: 'supervisor_title', label: 'Advisor Title', selector: 'span[data-testid="text-supervisor-role"]', type: 'text', group: 'Contact' },
+    { key: 'supervisor_email', label: 'Advisor Email', selector: 'p[data-testid="text-supervisor-email"]', type: 'text', group: 'Contact' },
+    { key: 'supervisor_phone', label: 'Advisor Phone', selector: 'p[data-testid="text-supervisor-phone"]', type: 'text', group: 'Contact' },
+    { key: 'portfolio_verified', label: 'Portfolio Status Text', selector: 'p[data-testid="text-portfolio-verified"]', type: 'text', group: 'Contact' },
+    { key: 'last_reviewed', label: 'Last Reviewed Line', selector: 'span[data-testid="text-last-review"]', type: 'text', group: 'Contact' },
+    { key: 'supervisor_comment', label: 'Advisor Comment', selector: 'p[data-testid="text-supervisor-comment"]', type: 'textarea', group: 'Contact' },
+    { key: 'supervisor_signature', label: 'Advisor Signature', selector: 'p[data-testid="text-supervisor-signature"]', type: 'text', group: 'Contact' },
     // Export card
     { key: 'export_title', label: 'Export Card Title', selector: 'h3[data-testid="text-export-title"]', type: 'text', group: 'Export' },
     { key: 'export_description', label: 'Export Card Description', selector: 'p[data-testid="text-export-description"]', type: 'textarea', group: 'Export' },
@@ -89,10 +91,48 @@
     'Reflection',
     'Progress',
     'Gallery',
-    'Contact',
     'Export',
     'Footer'
   ]);
+
+  const GROUPS_ALLOW_TEXT_CONTROLS = new Set(['Contact']);
+
+  // Defines the order and helper copy for the grouped fields in the Portfolio Information editor
+  const CONTACT_SECTION_LAYOUT = [
+    {
+      title: 'Section Header',
+      helper: 'Update how this portfolio section is introduced on the page.',
+      fields: ['contact_title', 'contact_description']
+    },
+    {
+      title: 'Student Information',
+      helper: 'Shown on the student card for quick reference.',
+      fields: ['student_info_title', 'student_name', 'student_role', 'student_school', 'student_class', 'student_email']
+    },
+    {
+      title: 'CAS Program Summary',
+      helper: 'Describe the timeframe and program structure.',
+      fields: ['cas_period', 'cas_summary']
+    },
+    {
+      title: 'Advisor Information',
+      helper: 'Toggle visibility or update your CAS advisor details.',
+      fields: ['show_coordinator_card', 'supervisor_card_title', 'supervisor_name', 'supervisor_title', 'supervisor_email', 'supervisor_phone']
+    },
+    {
+      title: 'Verification Notes',
+      helper: 'Record status updates or coordinator comments.',
+      fields: ['portfolio_verified', 'last_reviewed', 'supervisor_comment', 'supervisor_signature']
+    }
+  ];
+
+  const CONTACT_SECTION_INTRO = 'Manage the portfolio information cards that appear at the bottom of the page.';
+
+  // Optional helper text displayed under standard content groups in the editor
+  const CONTENT_GROUP_HELPERS = {
+    Hero: 'Edit the headline, description, and metrics shown at the top of the portfolio.',
+    Brand: 'Control the navigation brand text, image, and fallback icon.'
+  };
 
   // Utilities
   function save(key, value) {
@@ -160,16 +200,9 @@
     if (content) {
       migrateContentSchema();
       // Generic fields
-      contentFields.forEach(f => {
-        if (!content.hasOwnProperty(f.key)) return;
-        const el = document.querySelector(f.selector);
-        if (!el) return;
-        // Special handling for brand icon class
-        if (el.id === 'brand-icon') {
-          setIcon(el, content[f.key]);
-        } else {
-          setText(el, content[f.key]);
-        }
+      contentFields.forEach(field => {
+        if (!content.hasOwnProperty(field.key)) return;
+        applyFieldToDom(field, content[field.key]);
       });
     }
     renderHeroImage((content && content.heroImageUrl) || '');
@@ -337,6 +370,45 @@
     const classes = String(classNames || '').trim();
     el.className = classes || 'fas fa-graduation-cap';
     el.setAttribute('aria-hidden', 'true');
+  }
+
+  function applyFieldToDom(field, value) {
+    const el = document.querySelector(field.selector);
+    if (!el) return;
+
+    if (field.type === 'toggle') {
+      let shouldShow;
+      if (value === undefined || value === null) {
+        shouldShow = true;
+      } else if (typeof value === 'string') {
+        shouldShow = value !== 'false';
+      } else {
+        shouldShow = Boolean(value);
+      }
+      el.hidden = !shouldShow;
+      el.setAttribute('aria-hidden', shouldShow ? 'false' : 'true');
+      return;
+    }
+
+    let textValue = value;
+    if (textValue === undefined || textValue === null) {
+      textValue = '';
+    }
+    if (typeof textValue !== 'string') {
+      textValue = String(textValue);
+    }
+
+    if (el.id === 'brand-icon') {
+      setIcon(el, textValue);
+      return;
+    }
+
+    if (field.type === 'number') {
+      const num = parseInt(textValue, 10);
+      textValue = isNaN(num) ? textValue : String(num);
+    }
+
+    setText(el, textValue);
   }
 
   // Toggle between brand image and brand icon based on Content settings
@@ -681,77 +753,234 @@
     });
   }
 
+  // Build the Content tab controls dynamically so every mapped field stays in sync with the page
   function buildContentEditor() {
     const container = document.getElementById('content-editor');
     if (!container) return;
-    // Build grouped fields
+
     const groups = {};
+    const groupOrder = [];
     contentFields.forEach(f => {
       if (HIDDEN_CONTENT_GROUPS.has(f.group)) return;
-      if (!groups[f.group]) groups[f.group] = [];
+      if (!groups[f.group]) {
+        groups[f.group] = [];
+        groupOrder.push(f.group);
+      }
       groups[f.group].push(f);
     });
+
     container.innerHTML = '';
 
-    Object.keys(groups).forEach(groupName => {
-      const displayFields = groups[groupName].filter(field => field.type !== 'text' && field.type !== 'textarea');
+    groupOrder.forEach(groupName => {
+      const fields = groups[groupName];
+      if (!fields || fields.length === 0) return;
+
+      if (groupName === 'Contact') {
+        renderContactContentSection(container, fields);
+        return;
+      }
+
+      const allowTextInputs = GROUPS_ALLOW_TEXT_CONTROLS.has(groupName);
+      const displayFields = fields.filter(field => {
+        if (field.type === 'toggle') return true;
+        if (field.type === 'textarea' || field.type === 'text') {
+          return allowTextInputs;
+        }
+        return true;
+      });
       if (displayFields.length === 0) return;
+
       const section = document.createElement('div');
       section.className = 'panel-section';
       const title = document.createElement('h4');
       title.textContent = groupName;
       section.appendChild(title);
 
-      displayFields.forEach(field => {
-        const el = document.querySelector(field.selector);
-        if (!el) return; // skip missing elements
-        const formGroup = document.createElement('div');
-        formGroup.className = 'form-group';
-        const label = document.createElement('label');
-        label.setAttribute('for', 'input-' + field.key);
-        label.textContent = field.label;
-        formGroup.appendChild(label);
+      if (CONTENT_GROUP_HELPERS[groupName]) {
+        const helper = document.createElement('p');
+        helper.className = 'helper-text panel-helper';
+        helper.textContent = CONTENT_GROUP_HELPERS[groupName];
+        section.appendChild(helper);
+      }
 
-        let inputEl;
-        if (field.type === 'textarea') {
-          inputEl = document.createElement('textarea');
-          inputEl.className = 'small-textarea';
-          inputEl.rows = 3;
-        } else if (field.type === 'number') {
-          inputEl = document.createElement('input');
-          inputEl.type = 'number';
-          inputEl.min = '0';
-          inputEl.step = '1';
-          inputEl.className = 'small-input';
-        } else {
-          inputEl = document.createElement('input');
-          inputEl.type = 'text';
-          inputEl.className = 'small-input';
-        }
-        inputEl.id = 'input-' + field.key;
-        let initialValue = (content && content[field.key]) || (el.id === 'brand-icon' ? el.className : el.textContent.trim());
-        if (field.type === 'number') {
-          initialValue = String(parseInt(String(initialValue).replace(/[^0-9-]/g, ''), 10) || 0);
-        }
-        inputEl.value = initialValue;
-        inputEl.addEventListener('input', () => {
-          content = content || {};
-          if (el.id === 'brand-icon') {
-            setIcon(el, inputEl.value);
-          } else if (field.type === 'number') {
-            const num = parseInt(inputEl.value, 10);
-            content[field.key] = isNaN(num) ? 0 : num;
-          } else {
-            content[field.key] = inputEl.value;
-          }
-          save(KEYS.CONTENT, content);
-          if (el.id !== 'brand-icon') setText(el, inputEl.value);
-        });
-        formGroup.appendChild(inputEl);
-        section.appendChild(formGroup);
+      displayFields.forEach(field => {
+        const control = createFieldControl(field);
+        if (control) section.appendChild(control);
       });
+
       container.appendChild(section);
     });
+  }
+
+  // Create an individual input control for a mapped field (text, textarea, number, or toggle)
+  function createFieldControl(field) {
+    const el = document.querySelector(field.selector);
+    if (!el) return null;
+
+    const formGroup = document.createElement('div');
+    formGroup.className = 'form-group';
+
+    const id = 'input-' + field.key;
+
+    if (field.type === 'toggle') {
+      formGroup.classList.add('form-group-toggle');
+      const label = document.createElement('label');
+      label.className = 'toggle-label';
+      label.setAttribute('for', id);
+
+      const inputEl = document.createElement('input');
+      inputEl.type = 'checkbox';
+      inputEl.id = id;
+      inputEl.className = 'small-checkbox';
+
+      let storedValue;
+      if (content && Object.prototype.hasOwnProperty.call(content, field.key)) {
+        storedValue = content[field.key];
+      }
+      let initialChecked;
+      if (storedValue === undefined) {
+        initialChecked = !el.hidden;
+      } else if (typeof storedValue === 'string') {
+        initialChecked = storedValue !== 'false';
+      } else {
+        initialChecked = Boolean(storedValue);
+      }
+      inputEl.checked = initialChecked;
+
+      inputEl.addEventListener('change', () => {
+        content = content || {};
+        content[field.key] = inputEl.checked;
+        save(KEYS.CONTENT, content);
+        applyFieldToDom(field, inputEl.checked);
+      });
+
+      const textSpan = document.createElement('span');
+      textSpan.textContent = field.label;
+
+      label.appendChild(inputEl);
+      label.appendChild(textSpan);
+      formGroup.appendChild(label);
+      return formGroup;
+    }
+
+    const label = document.createElement('label');
+    label.setAttribute('for', id);
+    label.textContent = field.label;
+    formGroup.appendChild(label);
+
+    let inputEl;
+    if (field.type === 'textarea') {
+      inputEl = document.createElement('textarea');
+      inputEl.className = 'small-textarea';
+      inputEl.rows = 3;
+    } else if (field.type === 'number') {
+      inputEl = document.createElement('input');
+      inputEl.type = 'number';
+      inputEl.min = '0';
+      inputEl.step = '1';
+      inputEl.className = 'small-input';
+    } else {
+      inputEl = document.createElement('input');
+      inputEl.type = 'text';
+      inputEl.className = 'small-input';
+    }
+    inputEl.id = id;
+
+    let initialValue;
+    if (content && Object.prototype.hasOwnProperty.call(content, field.key)) {
+      initialValue = content[field.key];
+    } else if (el.id === 'brand-icon') {
+      initialValue = el.className;
+    } else {
+      initialValue = el.textContent.trim();
+    }
+    if (field.type === 'number') {
+      initialValue = String(parseInt(String(initialValue).replace(/[^0-9-]/g, ''), 10) || 0);
+    }
+    inputEl.value = initialValue || '';
+
+    const handleChange = () => {
+      content = content || {};
+      if (field.type === 'number') {
+        const num = parseInt(inputEl.value, 10);
+        content[field.key] = isNaN(num) ? 0 : num;
+        save(KEYS.CONTENT, content);
+        applyFieldToDom(field, content[field.key]);
+      } else {
+        content[field.key] = inputEl.value;
+        save(KEYS.CONTENT, content);
+        applyFieldToDom(field, inputEl.value);
+      }
+    };
+
+    inputEl.addEventListener('input', handleChange);
+    if (field.type === 'number') {
+      inputEl.addEventListener('change', handleChange);
+    }
+
+    formGroup.appendChild(inputEl);
+    return formGroup;
+  }
+
+  // Specialised renderer that groups the contact/advisor controls into meaningful subsections
+  function renderContactContentSection(container, fields) {
+    const fieldMap = new Map();
+    fields.forEach(field => {
+      fieldMap.set(field.key, field);
+    });
+
+    const section = document.createElement('div');
+    section.className = 'panel-section contact-section-panel';
+    const title = document.createElement('h4');
+    title.textContent = 'Portfolio Information';
+    section.appendChild(title);
+
+    if (CONTACT_SECTION_INTRO) {
+      const intro = document.createElement('p');
+      intro.className = 'helper-text panel-helper';
+      intro.textContent = CONTACT_SECTION_INTRO;
+      section.appendChild(intro);
+    }
+
+    CONTACT_SECTION_LAYOUT.forEach(config => {
+      const relevantFields = config.fields
+        .map(key => fieldMap.get(key))
+        .filter(Boolean);
+      if (relevantFields.length === 0) return;
+
+      const subsection = document.createElement('div');
+      subsection.className = 'content-subsection';
+
+      const heading = document.createElement('h5');
+      heading.className = 'panel-subheading';
+      heading.textContent = config.title;
+      subsection.appendChild(heading);
+
+      if (config.helper) {
+        const helper = document.createElement('p');
+        helper.className = 'helper-text subsection-helper';
+        helper.textContent = config.helper;
+        subsection.appendChild(helper);
+      }
+
+      relevantFields.forEach(field => {
+        const control = createFieldControl(field);
+        if (control) subsection.appendChild(control);
+        fieldMap.delete(field.key);
+      });
+
+      section.appendChild(subsection);
+    });
+
+    const remaining = Array.from(fieldMap.values());
+    if (remaining.length) {
+      remaining.forEach(field => {
+        const control = createFieldControl(field);
+        if (control) section.appendChild(control);
+      });
+    }
+
+    container.appendChild(section);
   }
 
   // Add Section Modal
@@ -819,6 +1048,7 @@
 
   function markEditable(enable) {
     contentFields.forEach(f => {
+      if (f.type === 'toggle') return;
       const el = document.querySelector(f.selector);
       if (!el) return;
       if (enable) {

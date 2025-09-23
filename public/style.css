@@ -1329,6 +1329,63 @@ section {
 .panel-row-actions .btn { gap: 0.35rem; }
 .panel-footer { border-top: 1px solid var(--border); padding: 0.75rem 1rem; display: flex; gap: 0.5rem; justify-content: space-between; align-items: center; }
 
+.customize-panel .panel-section {
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.35rem 1.5rem;
+}
+
+.customize-panel .panel-section + .panel-section {
+    margin-top: 1rem;
+}
+
+.customize-panel .panel-section.panel-stack {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.customize-panel .panel-section h4 {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 0.9rem;
+}
+
+.customize-panel .panel-helper {
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+    margin-bottom: 1.1rem;
+}
+
+.customize-panel .form-group {
+    margin-bottom: 1rem;
+}
+
+.customize-panel .form-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+    margin-bottom: 0.4rem;
+}
+
+.customize-panel .form-group input,
+.customize-panel .form-group textarea {
+    font-size: 0.9rem;
+    border-radius: calc(var(--radius) - 2px);
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--foreground);
+}
+
+.customize-panel .form-group textarea {
+    min-height: 104px;
+}
+
 /* Sections list */
 .sections-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .section-item {
@@ -1364,6 +1421,17 @@ section {
 /* Add Section Modal */
 .small-input { width: 100%; padding: 0.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--background); color: var(--foreground); }
 .small-textarea { width: 100%; min-height: 120px; padding: 0.75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--background); color: var(--foreground); }
+.small-checkbox { width: auto; height: 1rem; }
+.form-group-toggle { margin-bottom: 1rem; }
+.form-group-toggle .toggle-label { display: inline-flex; align-items: center; gap: 0.65rem; font-size: 0.85rem; font-weight: 600; color: var(--foreground); }
+.form-group-toggle .toggle-label input { margin: 0; accent-color: var(--primary); }
+.content-subsection { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem 1.25rem; margin-bottom: 1rem; }
+.content-subsection:last-of-type { margin-bottom: 0; }
+.panel-subheading { font-size: 0.95rem; font-weight: 600; color: var(--foreground); margin-bottom: 0.4rem; }
+.subsection-helper { margin-top: -0.15rem; margin-bottom: 0.9rem; font-size: 0.78rem; color: var(--muted-foreground); }
+.contact-section-panel { background: transparent; border: none; padding: 0; }
+.contact-section-panel .form-group { margin-bottom: 0.85rem; }
+.contact-section-panel .form-group:last-of-type { margin-bottom: 0; }
 
 
 /* Modal Styles */
@@ -1483,6 +1551,41 @@ section {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
     gap: 1rem;
+}
+
+.form-section {
+    border: none;
+    padding: 0;
+    margin-bottom: 1.75rem;
+}
+
+.form-section legend {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 1rem;
+    padding: 0;
+}
+
+.optional-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.optional-toggle input {
+    width: 1rem;
+    height: 1rem;
+}
+
+.optional-fields[hidden] {
+    display: none;
+}
+
+#portfolio-onboarding-modal .modal-content.onboarding {
+    max-width: 56rem;
 }
 
 .learning-outcomes-input {
@@ -2075,7 +2178,7 @@ margin-top: 1rem;
     .hero-text h1 {
         font-size: 2rem;
     }
-
+    
     .hero-buttons {
         flex-direction: column;
     }

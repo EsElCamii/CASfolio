@@ -55,7 +55,7 @@
     </script>
 </head>
 <body>
-    <!-- Navigation -->
+    <!-- Primary navigation for quick access to every portfolio section (desktop + mobile) -->
     <nav class="nav">
         <div class="container" id="nav-container">
             <div class="nav-content">
@@ -68,7 +68,7 @@
                     <h1>IB CAS Portfolio</h1>
                 </div>
                 
-                <!-- Desktop Navigation -->
+                <!-- Desktop navigation links anchored to page sections -->
                 <div class="nav-links">
                     <button onclick="scrollToSection('home')" data-testid="nav-home">Home</button>
                     <button onclick="scrollToSection('creativity')" data-testid="nav-creativity">Creativity</button>
@@ -79,13 +79,13 @@
                     <button onclick="openCustomizePanel()" aria-label="Customize" title="Customize" data-testid="nav-customize">Customize</button>
                 </div>
                 
-                <!-- Mobile Menu Button -->
+                <!-- Mobile menu trigger -->
                 <button class="mobile-menu-btn" onclick="toggleMobileMenu()" data-testid="button-mobile-menu">
                     <i class="fas fa-bars" id="mobile-menu-icon"></i>
                 </button>
             </div>
             
-            <!-- Mobile Navigation -->
+            <!-- Mobile navigation drawer -->
             <div class="mobile-menu" id="mobile-menu" data-testid="mobile-menu">
                 <button onclick="scrollToSection('home')" data-testid="nav-mobile-home">Home</button>
                 <button onclick="scrollToSection('creativity')" data-testid="nav-mobile-creativity">Creativity</button>
@@ -98,7 +98,7 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
+    <!-- Hero overview with summary stats and hero image uploader -->
     <section id="home" class="hero">
         <div class="container">
             <div class="hero-content">
@@ -160,7 +160,7 @@
         </div>
     </section>
 
-    <!-- CAS Overview -->
+    <!-- CAS strand overview highlighting Creativity, Activity and Service -->
     <section id="overview" class="cas-overview" role="region" aria-label="CAS Overview">
         <div class="container">
             <div class="section-header">
@@ -174,7 +174,7 @@
         </div>
     </section>
 
-    <!-- Recent Activities -->
+    <!-- Recent Activities teaser grid with quick add button -->
     <section id="recent" class="recent-activities">
         <div class="container">
             <div class="section-header-with-button">
@@ -202,7 +202,7 @@
         </div>
     </section>
 
-    <!-- Timeline -->
+    <!-- Timeline spotlighting the latest milestones -->
     <section id="timeline" class="timeline-section">
         <div class="container">
             <div class="section-header">
@@ -222,7 +222,7 @@
         </div>
     </section>
 
-    <!-- Reflection Journal -->
+    <!-- Reflection call-out showcasing the most recent entry -->
     <section id="reflection" class="reflection-journal" role="region" aria-label="Reflection Journal">
         <div class="container">
             <div class="section-header">
@@ -279,7 +279,7 @@
                 </div>
             </div>
             
-            <!-- Add New Reflection -->
+            <!-- Quick action card for creating a new reflection -->
             <div class="card add-reflection-card">
                 <div class="card-header">
                     <h3 data-testid="text-add-reflection-title">Add New Reflection</h3>
@@ -293,7 +293,7 @@
         </div>
     </section>
 
-    <!-- Progress Dashboard -->
+    <!-- Progress overview summarising hours toward each CAS strand -->
     <section id="progress" class="progress-dashboard" role="region" aria-label="Progress Overview">
         <div class="container">
             <div class="section-header">
@@ -302,7 +302,7 @@
             </div>
             
             <div class="progress-grid">
-                <!-- Hours Distribution -->
+                <!-- Hours distribution chart -->
                 <div class="progress-main">
                     <div class="card">
                         <h3 data-testid="text-hours-distribution-title">Hours Distribution</h3>
@@ -322,7 +322,7 @@
                     </div>
                 </div>
                 
-                <!-- Achievements & Quick Actions -->
+                <!-- Achievements list and quick shortcuts -->
                 <div class="progress-sidebar">
                     <div class="card">
                         <h3 data-testid="text-achievements-title">Achievements</h3>
@@ -353,7 +353,7 @@
         </div>
     </section>
 
-    <!-- Activity Gallery -->
+    <!-- Activity gallery with strand filters and photo modal -->
     <section id="gallery" class="activity-gallery">
         <div class="container">
             <div class="section-header">
@@ -386,7 +386,7 @@
         </div>
     </section>
 
-    <!-- Contact Section -->
+    <!-- Portfolio information cards for student and advisor details -->
     <section id="contact" class="contact-section">
         <div class="container">
             <div class="section-header">
@@ -403,14 +403,14 @@
                             <i class="fas fa-user"></i>
                             <div>
                                 <p data-testid="text-student-name">Alex Johnson</p>
-                                <span>IB Diploma Candidate</span>
+                                <span data-testid="text-student-role">IB Diploma Candidate</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-school"></i>
                             <div>
                                 <p data-testid="text-student-school">International School of Excellence</p>
-                                <span>Class of 2025</span>
+                                <span data-testid="text-graduation-class">Class of 2025</span>
                             </div>
                         </div>
                         <div class="contact-item">
@@ -424,21 +424,21 @@
                             <i class="fas fa-calendar"></i>
                             <div>
                                 <p data-testid="text-cas-period">CAS Period: Sep 2023 - May 2025</p>
-                                <span>Two-year program</span>
+                                <span data-testid="text-cas-summary">Two-year program</span>
                             </div>
                         </div>
                     </div>
                 </div>
                 
                 <!-- Supervisor Information -->
-                <div class="card">
+                <div class="card" id="coordinator-card">
                     <h3 data-testid="text-supervisor-info-title">CAS Coordinator</h3>
                     <div class="contact-info">
                         <div class="contact-item">
                             <i class="fas fa-user-check"></i>
                             <div>
                                 <p data-testid="text-supervisor-name">Ms. Sarah Martinez</p>
-                                <span>CAS Coordinator</span>
+                                <span data-testid="text-supervisor-role">CAS Coordinator</span>
                             </div>
                         </div>
                         <div class="contact-item">
@@ -495,7 +495,7 @@
         </div>
     </section>
 
-    <!-- Footer -->
+    <!-- Footer reminder with brand and support links -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -515,7 +515,127 @@
     </footer>
 
     <!-- Dialogs -->
-    <!-- Add Activity Dialog -->
+    <!-- Portfolio information onboarding workflow (first visit questionnaire) -->
+    <div class="modal" id="portfolio-onboarding-modal" aria-hidden="true">
+        <div class="modal-content onboarding" role="dialog" aria-modal="true" aria-labelledby="portfolio-onboarding-title">
+            <div class="modal-header">
+                <h3 id="portfolio-onboarding-title" data-testid="text-onboarding-title">Portfolio Information Setup</h3>
+                <button class="modal-close" type="button" id="portfolio-onboarding-close" aria-label="Close questionnaire">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p class="modal-description" data-testid="text-onboarding-description">
+                Answer a few questions so your portfolio details stay accurate. You only have to do this once.
+            </p>
+            <form id="portfolio-onboarding-form" class="modal-form" novalidate>
+                <fieldset class="form-section">
+                    <legend>Student Details</legend>
+                    <div class="form-group">
+                        <label for="onboarding-student-name">Student Name</label>
+                        <input id="onboarding-student-name" name="student_name" type="text" placeholder="Alex Johnson" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="onboarding-student-role">Program Role or Title</label>
+                        <input id="onboarding-student-role" name="student_role" type="text" placeholder="IB Diploma Candidate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="onboarding-student-school">School</label>
+                        <input id="onboarding-student-school" name="student_school" type="text" placeholder="International School of Excellence" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="onboarding-graduation-year">Graduation Class</label>
+                            <input id="onboarding-graduation-year" name="graduation_class" type="text" placeholder="Class of 2025" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="onboarding-student-email">Student Email</label>
+                            <input id="onboarding-student-email" name="student_email" type="email" placeholder="alex.johnson@student.ise.edu" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="onboarding-cas-period">CAS Period</label>
+                            <input id="onboarding-cas-period" name="cas_period" type="text" placeholder="Sep 2023 - May 2025" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="onboarding-cas-summary">Program Summary</label>
+                            <input id="onboarding-cas-summary" name="cas_summary" type="text" placeholder="Two-year program" required>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="form-section">
+                    <legend>Portfolio Status</legend>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="onboarding-portfolio-status">Portfolio Status</label>
+                            <select id="onboarding-portfolio-status" name="portfolio_status" required>
+                                <option value="">Select status...</option>
+                                <option value="pending">Pending Review</option>
+                                <option value="in-progress">In Progress</option>
+                                <option value="verified">Portfolio Verified</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="onboarding-last-reviewed">Last Reviewed</label>
+                            <input id="onboarding-last-reviewed" name="last_reviewed" type="date" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="onboarding-coordinator-comment">Verification Notes</label>
+                        <textarea id="onboarding-coordinator-comment" name="verification_notes" rows="3" placeholder="" aria-describedby="onboarding-coordinator-comment-helper"></textarea>
+                        <p id="onboarding-coordinator-comment-helper" class="helper-text">Optional reflection, quote, or verification remark.</p>
+                    </div>
+                </fieldset>
+
+                <fieldset class="form-section optional-section">
+                    <legend>
+                        <label class="optional-toggle">
+                            <input id="onboarding-include-coordinator" name="include_coordinator" type="checkbox">
+                            Include CAS Coordinator details
+                        </label>
+                    </legend>
+                    <div id="onboarding-coordinator-fields" class="optional-fields" hidden>
+                        <div class="form-group">
+                            <label for="onboarding-coordinator-name">Coordinator Name</label>
+                            <input id="onboarding-coordinator-name" name="coordinator_name" type="text" placeholder="Ms. Sarah Martinez">
+                        </div>
+                        <div class="form-group">
+                            <label for="onboarding-coordinator-role">Coordinator Title</label>
+                            <input id="onboarding-coordinator-role" name="coordinator_role" type="text" placeholder="CAS Coordinator">
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="onboarding-coordinator-email">Coordinator Email</label>
+                                <input id="onboarding-coordinator-email" name="coordinator_email" type="email" placeholder="s.martinez@ise.edu">
+                            </div>
+                            <div class="form-group">
+                                <label for="onboarding-coordinator-phone">Office Phone</label>
+                                <input id="onboarding-coordinator-phone" name="coordinator_phone" type="tel" placeholder="+1 (555) 123-4567">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="onboarding-coordinator-signature">Signature Line</label>
+                            <input id="onboarding-coordinator-signature" name="coordinator_signature" type="text" placeholder="- Ms. Martinez, CAS Coordinator">
+                        </div>
+                    </div>
+                </fieldset>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-outline" id="portfolio-onboarding-save-later" data-testid="button-onboarding-save-later">
+                        <i class="fas fa-save"></i>
+                        Save for Later
+                    </button>
+                    <button type="submit" class="btn btn-primary" data-testid="button-onboarding-complete">
+                        <i class="fas fa-check"></i>
+                        Save & Complete
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Activity dialog -->
     <div class="modal" id="add-activity-modal">
         <div class="modal-content" data-testid="dialog-add-activity">
             <div class="modal-header">
@@ -620,7 +740,7 @@
         </div>
     </div>
 
-    <!-- Add Reflection Dialog -->
+    <!-- Add Reflection dialog -->
     <div class="modal" id="add-reflection-modal">
         <div class="modal-content" data-testid="dialog-add-reflection">
             <div class="modal-header">
@@ -775,7 +895,7 @@
                     </div>
                     <p class="helper-text">Si no hay imagen, se usa el ícono configurado o el predeterminado.</p>
                 </div>
-                <div id="content-editor" class="panel-section" aria-live="polite"></div>
+                <div id="content-editor" class="panel-section panel-stack" aria-live="polite"></div>
             </div>
         </div>
         <div class="panel-footer">
