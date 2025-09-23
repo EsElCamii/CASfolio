@@ -1,0 +1,5 @@
+# Allow all crawlers to index the deployed site. Update the domain if you use a custom host.
+User-agent: *
+Allow: /
+
+Sitemap: https://casfolio.vercel.app/sitemap.xml
