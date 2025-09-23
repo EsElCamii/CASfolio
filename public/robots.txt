@@ -2,4 +2,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://casfolio.vercel.app/sitemap.xml
+Sitemap: https://cas-porfafolio.vercel.app/sitemap.xml
