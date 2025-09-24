@@ -288,6 +288,24 @@ function unlockBodyScroll() {
     }
 }
 
+function updateSelectControlVisualState(select) {
+    if (!select) return;
+    const value = typeof select.value === 'string' ? select.value.trim() : '';
+    select.dataset.value = value === '' ? 'empty' : value;
+}
+
+function enhanceSelectControl(select) {
+    if (!select) return;
+    if (select.dataset.selectEnhanced === '1') {
+        updateSelectControlVisualState(select);
+        return;
+    }
+    select.dataset.selectEnhanced = '1';
+    updateSelectControlVisualState(select);
+    select.addEventListener('change', () => updateSelectControlVisualState(select));
+    select.addEventListener('input', () => updateSelectControlVisualState(select));
+}
+
 // Utility functions
 function formatDate(dateString) {
     const date = new Date(dateString);
@@ -745,6 +763,10 @@ function openAddActivityDialog(activityId = null) {
     const form = document.getElementById('add-activity-form');
     const title = document.querySelector('#add-activity-modal h3');
     const submitBtn = document.querySelector('#add-activity-form button[type="submit"]');
+    const categorySelect = form ? form.elements['category'] : null;
+    const statusSelect = form ? form.elements['status'] : null;
+
+    if (!modal || !form || !title || !submitBtn) return;
     
     // Close any open modals first
     document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
@@ -792,6 +814,9 @@ function openAddActivityDialog(activityId = null) {
         title.textContent = 'Add New Activity';
         submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Activity';
     }
+
+    enhanceSelectControl(categorySelect);
+    enhanceSelectControl(statusSelect);
     
     modal.classList.add('show');
     lockBodyScroll();
@@ -821,6 +846,8 @@ function populatePortfolioForm(form, data) {
     form.elements['last_reviewed'].value = values.last_reviewed || '';
     form.elements['verification_notes'].value = values.verification_notes || '';
     form.elements['coordinator_signature'].value = values.coordinator_signature || '';
+
+    enhanceSelectControl(form.elements['portfolio_status']);
 
     const includeCoordinator = Boolean(values.include_coordinator);
     const includeCheckbox = form.elements['include_coordinator'];
@@ -1450,6 +1477,13 @@ function initializeEventListeners() {
     }
 }
 
+function initializeSelectControls() {
+    enhanceSelectControl(document.getElementById('onboarding-portfolio-status'));
+    enhanceSelectControl(document.querySelector('[data-testid="select-activity-category"]'));
+    enhanceSelectControl(document.querySelector('[data-testid="select-activity-status"]'));
+    enhanceSelectControl(document.querySelector('[data-testid="select-reflection-activity"]'));
+}
+
 // Kick off the initial render pipeline once the DOM is ready
 function initializeApp() {
     renderHeroStats();
@@ -1461,6 +1495,7 @@ function initializeApp() {
     renderGallery();
     initializeEventListeners();
     initializePortfolioQuestionnaire();
+    initializeSelectControls();
 }
 
 // Start the app when DOM is loaded

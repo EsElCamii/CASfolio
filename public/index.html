@@ -569,7 +569,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="onboarding-portfolio-status">Portfolio Status</label>
-                            <select id="onboarding-portfolio-status" name="portfolio_status" class="onboarding-portfolio-status" required>
+                            <select id="onboarding-portfolio-status" name="portfolio_status" class="onboarding-portfolio-status select-control select-control--status" required>
                                 <option value="">Select status...</option>
                                 <option value="pending">Pending Review</option>
                                 <option value="in-progress">In Progress</option>
@@ -688,7 +688,7 @@
 
                 <div class="form-group">
                     <label>Category</label>
-                    <select name="category" data-testid="select-activity-category" required>
+                    <select name="category" class="select-control select-control--category" data-testid="select-activity-category" required>
                         <option value="">Select category...</option>
                         <option value="creativity">Creativity</option>
                         <option value="activity">Activity</option>
@@ -714,7 +714,7 @@
                     </div>
                     <div class="form-group">
                         <label>Status</label>
-                        <select name="status" data-testid="select-activity-status" required>
+                        <select name="status" class="select-control select-control--status" data-testid="select-activity-status" required>
                             <option value="ongoing">Ongoing</option>
                             <option value="completed">Completed</option>
                         </select>
@@ -756,7 +756,7 @@
             <form id="add-reflection-form" class="modal-form">
                 <div class="form-group">
                     <label>Activity</label>
-                    <select name="activityId" data-testid="select-reflection-activity" required>
+                    <select name="activityId" class="select-control" data-testid="select-reflection-activity" required>
                         <option value="">Select an activity...</option>
                     </select>
                 </div>
