@@ -3,18 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IB CAS Portfolio - Documenting Creativity, Activity, and Service</title>
-    <meta name="description" content="Welcome to my IB CAS portfolio, where I document my journey through creative projects, physical activities, and community service. This collection showcases my growth, reflections, and impact over the past two years.">
-    <meta name="robots" content="index, follow">
-    <meta name="googlebot" content="index, follow">
-    <meta name="google-site-verification" content="rEHY9pto-CtJRLmwKh1gAb1yFurJk_UA0RQWCDe_vj4">
-
+    <title>IB CAS Portfolio - Documenting Creativity, Activity & Service</title>
+    <meta name="description" content="Welcome to my IB CAS portfolio documenting my journey through creative projects, physical activities, and community service. This collection showcases my growth, reflections, and impact over the past two years.">
+    
     <!-- Open Graph tags -->
-    <meta property="og:title" content="IB CAS Portfolio - Documenting Creativity, Activity, and Service">
+    <meta property="og:title" content="IB CAS Portfolio - Documenting Creativity, Activity & Service">
     <meta property="og:description" content="A comprehensive portfolio showcasing my IB CAS journey through creativity, activity, and service projects.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://cas-porfafolio.vercel.app/">
-    <link rel="canonical" href="https://cas-porfafolio.vercel.app/">
+    <meta property="og:url" content="/">
     
     <!-- Font imports -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -59,7 +55,7 @@
     </script>
 </head>
 <body>
-    <!-- Primary navigation for quick access to every portfolio section (desktop + mobile) -->
+    <!-- Navigation -->
     <nav class="nav">
         <div class="container" id="nav-container">
             <div class="nav-content">
@@ -72,7 +68,7 @@
                     <h1>IB CAS Portfolio</h1>
                 </div>
                 
-                <!-- Desktop navigation links anchored to page sections -->
+                <!-- Desktop Navigation -->
                 <div class="nav-links">
                     <button onclick="scrollToSection('home')" data-testid="nav-home">Home</button>
                     <button onclick="scrollToSection('creativity')" data-testid="nav-creativity">Creativity</button>
@@ -83,13 +79,13 @@
                     <button onclick="openCustomizePanel()" aria-label="Customize" title="Customize" data-testid="nav-customize">Customize</button>
                 </div>
                 
-                <!-- Mobile menu trigger -->
+                <!-- Mobile Menu Button -->
                 <button class="mobile-menu-btn" onclick="toggleMobileMenu()" data-testid="button-mobile-menu">
                     <i class="fas fa-bars" id="mobile-menu-icon"></i>
                 </button>
             </div>
             
-            <!-- Mobile navigation drawer -->
+            <!-- Mobile Navigation -->
             <div class="mobile-menu" id="mobile-menu" data-testid="mobile-menu">
                 <button onclick="scrollToSection('home')" data-testid="nav-mobile-home">Home</button>
                 <button onclick="scrollToSection('creativity')" data-testid="nav-mobile-creativity">Creativity</button>
@@ -102,16 +98,16 @@
         </div>
     </nav>
 
-    <!-- Hero overview with summary stats and hero image uploader -->
+    <!-- Hero Section -->
     <section id="home" class="hero">
         <div class="container">
             <div class="hero-content">
                 <div class="hero-text">
-                    <h1 id="hero-title" data-testid="text-hero-title" data-editable="true">Mi camino CAS</h1>
-                    <p id="hero-subtitle" class="hero-subtitle" data-testid="text-hero-subtitle" data-editable="true">Documenting Creativity, Activity, and Service</p>
+                    <h1 id="hero-title" data-testid="text-hero-title" data-editable="true">IB CAS Journey</h1>
+                    <p id="hero-subtitle" class="hero-subtitle" data-testid="text-hero-subtitle" data-editable="true">Documenting Creativity, Activity & Service</p>
                     <p id="hero-description" class="hero-description" data-testid="text-hero-description" data-editable="true">
-                        Welcome to my IB CAS portfolio, where I document my journey through creative projects,
-                        physical activities, and community service. This collection showcases my growth,
+                        Welcome to my IB CAS portfolio documenting my journey through creative projects, 
+                        physical activities, and community service. This collection showcases my growth, 
                         reflections, and impact over the past two years.
                     </p>
                     
@@ -155,7 +151,7 @@
                              data-testid="img-student-profile"
                              hidden>
                     </div>
-                    <div class="achievement-badge" id="hero-achievement-badge" hidden>
+                    <div class="achievement-badge" id="hero-achievement-badge" hidden> <!-- This is hidden for generalization pourposes-->
                         <i class="fas fa-trophy"></i>
                         <span data-testid="text-achievement">CAS Coordinator's Award</span>
                     </div>
@@ -164,7 +160,7 @@
         </div>
     </section>
 
-    <!-- CAS strand overview highlighting Creativity, Activity and Service -->
+    <!-- CAS Overview -->
     <section id="overview" class="cas-overview" role="region" aria-label="CAS Overview">
         <div class="container">
             <div class="section-header">
@@ -178,7 +174,7 @@
         </div>
     </section>
 
-    <!-- Recent Activities teaser grid with quick add button -->
+    <!-- Recent Activities -->
     <section id="recent" class="recent-activities">
         <div class="container">
             <div class="section-header-with-button">
@@ -206,7 +202,7 @@
         </div>
     </section>
 
-    <!-- Timeline spotlighting the latest milestones -->
+    <!-- Timeline -->
     <section id="timeline" class="timeline-section">
         <div class="container">
             <div class="section-header">
@@ -226,7 +222,7 @@
         </div>
     </section>
 
-    <!-- Reflection call-out showcasing the most recent entry -->
+    <!-- Reflection Journal -->
     <section id="reflection" class="reflection-journal" role="region" aria-label="Reflection Journal">
         <div class="container">
             <div class="section-header">
@@ -283,7 +279,7 @@
                 </div>
             </div>
             
-            <!-- Quick action card for creating a new reflection -->
+            <!-- Add New Reflection -->
             <div class="card add-reflection-card">
                 <div class="card-header">
                     <h3 data-testid="text-add-reflection-title">Add New Reflection</h3>
@@ -297,7 +293,7 @@
         </div>
     </section>
 
-    <!-- Progress overview summarising hours toward each CAS strand -->
+    <!-- Progress Dashboard -->
     <section id="progress" class="progress-dashboard" role="region" aria-label="Progress Overview">
         <div class="container">
             <div class="section-header">
@@ -306,7 +302,7 @@
             </div>
             
             <div class="progress-grid">
-                <!-- Hours distribution chart -->
+                <!-- Hours Distribution -->
                 <div class="progress-main">
                     <div class="card">
                         <h3 data-testid="text-hours-distribution-title">Hours Distribution</h3>
@@ -326,7 +322,7 @@
                     </div>
                 </div>
                 
-                <!-- Achievements list and quick shortcuts -->
+                <!-- Achievements & Quick Actions -->
                 <div class="progress-sidebar">
                     <div class="card">
                         <h3 data-testid="text-achievements-title">Achievements</h3>
@@ -357,7 +353,7 @@
         </div>
     </section>
 
-    <!-- Activity gallery with strand filters and photo modal -->
+    <!-- Activity Gallery -->
     <section id="gallery" class="activity-gallery">
         <div class="container">
             <div class="section-header">
@@ -390,7 +386,7 @@
         </div>
     </section>
 
-    <!-- Portfolio information cards for student and advisor details -->
+    <!-- Contact Section -->
     <section id="contact" class="contact-section">
         <div class="container">
             <div class="section-header">
@@ -406,29 +402,29 @@
                         <div class="contact-item">
                             <i class="fas fa-user"></i>
                             <div>
-                                <p data-testid="text-student-name">Noordwijk CAS Student</p>
-                                <span data-testid="text-student-role">IB Diploma Programme - CAS Years 1-2</span>
+                                <p data-testid="text-student-name">Alex Johnson</p>
+                                <span data-testid="text-student-role">IB Diploma Candidate</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-school"></i>
                             <div>
-                                <p data-testid="text-student-school">Noordwijk International College</p>
-                                <span data-testid="text-graduation-class">CAS Cohort 2026</span>
+                                <p data-testid="text-student-school">International School of Excellence</p>
+                                <span data-testid="text-graduation-class">Class of 2025</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-envelope"></i>
                             <div>
-                                <p data-testid="text-student-email">firstname.lastname@noordwijk.edu.mx</p>
+                                <p data-testid="text-student-email">alex.johnson@student.ise.edu</p>
                                 <span>Student Email</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-calendar"></i>
                             <div>
-                                <p data-testid="text-cas-period">CAS Period: Aug 2024 - May 2026</p>
-                                <span data-testid="text-cas-summary">Two-year CAS diploma certificate track</span>
+                                <p data-testid="text-cas-period">CAS Period: Sep 2023 - May 2025</p>
+                                <span data-testid="text-cas-summary">Two-year program</span>
                             </div>
                         </div>
                     </div>
@@ -441,38 +437,38 @@
                         <div class="contact-item">
                             <i class="fas fa-user-check"></i>
                             <div>
-                                <p data-testid="text-supervisor-name">Ms. Miriam Fragoso Rodriguez</p>
+                                <p data-testid="text-supervisor-name">Ms. Sarah Martinez</p>
                                 <span data-testid="text-supervisor-role">CAS Coordinator</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-envelope"></i>
                             <div>
-                                <p data-testid="text-supervisor-email">miriam.fragoso@noordwijk.edu.mx</p>
+                                <p data-testid="text-supervisor-email">s.martinez@ise.edu</p>
                                 <span>Coordinator Email</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-phone"></i>
                             <div>
-                                <p data-testid="text-supervisor-phone">+52 (555) 123-4567</p>
+                                <p data-testid="text-supervisor-phone">+1 (555) 123-4567</p>
                                 <span>Office Phone</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-check-circle"></i>
                             <div>
-                                <p data-testid="text-portfolio-verified">Portfolio In Progress</p>
-                                <span data-testid="text-last-review">Last reviewed: Update after latest advisory meeting</span>
+                                <p data-testid="text-portfolio-verified">Portfolio Verified</p>
+                                <span data-testid="text-last-review">Last reviewed: Nov 20, 2024</span>
                             </div>
                         </div>
                     </div>
                     
                     <div class="supervisor-comment">
                         <p data-testid="text-supervisor-comment">
-                            "Students are documenting their Noordwijk International College CAS journey with clarity and purpose."
+                            "Alex has demonstrated exceptional commitment to their CAS journey, showing genuine reflection and meaningful engagement with all activities."
                         </p>
-                        <p class="signature" data-testid="text-supervisor-signature">- M. Fragoso Rodriguez, CAS Coordinator</p>
+                        <p class="signature" data-testid="text-supervisor-signature">- Ms. Martinez, CAS Coordinator</p>
                     </div>
                 </div>
             </div>
@@ -499,7 +495,7 @@
         </div>
     </section>
 
-    <!-- Footer reminder with brand and support links -->
+    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -507,7 +503,7 @@
                     <div class="footer-logo">
                         <i class="fas fa-graduation-cap"></i>
                     </div>
-                    <span>Portafolio CAS IB</span>
+                    <span>IB CAS Portfolio</span>
                 </div>
                 <div class="footer-links">
                     <span>© 2024 Student Portfolio</span>
@@ -519,7 +515,7 @@
     </footer>
 
     <!-- Dialogs -->
-    <!-- Portfolio information onboarding workflow (first visit questionnaire) -->
+    <!-- Portfolio Information Onboarding -->
     <div class="modal" id="portfolio-onboarding-modal" aria-hidden="true">
         <div class="modal-content onboarding" role="dialog" aria-modal="true" aria-labelledby="portfolio-onboarding-title">
             <div class="modal-header">
@@ -536,34 +532,34 @@
                     <legend>Student Details</legend>
                     <div class="form-group">
                         <label for="onboarding-student-name">Student Name</label>
-                        <input id="onboarding-student-name" name="student_name" type="text" placeholder="Enter your full name..." required>
+                        <input id="onboarding-student-name" name="student_name" type="text" placeholder="Alex Johnson" required>
                     </div>
                     <div class="form-group">
                         <label for="onboarding-student-role">Program Role or Title</label>
-                        <input id="onboarding-student-role" name="student_role" type="text" placeholder="Enter your IB role (e.g., Diploma candidate)..." required>
+                        <input id="onboarding-student-role" name="student_role" type="text" placeholder="IB Diploma Candidate" required>
                     </div>
                     <div class="form-group">
                         <label for="onboarding-student-school">School</label>
-                        <input id="onboarding-student-school" name="student_school" type="text" placeholder="Enter your school (e.g., Noordwijk International College)..." required>
+                        <input id="onboarding-student-school" name="student_school" type="text" placeholder="International School of Excellence" required>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="onboarding-graduation-year">Graduation Class</label>
-                            <input id="onboarding-graduation-year" name="graduation_class" type="text" placeholder="Enter your graduation class (e.g., CAS Cohort 2026)" required>
+                            <input id="onboarding-graduation-year" name="graduation_class" type="text" placeholder="Class of 2025" required>
                         </div>
                         <div class="form-group">
                             <label for="onboarding-student-email">Student Email</label>
-                            <input id="onboarding-student-email" name="student_email" type="email" placeholder="Enter your school email (e.g., firstname.lastname@noordwijk.edu.mx)" required>
+                            <input id="onboarding-student-email" name="student_email" type="email" placeholder="alex.johnson@student.ise.edu" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="onboarding-cas-period">CAS Period</label>
-                            <input id="onboarding-cas-period" name="cas_period" type="text" placeholder="Enter your CAS period (e.g., Aug 2024 - May 2026)" required>
+                            <input id="onboarding-cas-period" name="cas_period" type="text" placeholder="Sep 2023 - May 2025" required>
                         </div>
                         <div class="form-group">
                             <label for="onboarding-cas-summary">Program Summary</label>
-                            <input id="onboarding-cas-summary" name="cas_summary" type="text" placeholder="Describe your CAS track (e.g., two-year diploma certificate)" required>
+                            <input id="onboarding-cas-summary" name="cas_summary" type="text" placeholder="Two-year program" required>
                         </div>
                     </div>
                 </fieldset>
@@ -573,7 +569,7 @@
                     <div class="form-row">
                         <div class="form-group">
                             <label for="onboarding-portfolio-status">Portfolio Status</label>
-                            <select id="onboarding-portfolio-status" name="portfolio_status" required>
+                            <select id="onboarding-portfolio-status" name="portfolio_status" class="onboarding-portfolio-status" required>
                                 <option value="">Select status...</option>
                                 <option value="pending">Pending Review</option>
                                 <option value="in-progress">In Progress</option>
@@ -587,7 +583,7 @@
                     </div>
                     <div class="form-group">
                         <label for="onboarding-coordinator-comment">Verification Notes</label>
-                        <textarea id="onboarding-coordinator-comment" name="verification_notes" rows="3" placeholder="Add any notes from Ms. Fragoso Rodriguez or the review meeting..." aria-describedby="onboarding-coordinator-comment-helper"></textarea>
+                        <textarea id="onboarding-coordinator-comment" name="verification_notes" rows="3" placeholder="" aria-describedby="onboarding-coordinator-comment-helper"></textarea>
                         <p id="onboarding-coordinator-comment-helper" class="helper-text">Optional reflection, quote, or verification remark.</p>
                     </div>
                 </fieldset>
@@ -602,7 +598,7 @@
                     <div id="onboarding-coordinator-fields" class="optional-fields" hidden>
                         <div class="form-group">
                             <label for="onboarding-coordinator-name">Coordinator Name</label>
-                            <input id="onboarding-coordinator-name" name="coordinator_name" type="text" placeholder="Ms. Miriam Fragoso Rodriguez">
+                            <input id="onboarding-coordinator-name" name="coordinator_name" type="text" placeholder="Ms. Sarah Martinez">
                         </div>
                         <div class="form-group">
                             <label for="onboarding-coordinator-role">Coordinator Title</label>
@@ -611,16 +607,16 @@
                         <div class="form-row">
                             <div class="form-group">
                                 <label for="onboarding-coordinator-email">Coordinator Email</label>
-                                <input id="onboarding-coordinator-email" name="coordinator_email" type="email" placeholder="miriam.fragoso@noordwijk.edu.mx">
+                                <input id="onboarding-coordinator-email" name="coordinator_email" type="email" placeholder="s.martinez@ise.edu">
                             </div>
                             <div class="form-group">
                                 <label for="onboarding-coordinator-phone">Office Phone</label>
-                                <input id="onboarding-coordinator-phone" name="coordinator_phone" type="tel" placeholder="+52 (555) 123-4567">
+                                <input id="onboarding-coordinator-phone" name="coordinator_phone" type="tel" placeholder="+1 (555) 123-4567">
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="onboarding-coordinator-signature">Signature Line</label>
-                            <input id="onboarding-coordinator-signature" name="coordinator_signature" type="text" placeholder="- M. Fragoso Rodriguez, CAS Coordinator">
+                            <input id="onboarding-coordinator-signature" name="coordinator_signature" type="text" placeholder="- Ms. Martinez, CAS Coordinator">
                         </div>
                     </div>
                 </fieldset>
@@ -639,7 +635,7 @@
         </div>
     </div>
 
-    <!-- Add Activity dialog -->
+    <!-- Add Activity Dialog -->
     <div class="modal" id="add-activity-modal">
         <div class="modal-content" data-testid="dialog-add-activity">
             <div class="modal-header">
@@ -744,7 +740,7 @@
         </div>
     </div>
 
-    <!-- Add Reflection dialog -->
+    <!-- Add Reflection Dialog -->
     <div class="modal" id="add-reflection-modal">
         <div class="modal-content" data-testid="dialog-add-reflection">
             <div class="modal-header">
@@ -897,7 +893,7 @@
                         <label for="brand-icon-class">Fallback Icon Class</label>
                         <input id="brand-icon-class" class="small-input" type="text" placeholder="fas fa-graduation-cap" aria-label="Brand icon class">
                     </div>
-                    <p class="helper-text">If no image is provided, the configured or default icon is used.</p>
+                    <p class="helper-text">Si no hay imagen, se usa el ícono configurado o el predeterminado.</p>
                 </div>
                 <div id="content-editor" class="panel-section panel-stack" aria-live="polite"></div>
             </div>

@@ -84,6 +84,9 @@
     { key: 'footer_help', label: 'Footer Link: Help', selector: '.footer-links a:nth-of-type(2)', type: 'text', group: 'Footer' }
   ];
 
+  const DEFAULT_HERO_TITLE = 'IB CAS Journey';
+  const LEGACY_HERO_TITLE = 'Mi camino CAS';
+
   const HIDDEN_CONTENT_GROUPS = new Set([
     'CAS Overview',
     'Recent Activities',
@@ -220,6 +223,24 @@
       if (content && content[oldK] && !content[newK]) { content[newK] = content[oldK]; changed = true; }
     });
     if (changed) save(KEYS.CONTENT, content);
+  }
+
+  function normalizeHeroTitle() {
+    let updated = false;
+    if (content && content.hero_title === LEGACY_HERO_TITLE && !content._heroTitleMigrated) {
+      content.hero_title = DEFAULT_HERO_TITLE;
+      content._heroTitleMigrated = true;
+      updated = true;
+    }
+
+    const heroTitleEl = document.getElementById('hero-title');
+    if (heroTitleEl && heroTitleEl.textContent.trim() === LEGACY_HERO_TITLE) {
+      heroTitleEl.textContent = DEFAULT_HERO_TITLE;
+    }
+
+    if (updated) {
+      save(KEYS.CONTENT, content);
+    }
   }
 
   function getHeroElements() {
@@ -1039,6 +1060,7 @@
   // Initialize on DOMContentLoaded
   document.addEventListener('DOMContentLoaded', () => {
     loadState();
+    normalizeHeroTitle();
     ensureCustomSectionsInDOM();
     applyLayout();
     setupHeroImageControls();

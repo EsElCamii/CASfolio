@@ -439,6 +439,22 @@ body {
     display: block;
 }
 
+.onboarding-portfolio-status {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    background: var(--background);
+    color: var(--foreground);
+    transition: border-color 0.2s;
+}
+
+.onboarding-portfolio-status:hover {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 1px var(--primary);
+}
+
 .achievement-badge {
     position: absolute;
     bottom: 0rem;
@@ -447,7 +463,7 @@ body {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     padding: 0.75rem;
-    display: none; /* Restore to flex when the badge feature goes live */
+    display: flex;
     align-items: center;
     gap: 0.5rem;
     box-shadow: var(--shadow-lg);
@@ -1156,36 +1172,6 @@ section {
     color: var(--muted-foreground);
 }
 
-/* Status Badges (profile/portfolio status) */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.25rem 0.6rem;
-    font-size: 0.75rem;
-    font-weight: 600;
-    border-radius: 9999px;
-    border: 1px solid var(--border);
-    letter-spacing: 0.01em;
-}
-
-/* Default mapping for current status text (In Progress) */
-.contact-item p[data-testid="text-portfolio-verified"] {
-    background: rgba(245, 158, 11, 0.14); /* accent */
-    color: #92400e; /* accent-foreground */
-    border-color: rgba(245, 158, 11, 0.25);
-    border-radius: 9999px;
-    padding: 0.25rem 0.6rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-}
-
-/* Optional semantic variants if applied in markup later */
-.status-verified { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
-.status-progress { background: rgba(245, 158, 11, 0.14); color: #92400e; border-color: rgba(245, 158, 11, 0.25); }
-.status-warning { background: #fef3c7; color: #92400e; border-color: #fde68a; }
-
 .supervisor-comment {
     background: rgba(248, 250, 252, 0.5);
     border-radius: var(--radius);
@@ -1563,26 +1549,6 @@ section {
     transition: border-color 0.2s;
 }
 
-.form-group select {
-    appearance: none;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    padding-right: 2.5rem;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%2364748b' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m1 1 5 5 5-5'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 0.75rem center;
-    background-size: 0.75rem;
-    cursor: pointer;
-}
-
-.form-group select:focus {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='none' stroke='%233b82f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m1 1 5 5 5-5'/%3E%3C/svg%3E");
-}
-
-.form-group select:invalid {
-    color: var(--muted-foreground);
-}
-
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
@@ -1637,6 +1603,12 @@ section {
 #portfolio-onboarding-modal .modal-content.onboarding {
     max-width: 56rem;
 }
+
+#portfolio-onboarding-title {
+    font-size: 2.5rem;   /* set whatever size you like */
+    text-decoration: underline;
+}
+
 
 .learning-outcomes-input {
     display: flex;
