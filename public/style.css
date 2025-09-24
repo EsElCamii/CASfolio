@@ -472,6 +472,10 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
+#hero-achievement-badge {
+    display: none !important;
+}
+
 .achievement-badge i {
     color: var(--accent);
 }
