@@ -762,21 +762,13 @@ function openAddActivityDialog(activityId = null) {
             form.elements['endDate'].value = activity.endDate || '';
             form.elements['hours'].value = activity.hours || '';
             form.elements['status'].value = activity.status || 'ongoing';
-            
-            // Set learning outcomes
-            const outcomesContainer = document.getElementById('learning-outcomes-container');
-            outcomesContainer.innerHTML = '';
-            learningOutcomes = activity.learningOutcomes || [];
-            learningOutcomes.forEach(outcome => {
-                const tag = document.createElement('div');
-                tag.className = 'learning-outcome-tag';
-                tag.innerHTML = `
-                    ${outcome}
-                    <span class="remove-outcome" onclick="removeLearningOutcome('${outcome}')">×</span>
-                `;
-                outcomesContainer.appendChild(tag);
-            });
-            
+
+            // Set learning outcomes for edit state
+            learningOutcomes = Array.isArray(activity.learningOutcomes)
+                ? [...activity.learningOutcomes]
+                : [];
+            renderLearningOutcomes();
+
             // Set image preview if exists
             const imagePreview = document.getElementById('image-preview');
             const imagePreviewImg = document.getElementById('image-preview-img');
@@ -794,8 +786,8 @@ function openAddActivityDialog(activityId = null) {
         // New activity mode
         currentActivityId = null;
         form.reset();
-        document.getElementById('learning-outcomes-container').innerHTML = '';
         learningOutcomes = [];
+        renderLearningOutcomes();
         document.getElementById('image-preview').style.display = 'none';
         title.textContent = 'Add New Activity';
         submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Activity';
@@ -1042,6 +1034,8 @@ function removeLearningOutcome(index) {
 
 function renderLearningOutcomes() {
     const container = document.getElementById('learning-outcomes-list');
+    if (!container) return;
+
     container.innerHTML = learningOutcomes.map((outcome, index) => `
         <span class="learning-outcome-tag" data-testid="badge-outcome-${index}">
             ${outcome}
