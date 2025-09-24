@@ -1156,6 +1156,36 @@ section {
     color: var(--muted-foreground);
 }
 
+/* Status Badges (profile/portfolio status) */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    border: 1px solid var(--border);
+    letter-spacing: 0.01em;
+}
+
+/* Default mapping for current status text (In Progress) */
+.contact-item p[data-testid="text-portfolio-verified"] {
+    background: rgba(245, 158, 11, 0.14); /* accent */
+    color: #92400e; /* accent-foreground */
+    border-color: rgba(245, 158, 11, 0.25);
+    border-radius: 9999px;
+    padding: 0.25rem 0.6rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+/* Optional semantic variants if applied in markup later */
+.status-verified { background: #dcfce7; color: #166534; border-color: #bbf7d0; }
+.status-progress { background: rgba(245, 158, 11, 0.14); color: #92400e; border-color: rgba(245, 158, 11, 0.25); }
+.status-warning { background: #fef3c7; color: #92400e; border-color: #fde68a; }
+
 .supervisor-comment {
     background: rgba(248, 250, 252, 0.5);
     border-radius: var(--radius);
