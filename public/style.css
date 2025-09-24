@@ -422,6 +422,7 @@ body {
     border-style: solid;
     border-color: transparent;
     background: transparent;
+    max-height: 75vh;
 }
 
 .hero-dropzone.has-image .hero-dropzone-content {
@@ -2263,8 +2264,8 @@ margin-top: 1rem;
         min-height: 260px;
     }
 
-    .hero-dropzone.has-image{
-        max-height: 74vh;
+    .hero-dropzone.has-image {
+        max-height: 75vh;
     }
     
     .section-header-with-button {
