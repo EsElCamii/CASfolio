@@ -450,9 +450,12 @@ body {
     transition: border-color 0.2s;
 }
 
-.onboarding-portfolio-status:hover {
+.onboarding-portfolio-status:hover,
+.onboarding-portfolio-status:focus,
+.onboarding-portfolio-status:focus-visible {
     border-color: var(--primary);
     box-shadow: 0 0 0 1px var(--primary);
+    outline: none;
 }
 
 .achievement-badge {
