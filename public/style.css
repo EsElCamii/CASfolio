@@ -2262,6 +2262,10 @@ margin-top: 1rem;
     .hero-dropzone {
         min-height: 260px;
     }
+
+    .hero-dropzone.has-image{
+        max-height: 74vh;
+    }
     
     .section-header-with-button {
         flex-direction: column;
