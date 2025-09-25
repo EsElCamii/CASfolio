@@ -85,6 +85,11 @@ const sampleData = {
     ]
 };
 
+const TOTAL_REQUIRED_HOURS = 240;
+const CATEGORY_TARGET_HOURS = 89;
+const MIN_DISPLAY_MONTHS = 1;
+const MAX_VALID_MONTHS = 240;
+
 // Data storage keys used to namespace everything we keep in localStorage
 const STORAGE_KEYS = {
     ACTIVITIES: 'casfolio_activities',
@@ -428,7 +433,11 @@ function renderHeroStats() {
     const monthsEl = document.getElementById('total-months');
     if (monthsEl) {
         const months = calculateDurationMonths();
-        monthsEl.textContent = months + '+';
+        let safeMonths = MIN_DISPLAY_MONTHS;
+        if (Number.isFinite(months) && months >= MIN_DISPLAY_MONTHS && months <= MAX_VALID_MONTHS) {
+            safeMonths = months;
+        }
+        monthsEl.textContent = safeMonths + '+';
     }
 }
 
@@ -457,7 +466,7 @@ function renderCategoriesGrid() {
             description: 'Exploring artistic expression, design thinking, and innovative problem-solving through various creative mediums.',
             icon: 'fas fa-palette',
             stats: stats.categoryStats.creativity,
-            progress: Math.min(100, (stats.categoryStats.creativity.hours / 80) * 100),
+            progress: Math.min(100, (stats.categoryStats.creativity.hours / CATEGORY_TARGET_HOURS) * 100),
         },
         {
             id: 'activity',
@@ -465,7 +474,7 @@ function renderCategoriesGrid() {
             description: 'Physical challenges and team sports that promote health, teamwork, and personal endurance.',
             icon: 'fas fa-users',
             stats: stats.categoryStats.activity,
-            progress: Math.min(100, (stats.categoryStats.activity.hours / 80) * 100),
+            progress: Math.min(100, (stats.categoryStats.activity.hours / CATEGORY_TARGET_HOURS) * 100),
         },
         {
             id: 'service',
@@ -473,7 +482,7 @@ function renderCategoriesGrid() {
             description: 'Community engagement and volunteer work focused on making a positive impact in society.',
             icon: 'fas fa-heart',
             stats: stats.categoryStats.service,
-            progress: Math.min(100, (stats.categoryStats.service.hours / 80) * 100),
+            progress: Math.min(100, (stats.categoryStats.service.hours / CATEGORY_TARGET_HOURS) * 100),
         },
     ];
     
@@ -618,23 +627,23 @@ function renderProgressDashboard() {
     const stats = calculateStats();
     
     // Update total hours display
-    document.getElementById('progress-total-hours').textContent = `Total: ${stats.totalHours}/150 hours`;
+    document.getElementById('progress-total-hours').textContent = `Total: ${stats.totalHours}/${TOTAL_REQUIRED_HOURS} hours`;
     
     // Update progress message
     const progressMessage = document.getElementById('progress-message');
-    if (stats.totalHours >= 150) {
+    if (stats.totalHours >= TOTAL_REQUIRED_HOURS) {
         progressMessage.textContent = "You've exceeded the minimum requirement! Great work!";
     } else {
-        progressMessage.textContent = `${150 - stats.totalHours} hours remaining to reach minimum requirement`;
+        const remaining = TOTAL_REQUIRED_HOURS - stats.totalHours;
+        progressMessage.textContent = `${remaining} hours remaining to reach minimum requirement`;
     }
     
     // Render progress categories
     const progressContainer = document.getElementById('progress-categories');
-    // Targets adjusted to 80 hours per category
     const categories = [
-        { name: 'Creativity', current: stats.categoryStats.creativity.hours, target: 80, color: 'creativity' },
-        { name: 'Activity', current: stats.categoryStats.activity.hours, target: 80, color: 'activity' },
-        { name: 'Service', current: stats.categoryStats.service.hours, target: 80, color: 'service' }
+        { name: 'Creativity', current: stats.categoryStats.creativity.hours, target: CATEGORY_TARGET_HOURS, color: 'creativity' },
+        { name: 'Activity', current: stats.categoryStats.activity.hours, target: CATEGORY_TARGET_HOURS, color: 'activity' },
+        { name: 'Service', current: stats.categoryStats.service.hours, target: CATEGORY_TARGET_HOURS, color: 'service' }
     ];
     
     progressContainer.innerHTML = categories.map(category => {
