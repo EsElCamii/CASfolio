@@ -86,7 +86,7 @@ const sampleData = {
 };
 
 const TOTAL_REQUIRED_HOURS = 240;
-const CATEGORY_TARGET_HOURS = 89;
+const CATEGORY_TARGET_HOURS = 80;
 const MIN_DISPLAY_MONTHS = 1;
 const MAX_VALID_MONTHS = 240;
 
@@ -593,34 +593,6 @@ function renderTimeline() {
             </div>
         </div>
     `).join('');
-}
-
-function renderLatestReflection() {
-    const latestReflection = currentReflections[0];
-    const dateElement = document.getElementById('latest-reflection-date');
-    const contentElement = document.getElementById('latest-reflection-content');
-    
-    if (latestReflection) {
-        dateElement.textContent = formatFullDate(latestReflection.createdAt);
-        contentElement.innerHTML = `
-            <h4 class="reflection-title" data-testid="text-latest-reflection-title">${latestReflection.title}</h4>
-            <p class="reflection-content" data-testid="text-latest-reflection-content">${latestReflection.content}</p>
-            <button class="btn btn-ghost" data-testid="button-read-full-reflection">
-                Read Full Reflection →
-            </button>
-        `;
-    } else {
-        dateElement.textContent = '';
-        contentElement.innerHTML = `
-            <div class="empty-state">
-                <p data-testid="text-no-reflections">No reflections added yet.</p>
-                <button class="btn btn-primary" onclick="openAddReflectionDialog()" data-testid="button-add-first-reflection">
-                    <i class="fas fa-plus"></i>
-                    Add Your First Reflection
-                </button>
-            </div>
-        `;
-    }
 }
 
 function renderProgressDashboard() {
@@ -1328,7 +1300,6 @@ function handleReflectionFormSubmit(e) {
     // Re-render the UI
     renderActivitiesGrid();
     renderTimeline();
-    renderLatestReflection();
     renderProgressDashboard();
     
     closeAddReflectionDialog();
@@ -1499,7 +1470,6 @@ function initializeApp() {
     renderCategoriesGrid();
     renderActivitiesGrid();
     renderTimeline();
-    renderLatestReflection();
     renderProgressDashboard();
     renderGallery();
     initializeEventListeners();
