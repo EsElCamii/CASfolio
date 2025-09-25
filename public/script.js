@@ -746,6 +746,9 @@ function openAddActivityDialog(activityId = null) {
     const submitBtn = document.querySelector('#add-activity-form button[type="submit"]');
     const categorySelect = form ? form.elements['category'] : null;
     const statusSelect = form ? form.elements['status'] : null;
+    const signaturePreview = document.getElementById('signature-preview');
+    const signaturePreviewImg = document.getElementById('signature-preview-img');
+    const signatureUpload = document.getElementById('signature-upload');
 
     if (!modal || !form || !title || !submitBtn) return;
     
@@ -781,6 +784,17 @@ function openAddActivityDialog(activityId = null) {
             } else {
                 imagePreview.style.display = 'none';
             }
+
+            if (signaturePreview && signaturePreviewImg) {
+                if (signatureUpload) signatureUpload.value = '';
+                if (activity.signatureImage) {
+                    signaturePreviewImg.src = activity.signatureImage;
+                    signaturePreview.style.display = 'block';
+                } else {
+                    signaturePreviewImg.src = '';
+                    signaturePreview.style.display = 'none';
+                }
+            }
             
             title.textContent = 'Edit Activity';
             submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Activity';
@@ -792,6 +806,11 @@ function openAddActivityDialog(activityId = null) {
         learningOutcomes = [];
         renderLearningOutcomes();
         document.getElementById('image-preview').style.display = 'none';
+        if (signaturePreview && signaturePreviewImg) {
+            signaturePreviewImg.src = '';
+            signaturePreview.style.display = 'none';
+            if (signatureUpload) signatureUpload.value = '';
+        }
         title.textContent = 'Add New Activity';
         submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Activity';
     }
@@ -1136,6 +1155,15 @@ function viewActivityDetail(activityId) {
                             <span data-testid="text-category">${activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}</span>
                         </div>
                     </div>
+                    ${activity.signatureImage ? `
+                        <div class="detail-item">
+                            <i class="fas fa-signature"></i>
+                            <div class="detail-item-content">
+                                <p>Counselor Signature</p>
+                                <img src="${activity.signatureImage}" alt="Counselor signature" style="max-width: 160px; border-radius: 4px; margin-top: 4px;" data-testid="image-signature-${activity.id}">
+                            </div>
+                        </div>
+                    ` : ''}
                     <div class="detail-actions">
                         <button class="btn btn-outline" onclick="openAddActivityDialog('${activity.id}')" data-testid="button-edit-activity">
                             <i class="fas fa-edit"></i> Edit
@@ -1216,19 +1244,41 @@ function handleActivityFormSubmit(e) {
     // Handle image - check both file upload and URL
     const imagePreview = document.getElementById('image-preview');
     const imagePreviewImg = document.getElementById('image-preview-img');
-    
-    if (imagePreview && imagePreview.style.display !== 'none' && imagePreviewImg.src) {
-        // If we have an image in the preview (from either file or URL)
-        const imageData = imagePreviewImg.src;
-        saveActivity(formData, imageData);
-    } else {
-        // No image provided
-        saveActivity(formData, null);
+    const headerImageUpload = document.getElementById('header-image-upload');
+    const imageUrlInput = document.getElementById('image-url-input');
+    const signaturePreview = document.getElementById('signature-preview');
+    const signaturePreviewImg = document.getElementById('signature-preview-img');
+    const signatureUpload = document.getElementById('signature-upload');
+    const statusValue = formData.get('status');
+
+    const headerImageData = (imagePreview && imagePreview.style.display !== 'none' && imagePreviewImg && imagePreviewImg.src)
+        ? imagePreviewImg.src
+        : null;
+
+    const signatureImageData = (signaturePreview && signaturePreview.style.display !== 'none' && signaturePreviewImg && signaturePreviewImg.src)
+        ? signaturePreviewImg.src
+        : null;
+
+    if (statusValue === 'completed' && !signatureImageData) {
+        alert('Please upload the counselor signature before marking the activity as completed.');
+        return;
     }
+
+    saveActivity(formData, headerImageData, signatureImageData);
     
     // Reset form and close modal
     form.reset();
-    if (imagePreview) imagePreview.style.display = 'none';
+    if (imagePreview) {
+        imagePreview.style.display = 'none';
+        if (imagePreviewImg) imagePreviewImg.src = '';
+    }
+    if (headerImageUpload) headerImageUpload.value = '';
+    if (imageUrlInput) imageUrlInput.value = '';
+    if (signaturePreview) {
+        signaturePreview.style.display = 'none';
+        if (signaturePreviewImg) signaturePreviewImg.src = '';
+    }
+    if (signatureUpload) signatureUpload.value = '';
     closeAddActivityDialog();
     
     // Re-render the UI
@@ -1242,7 +1292,7 @@ function handleActivityFormSubmit(e) {
     alert('Activity created successfully!');
 }
 
-function saveActivity(formData, headerImage) {
+function saveActivity(formData, headerImage, signatureImage) {
     const isEditing = currentActivityId !== null;
     const activity = {
         id: isEditing ? currentActivityId : Date.now().toString(),
@@ -1255,6 +1305,7 @@ function saveActivity(formData, headerImage) {
         status: formData.get('status'),
         learningOutcomes: Array.from(formData.getAll('learningOutcomes')),
         headerImage: headerImage,
+        signatureImage: signatureImage ? signatureImage : null,
         createdAt: new Date().toISOString()
     };
     
@@ -1319,6 +1370,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const urlTab = document.querySelector('[data-tab="url"]');
     const uploadTabContent = document.getElementById('upload-tab');
     const urlTabContent = document.getElementById('url-tab');
+    const signatureUpload = document.getElementById('signature-upload');
+    const signaturePreview = document.getElementById('signature-preview');
+    const signaturePreviewImg = document.getElementById('signature-preview-img');
+    const removeSignatureBtn = document.getElementById('remove-signature');
     
     // Tab switching
     if (uploadTab && urlTab) {
@@ -1354,6 +1409,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle remove image
     if (removeImageBtn) {
         removeImageBtn.addEventListener('click', removeImage);
+    }
+
+    if (signatureUpload) {
+        signatureUpload.addEventListener('change', handleSignatureUpload);
+    }
+
+    if (removeSignatureBtn) {
+        removeSignatureBtn.addEventListener('click', removeSignature);
     }
     
     function handleFileUpload(e) {
@@ -1413,6 +1476,38 @@ document.addEventListener('DOMContentLoaded', function() {
         imagePreview.style.display = 'none';
         if (imageUpload) imageUpload.value = '';
         if (imageUrlInput) imageUrlInput.value = '';
+    }
+
+    function handleSignatureUpload(e) {
+        const file = e.target.files[0];
+        if (!file) {
+            removeSignature();
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Signature image size should be less than 5MB');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            showSignaturePreview(event.target.result);
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function showSignaturePreview(src) {
+        if (!signaturePreview || !signaturePreviewImg) return;
+        signaturePreviewImg.src = src;
+        signaturePreview.style.display = 'block';
+    }
+
+    function removeSignature() {
+        if (!signaturePreview || !signaturePreviewImg) return;
+        signaturePreviewImg.src = '';
+        signaturePreview.style.display = 'none';
+        if (signatureUpload) signatureUpload.value = '';
     }
 });
 
