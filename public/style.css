@@ -287,6 +287,17 @@ body {
     align-items: center;
 }
 
+.hero-content > * {
+    min-width: 0;
+}
+
+.hero-text {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-width: 0;
+}
+
 .hero-text h1 {
     font-size: 3rem;
     font-weight: 700;
