@@ -1548,12 +1548,14 @@ section {
 .form-group select,
 .form-group textarea {
     width: 100%;
+    max-width: 100%;
     padding: 0.75rem;
     border: 1px solid var(--border);
     border-radius: var(--radius);
     font-size: 0.875rem;
     background: var(--background);
     color: var(--foreground);
+    box-sizing: border-box;
     transition: border-color 0.2s;
 }
 
@@ -2235,6 +2237,21 @@ margin-top: 1rem;
 
 /* Responsive Design */
 @media (max-width: 768px) {
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    background: var(--background);
+    color: var(--foreground);
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    }
+
     .nav-links {
         display: none;
     }
