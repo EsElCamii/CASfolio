@@ -4,7 +4,10 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/update-sitemap.js",
     "build": "next build",
+    "postbuild": "node scripts/ping-search-engines.js",
+    "sitemap": "node scripts/update-sitemap.js",
     "start": "next start"
   },
   "dependencies": {
