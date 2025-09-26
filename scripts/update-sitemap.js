@@ -5,16 +5,16 @@ const path = require('path');
 
 const sitemapPath = path.resolve(process.cwd(), 'public', 'sitemap.xml');
 
-const BASE_URL = process.env.SITEMAP_BASE_URL || 'https://cas-porfafolio.vercel.app';
+const BASE_URL = process.env.SITEMAP_BASE_URL || 'https://casfolio.vercel.app';
 const ROUTES = (process.env.SITEMAP_ROUTES || '/').split(',').map(route => route.trim()).filter(Boolean);
 const CHANGEFREQ = process.env.SITEMAP_CHANGEFREQ || 'weekly';
 
 const formatDate = (date) => date.toISOString().split('T')[0];
 
 function buildUrlEntry(route) {
-  const url = route.startsWith('http://') || route.startsWith('https://')
+  const url = route === '/' ? BASE_URL : (route.startsWith('http://') || route.startsWith('https://')
     ? route
-    : new URL(route.startsWith('/') ? route : `/${route}`, BASE_URL).toString();
+    : new URL(route.startsWith('/') ? route : `/${route}`, `${BASE_URL}/`).toString());
 
   const priority = route === '/' ? '1.0' : '0.8';
 
