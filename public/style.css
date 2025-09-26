@@ -1559,6 +1559,17 @@ section {
     transition: border-color 0.2s;
 }
 
+.form-row > .form-group {
+    min-width: 0;
+}
+
+#onboarding-last-reviewed {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
