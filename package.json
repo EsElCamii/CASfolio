@@ -8,7 +8,8 @@
     "build": "next build",
     "postbuild": "node scripts/ping-search-engines.js",
     "sitemap": "node scripts/update-sitemap.js",
-    "start": "next start"
+    "start": "next start",
+    "test": "vitest"
   },
   "dependencies": {
     "@supabase/ssr": "^0.7.0",
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@types/node": "24.5.2",
     "@types/react": "19.1.13",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "vitest": "^1.6.1"
   }
 }

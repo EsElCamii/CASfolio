@@ -2,85 +2,59 @@
 const sampleData = {
     activities: [
         {
-            id: "1",
-            title: "Digital Art Exhibition",
-            description: "Organized and curated a digital art exhibition showcasing student work from our school community.",
-            category: "creativity",
-            startDate: "2024-10-01",
-            endDate: "2024-11-15",
+            id: '1',
+            title: 'Digital Art Exhibition',
+            description: 'Organized and curated a digital art exhibition showcasing student work from our school community.',
+            category: 'creativity',
+            startDate: '2024-10-01',
+            endDate: '2024-11-15',
             hours: 15,
-            images: [],
-            learningOutcomes: ["Creative Thinking", "Project Management", "Communication"],
-            status: "completed",
-            createdAt: "2024-10-01"
+            header_image_url: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80',
+            learningOutcomes: ['Creative Thinking', 'Project Management', 'Communication'],
+            status: 'completed',
+            createdAt: '2024-10-01T00:00:00.000Z'
         },
         {
-            id: "2",
-            title: "Charity Marathon",
-            description: "Participated in a 10K charity run to raise funds for local environmental conservation efforts.",
-            category: "activity",
-            startDate: "2024-09-15",
-            endDate: "2024-10-20",
+            id: '2',
+            title: 'Charity Marathon',
+            description: 'Participated in a 10K charity run to raise funds for local environmental conservation efforts.',
+            category: 'activity',
+            startDate: '2024-09-15',
+            endDate: '2024-10-20',
             hours: 20,
-            images: [],
-            learningOutcomes: ["Physical Endurance", "Teamwork", "Community Engagement"],
-            status: "completed",
-            createdAt: "2024-09-15"
+            header_image_url: 'https://images.unsplash.com/photo-1594737625785-c66858ac7c95?auto=format&fit=crop&w=1200&q=80',
+            learningOutcomes: ['Physical Endurance', 'Teamwork', 'Community Engagement'],
+            status: 'draft',
+            createdAt: '2024-09-15T00:00:00.000Z'
         },
         {
-            id: "3",
-            title: "Community Garden Project",
-            description: "Established and maintained a community garden to provide fresh produce for local food bank.",
-            category: "service",
-            startDate: "2024-08-01",
+            id: '3',
+            title: 'Community Garden Project',
+            description: 'Established and maintained a community garden to provide fresh produce for the local food bank.',
+            category: 'service',
+            startDate: '2024-08-01',
             endDate: null,
             hours: 25,
-            images: [],
-            learningOutcomes: ["Environmental Awareness", "Community Service", "Leadership"],
-            status: "ongoing",
-            createdAt: "2024-08-01"
-        },
-        {
-            id: "4",
-            title: "School Theater Production",
-            description: "Led the production design for our school's annual theater performance of 'A Midsummer Night's Dream.'",
-            category: "creativity",
-            startDate: "2024-08-01",
-            endDate: "2024-11-30",
-            hours: 35,
-            images: [],
-            learningOutcomes: ["Creative Thinking", "Team Collaboration", "Project Management"],
-            status: "ongoing",
-            createdAt: "2024-08-01"
-        },
-        {
-            id: "5",
-            title: "Basketball Training Program",
-            description: "Joined school basketball team and implemented intensive training regimen to improve teamwork and physical fitness.",
-            category: "activity",
-            startDate: "2024-09-01",
-            endDate: null,
-            hours: 25,
-            images: [],
-            learningOutcomes: ["Physical Fitness", "Team Collaboration", "Discipline"],
-            status: "ongoing",
-            createdAt: "2024-09-01"
+            header_image_url: 'https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1200&q=80',
+            learningOutcomes: ['Environmental Awareness', 'Community Service', 'Leadership'],
+            status: 'draft',
+            createdAt: '2024-08-01T00:00:00.000Z'
         }
     ],
     reflections: [
         {
-            id: "r1",
-            activityId: "1",
-            title: "Leadership Through Art",
-            content: "Organizing the digital art exhibition taught me that leadership isn't just about directing others, but about creating space for everyone's creativity to flourish. I learned to balance my vision with collaborative input from fellow students and teachers. The process of curating work from diverse backgrounds showed me how art can bridge cultural differences and foster understanding within our school community.",
-            createdAt: "2024-11-15"
+            id: 'r1',
+            activityId: '1',
+            title: 'Leadership Through Art',
+            content: "Organizing the digital art exhibition taught me that leadership isn't just about directing others, but about creating space for everyone's creativity to flourish.",
+            createdAt: '2024-11-15T00:00:00.000Z'
         },
         {
-            id: "r2",
-            activityId: "2",
-            title: "Physical Challenge and Community Impact",
-            content: "The charity marathon was more than just a physical challenge. It showed me how individual effort can contribute to larger community goals. Training for the 10K taught me discipline and perseverance, but the real learning came from understanding how fundraising and awareness campaigns work. I realized that environmental conservation requires both personal commitment and collective action.",
-            createdAt: "2024-10-20"
+            id: 'r2',
+            activityId: '2',
+            title: 'Physical Challenge and Community Impact',
+            content: 'The charity marathon was more than just a physical challenge. It showed me how individual effort can contribute to larger community goals.',
+            createdAt: '2024-10-20T00:00:00.000Z'
         }
     ]
 };
@@ -90,26 +64,374 @@ const CATEGORY_TARGET_HOURS = 80;
 const MIN_DISPLAY_MONTHS = 1;
 const MAX_VALID_MONTHS = 240;
 
-// Data storage keys used to namespace everything we keep in localStorage
-const STORAGE_KEYS = {
+const API_ENDPOINTS = {
+    SETTINGS: '/api/profile/settings',
+    ACTIVITIES: '/api/activities',
+    REFLECTIONS: '/api/reflections',
+    HERO_IMAGE: '/api/hero-image'
+};
+
+const CACHE_KEYS = {
+    ACTIVITIES: 'casfolio_cache_activities_v2',
+    REFLECTIONS: 'casfolio_cache_reflections_v2'
+};
+
+const LEGACY_STORAGE_KEYS = {
     ACTIVITIES: 'casfolio_activities',
     REFLECTIONS: 'casfolio_reflections'
 };
 
+const LEGACY_CUSTOMIZE_KEYS = {
+    LAYOUT: 'casfolio_layout',
+    THEME: 'casfolio_theme',
+    CONTENT: 'casfolio_content',
+    CUSTOM_SECTIONS: 'casfolio_custom_sections'
+};
+
+const LEGACY_MIGRATION_FLAG = 'casfolio_migration_completed_v2';
+const LEGACY_MIGRATION_NOTES_KEY = 'casfolio_migration_notes';
+
 const PORTFOLIO_ONBOARDING_KEY = 'casfolio_portfolio_onboarding';
 
-// Load data from localStorage or initialize with empty arrays so a new visitor starts fresh
-let currentActivities = JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIVITIES)) || [];
-let currentReflections = JSON.parse(localStorage.getItem(STORAGE_KEYS.REFLECTIONS)) || [];
+let currentActivities = [];
+let currentReflections = [];
+let isOfflineMode = false;
+let isAuthenticated = false;
 
-// Persist the latest activities and reflections to localStorage, warning the user if the write fails
-function saveData() {
+function readCache(key, fallback) {
     try {
-        localStorage.setItem(STORAGE_KEYS.ACTIVITIES, JSON.stringify(currentActivities));
-        localStorage.setItem(STORAGE_KEYS.REFLECTIONS, JSON.stringify(currentReflections));
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        return parsed ?? fallback;
     } catch (error) {
-        console.error('Error saving data to localStorage:', error);
-        alert('There was an error saving your data. Please try again.');
+        console.warn('Unable to read cache for', key, error);
+        return fallback;
+    }
+}
+
+function isValidHttpsUrl(value) {
+    if (typeof value !== 'string' || value.trim() === '') {
+        return false;
+    }
+    try {
+        const parsed = new URL(value);
+        return parsed.protocol === 'https:';
+    } catch (error) {
+        return false;
+    }
+}
+
+function escapeHtml(value) {
+    if (typeof value !== 'string') {
+        return '';
+    }
+    return value
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeAttribute(value) {
+    return encodeURI(value);
+}
+
+const IMAGE_PLACEHOLDER = '/hero-default.svg';
+
+function renderImageTag(url, alt, className) {
+    const safeAlt = escapeHtml(alt || 'Activity image');
+    if (isValidHttpsUrl(url)) {
+        const safeUrl = escapeAttribute(url);
+        return `<img class="${className}" src="${safeUrl}" alt="${safeAlt}" loading="lazy" data-fallback="${IMAGE_PLACEHOLDER}">`;
+    }
+    return `<img class="${className} is-placeholder" src="${IMAGE_PLACEHOLDER}" alt="${safeAlt}" loading="lazy">`;
+}
+
+function attachImageFallbacks(container = document) {
+    container.querySelectorAll('img[data-fallback]').forEach((img) => {
+        if (img.dataset.placeholderBound === '1') {
+            return;
+        }
+        img.dataset.placeholderBound = '1';
+        img.addEventListener('error', () => {
+            const fallback = img.dataset.fallback || IMAGE_PLACEHOLDER;
+            if (img.dataset.usingFallback === '1') {
+                return;
+            }
+            img.dataset.usingFallback = '1';
+            img.classList.add('is-placeholder');
+            img.src = fallback;
+        });
+        img.addEventListener('load', () => {
+            const fallback = img.dataset.fallback || IMAGE_PLACEHOLDER;
+            const current = img.currentSrc || img.src || '';
+            if (img.dataset.usingFallback === '1') {
+                if (!current.endsWith(fallback)) {
+                    img.dataset.usingFallback = '0';
+                    img.classList.remove('is-placeholder');
+                }
+            } else {
+                img.classList.remove('is-placeholder');
+            }
+        });
+    });
+}
+
+function normalizeActivity(raw) {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+
+    const headerImageRaw =
+        typeof raw.header_image_url === 'string' ? raw.header_image_url :
+        typeof raw.headerImageUrl === 'string' ? raw.headerImageUrl :
+        typeof raw.headerImage === 'string' ? raw.headerImage :
+        '';
+    const headerImageCandidate = typeof headerImageRaw === 'string' ? headerImageRaw.trim() : '';
+    const normalizedHeaderUrl = isValidHttpsUrl(headerImageCandidate) ? headerImageCandidate : '';
+
+    const learningOutcomes = Array.isArray(raw.learningOutcomes)
+        ? raw.learningOutcomes
+        : Array.isArray(raw.learning_outcomes)
+            ? raw.learning_outcomes
+            : [];
+
+    const galleryImageUrls = Array.isArray(raw.galleryImageUrls)
+        ? raw.galleryImageUrls
+        : Array.isArray(raw.gallery_image_urls)
+            ? raw.gallery_image_urls
+            : [];
+
+    const evidenceUrls = Array.isArray(raw.evidenceUrls)
+        ? raw.evidenceUrls
+        : Array.isArray(raw.evidence_urls)
+            ? raw.evidence_urls
+            : [];
+
+    const impacts = Array.isArray(raw.impacts) ? raw.impacts : [];
+
+    const activity = {
+        id: String(raw.id ?? cryptoRandomId()),
+        title: typeof raw.title === 'string' ? raw.title : '',
+        description: typeof raw.description === 'string' ? raw.description : '',
+        category: typeof raw.category === 'string' ? raw.category : '',
+        startDate: typeof raw.startDate === 'string' ? raw.startDate : (typeof raw.start_date === 'string' ? raw.start_date : null),
+        endDate: typeof raw.endDate === 'string' ? raw.endDate : (typeof raw.end_date === 'string' ? raw.end_date : null),
+        hours: Number.isFinite(Number(raw.hours)) ? Number(raw.hours) : 0,
+        status: typeof raw.status === 'string' ? raw.status : 'draft',
+        learningOutcomes,
+        galleryImageUrls,
+        evidenceUrls,
+        impacts,
+        header_image_url: normalizedHeaderUrl,
+        headerImageUrl: normalizedHeaderUrl,
+        createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : (typeof raw.created_at === 'string' ? raw.created_at : new Date().toISOString())
+    };
+
+    return activity;
+}
+
+function normalizeReflection(raw) {
+    if (!raw || typeof raw !== 'object') {
+        return null;
+    }
+
+    return {
+        id: String(raw.id ?? cryptoRandomId()),
+        activityId:
+            typeof raw.activityId === 'string'
+                ? raw.activityId
+                : typeof raw.activity_id === 'string'
+                    ? raw.activity_id
+                    : '',
+        title: typeof raw.title === 'string' ? raw.title : '',
+        content: typeof raw.content === 'string' ? raw.content : '',
+        createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : (typeof raw.created_at === 'string' ? raw.created_at : new Date().toISOString()),
+    };
+}
+
+function cryptoRandomId() {
+    if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+    }
+    return Math.random().toString(36).slice(2, 11);
+}
+
+async function fetchJsonWithStatus(url, options = {}) {
+    try {
+        const response = await fetch(url, { credentials: 'same-origin', ...options });
+        const contentType = response.headers.get('content-type') || '';
+        let data = null;
+        if (contentType.includes('application/json')) {
+            data = await response.json();
+        }
+        return { ok: response.ok, status: response.status, data };
+    } catch (error) {
+        return { ok: false, status: 0, error };
+    }
+}
+
+async function loadActivities() {
+    const cached = readCache(CACHE_KEYS.ACTIVITIES, []);
+    const result = await fetchJsonWithStatus(API_ENDPOINTS.ACTIVITIES);
+
+    if (result.status === 401) {
+        isAuthenticated = false;
+        isOfflineMode = false;
+        currentActivities = cached.length ? cached : sampleData.activities.map(normalizeActivity).filter(Boolean);
+        return;
+    }
+
+    if (result.ok && result.data && Array.isArray(result.data.activities)) {
+        const mapped = result.data.activities.map(normalizeActivity).filter(Boolean);
+        currentActivities = mapped;
+        writeCache(CACHE_KEYS.ACTIVITIES, mapped);
+        isAuthenticated = true;
+        isOfflineMode = false;
+        return;
+    }
+
+    console.warn('Falling back to cached activities', result.error);
+    isOfflineMode = true;
+    currentActivities = cached.length ? cached : sampleData.activities.map(normalizeActivity).filter(Boolean);
+}
+
+async function loadReflections() {
+    const cached = readCache(CACHE_KEYS.REFLECTIONS, []);
+    const result = await fetchJsonWithStatus(API_ENDPOINTS.REFLECTIONS);
+
+    if (result.status === 401) {
+        isAuthenticated = false;
+        currentReflections = cached.length ? cached : sampleData.reflections.map(normalizeReflection).filter(Boolean);
+        return;
+    }
+
+    if (result.ok && result.data && Array.isArray(result.data.reflections)) {
+        const mapped = result.data.reflections.map(normalizeReflection).filter(Boolean);
+        currentReflections = mapped;
+        writeCache(CACHE_KEYS.REFLECTIONS, mapped);
+        isAuthenticated = true;
+        return;
+    }
+
+    console.warn('Falling back to cached reflections', result.error);
+    currentReflections = cached.length ? cached : sampleData.reflections.map(normalizeReflection).filter(Boolean);
+}
+
+async function bootstrapData() {
+    await Promise.all([loadActivities(), loadReflections()]);
+}
+
+async function apiCreateActivity(payload) {
+    const result = await fetchJsonWithStatus(API_ENDPOINTS.ACTIVITIES, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+
+    if (result.status === 401) {
+        throw new Error('Please sign in to create activities.');
+    }
+
+    if (!result.ok || !result.data || !result.data.activity) {
+        const message = (result.data && result.data.error) || 'Unable to create activity.';
+        throw new Error(message);
+    }
+
+    return normalizeActivity(result.data.activity);
+}
+
+async function apiUpdateActivity(activityId, payload) {
+    const result = await fetchJsonWithStatus(`${API_ENDPOINTS.ACTIVITIES}/${activityId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+
+    if (result.status === 401) {
+        throw new Error('Please sign in to update activities.');
+    }
+
+    if (result.status === 404) {
+        throw new Error('Activity not found.');
+    }
+
+    if (!result.ok || !result.data || !result.data.activity) {
+        const message = (result.data && result.data.error) || 'Unable to update activity.';
+        throw new Error(message);
+    }
+
+    return normalizeActivity(result.data.activity);
+}
+
+async function apiDeleteActivity(activityId) {
+    const result = await fetchJsonWithStatus(`${API_ENDPOINTS.ACTIVITIES}/${activityId}`, {
+        method: 'DELETE',
+    });
+
+    if (result.status === 401) {
+        throw new Error('Please sign in to delete activities.');
+    }
+
+    if (!result.ok && result.status !== 204) {
+        const message = (result.data && result.data.error) || 'Unable to delete activity.';
+        throw new Error(message);
+    }
+}
+
+async function apiCreateReflection(payload) {
+    const result = await fetchJsonWithStatus(API_ENDPOINTS.REFLECTIONS, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+
+    if (result.status === 401) {
+        throw new Error('Please sign in to create reflections.');
+    }
+
+    if (!result.ok || !result.data || !result.data.reflection) {
+        const message = (result.data && result.data.error) || 'Unable to create reflection.';
+        throw new Error(message);
+    }
+
+    return normalizeReflection(result.data.reflection);
+}
+
+function writeCache(key, value) {
+    try {
+        localStorage.setItem(key, JSON.stringify(value));
+    } catch (error) {
+        console.warn('Unable to persist cache for', key, error);
+    }
+}
+
+function readLegacyArray(key) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return [];
+        const parsed = JSON.parse(raw);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        console.warn('Unable to read legacy data for', key, error);
+        return [];
+    }
+}
+
+function readLegacyObject(key, fallback = null) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') {
+            return fallback;
+        }
+        return parsed;
+    } catch (error) {
+        console.warn('Unable to parse legacy object for', key, error);
+        return fallback;
     }
 }
 
@@ -344,6 +666,28 @@ function getCategoryImage(category) {
     }
 }
 
+function getStatusClass(status) {
+    switch ((status || '').toLowerCase()) {
+        case 'completed':
+            return 'completed';
+        case 'pending':
+            return 'pending';
+        default:
+            return 'draft';
+    }
+}
+
+function getStatusLabel(status) {
+    switch ((status || '').toLowerCase()) {
+        case 'completed':
+            return 'Completed';
+        case 'pending':
+            return 'Pending Review';
+        default:
+            return 'Draft';
+    }
+}
+
 function generateId() {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
@@ -524,13 +868,12 @@ function renderActivitiesGrid() {
     emptyState.style.display = 'none';
     
     container.innerHTML = recentActivities.map(activity => renderActivityCard(activity)).join('');
+    attachImageFallbacks(container);
 }
 
 function renderActivityCard(activity) {
-    const statusClass = activity.status === 'completed' ? 'status-completed' : 'status-ongoing';
-    const headerImage = activity.headerImage ? 
-        `<div class="activity-header-image" style="background-image: url('${activity.headerImage}');"></div>` : 
-        '';
+    const statusClass = getStatusClass(activity.status);
+    const headerImage = renderImageTag(activity.header_image_url, activity.title, 'activity-header-image');
         
     return `
         <div class="activity-card" data-category="${activity.category}" data-testid="activity-card-${activity.id}" onclick="viewActivityDetail('${activity.id}')">
@@ -546,6 +889,7 @@ function renderActivityCard(activity) {
                 <p class="activity-description" data-testid="text-description-${activity.id}">${activity.description}</p>
                 <div class="activity-footer">
                     <span class="activity-hours" data-testid="text-hours-${activity.id}">${activity.hours} hours</span>
+                    <span class="activity-status ${statusClass}" data-testid="text-status-${activity.id}">${getStatusLabel(activity.status)}</span>
                     <button class="btn btn-ghost" onclick="event.stopPropagation();" data-testid="button-view-details-${activity.id}">
                         View Details 
                         <i class="fas fa-arrow-right"></i>
@@ -686,11 +1030,8 @@ function renderGallery() {
     emptyState.style.display = 'none';
     
     container.innerHTML = filteredActivities.map(activity => {
-        const headerImage = activity.headerImage ? 
-            `<div class="activity-image" style="background-image: url('${activity.headerImage}');"></div>` : 
-            `<div class="activity-image" style="background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;">
-                <i class="fas fa-image" style="font-size: 2rem; color: #ccc;"></i>
-            </div>`;
+        const headerImage = renderImageTag(activity.header_image_url, activity.title, 'activity-image');
+        const statusClass = getStatusClass(activity.status);
             
         return `
         <div class="gallery-card" data-testid="gallery-item-${activity.id}">
@@ -707,7 +1048,7 @@ function renderGallery() {
                     <p class="gallery-description" data-testid="text-gallery-desc-${activity.id}">${activity.description.substring(0, 80)}${activity.description.length > 80 ? '...' : ''}</p>
                     <div class="gallery-footer">
                         <span class="gallery-hours" data-testid="text-gallery-hours-${activity.id}">${activity.hours} hours</span>
-                        <span class="gallery-status ${activity.status}" data-testid="badge-status-${activity.status}-${activity.id}">${activity.status}</span>
+                        <span class="gallery-status ${statusClass}" data-testid="badge-status-${activity.status}-${activity.id}">${getStatusLabel(activity.status)}</span>
                     </div>
                 </div>
             </div>
@@ -718,6 +1059,7 @@ function renderGallery() {
             </div>
         </div>`;
     }).join('');
+    attachImageFallbacks(container);
 }
 
 // Filter functions
@@ -754,42 +1096,35 @@ function openAddActivityDialog(activityId = null) {
         currentActivityId = activityId;
         const activity = currentActivities.find(a => a.id === activityId);
         if (activity) {
-            // Populate form with activity data
             form.elements['title'].value = activity.title || '';
             form.elements['category'].value = activity.category || '';
             form.elements['description'].value = activity.description || '';
             form.elements['startDate'].value = activity.startDate || '';
             form.elements['endDate'].value = activity.endDate || '';
             form.elements['hours'].value = activity.hours || '';
-            form.elements['status'].value = activity.status || 'ongoing';
+            form.elements['status'].value = activity.status || 'draft';
 
-            // Set learning outcomes for edit state
             learningOutcomes = Array.isArray(activity.learningOutcomes)
                 ? [...activity.learningOutcomes]
                 : [];
             renderLearningOutcomes();
 
-            // Set image preview if exists
-            const imagePreview = document.getElementById('image-preview');
-            const imagePreviewImg = document.getElementById('image-preview-img');
-            if (activity.headerImage) {
-                imagePreviewImg.src = activity.headerImage;
-                imagePreview.style.display = 'block';
-            } else {
-                imagePreview.style.display = 'none';
+            const imageUrlInput = document.getElementById('header-image-url');
+            if (imageUrlInput) {
+                const url = activity.header_image_url || '';
+                imageUrlInput.value = url;
+                showActivityImagePreview(url);
             }
 
-            
             title.textContent = 'Edit Activity';
             submitBtn.innerHTML = '<i class="fas fa-save"></i> Update Activity';
         }
     } else {
-        // New activity mode
         currentActivityId = null;
         form.reset();
         learningOutcomes = [];
         renderLearningOutcomes();
-        document.getElementById('image-preview').style.display = 'none';
+        clearActivityImagePreview(true);
         title.textContent = 'Add New Activity';
         submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Activity';
     }
@@ -1004,6 +1339,7 @@ function closeAddReflectionDialog() {
 function clearActivityForm() {
     const form = document.getElementById('add-activity-form');
     form.reset();
+    clearActivityImagePreview(true);
 }
 
 function clearReflectionForm() {
@@ -1149,35 +1485,37 @@ function viewActivityDetail(activityId) {
     lockBodyScroll();
 }
 
-function deleteActivity(activityId) {
-    if (confirm('Are you sure you want to delete this activity? This action cannot be undone.')) {
-        // Remove the activity
+async function deleteActivity(activityId) {
+    if (!confirm('Are you sure you want to delete this activity? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        await apiDeleteActivity(activityId);
+
         currentActivities = currentActivities.filter(a => a.id !== activityId);
-        
-        // Also remove any associated reflections
         currentReflections = currentReflections.filter(r => r.activityId !== activityId);
-        
-        // Save data to localStorage
-        saveData();
-        
-        // Close the modal and reset body overflow
+
+        writeCache(CACHE_KEYS.ACTIVITIES, currentActivities);
+        writeCache(CACHE_KEYS.REFLECTIONS, currentReflections);
+
         const detailModal = document.getElementById('activity-detail-modal');
         if (detailModal) {
             detailModal.classList.remove('show');
         }
         unlockBodyScroll();
-        
-        // Re-render the UI
+
         renderActivitiesGrid();
         renderTimeline();
         renderHeroStats();
         renderCategoriesGrid();
         renderProgressDashboard();
         renderGallery();
-        renderProgressDashboard();
-        
-        // Show a success message
+
         alert('Activity deleted successfully!');
+    } catch (error) {
+        console.error('Failed to delete activity', error);
+        alert(error?.message || 'Unable to delete the activity. Please try again.');
     }
 }
 
@@ -1191,232 +1529,218 @@ function closeActivityDetail() {
 }
 
 // Form submission handlers capture and persist user input from the activity and reflection modals
-function handleActivityFormSubmit(e) {
-    e.preventDefault();
-    
-    const form = e.target;
-    const formData = new FormData(form);
-    
-    // Get learning outcomes
-    const learningOutcomes = [];
-    document.querySelectorAll('.learning-outcome-tag').forEach(tag => {
-        learningOutcomes.push(tag.textContent);
-    });
-    
-    // Add learning outcomes to form data
-    formData.delete('learningOutcomes');
-    learningOutcomes.forEach(outcome => {
-        formData.append('learningOutcomes', outcome);
-    });
-    
-    // Handle image - check both file upload and URL
-    const imagePreview = document.getElementById('image-preview');
-    const imagePreviewImg = document.getElementById('image-preview-img');
-    const headerImageUpload = document.getElementById('header-image-upload');
-    const imageUrlInput = document.getElementById('image-url-input');
-    const statusValue = formData.get('status');
+function buildActivityPayload(form) {
+    const imageUrlInput = document.getElementById('header-image-url');
+    const title = (form.elements['title']?.value || '').trim();
+    const category = form.elements['category']?.value || '';
+    const description = (form.elements['description']?.value || '').trim();
+    const startDate = form.elements['startDate']?.value || '';
+    const endDate = form.elements['endDate']?.value || '';
+    const hoursValue = Number(form.elements['hours']?.value || 0);
+    const statusValue = (form.elements['status']?.value || 'draft').toLowerCase();
+    const headerImageUrl = imageUrlInput ? imageUrlInput.value.trim() : '';
 
-    const headerImageData = (imagePreview && imagePreview.style.display !== 'none' && imagePreviewImg && imagePreviewImg.src)
-        ? imagePreviewImg.src
-        : null;
-
-    saveActivity(formData, headerImageData);
-    
-    // Reset form and close modal
-    form.reset();
-    if (imagePreview) {
-        imagePreview.style.display = 'none';
-        if (imagePreviewImg) imagePreviewImg.src = '';
+    if (!title) {
+        alert('Please provide an activity title.');
+        return null;
     }
-    if (headerImageUpload) headerImageUpload.value = '';
-    if (imageUrlInput) imageUrlInput.value = '';
-    closeAddActivityDialog();
-    
-    // Re-render the UI
-    renderActivitiesGrid();
-    renderTimeline();
-    renderHeroStats();
-    renderCategoriesGrid();
-    renderProgressDashboard();
-    renderGallery();
-    
-    alert('Activity created successfully!');
+
+    if (!category) {
+        alert('Please choose a category.');
+        return null;
+    }
+
+    if (!startDate) {
+        alert('Please select a start date.');
+        return null;
+    }
+
+    if (!isValidHttpsUrl(headerImageUrl)) {
+        alert('Header image must be a valid HTTPS URL.');
+        if (imageUrlInput) {
+            imageUrlInput.focus();
+        }
+        return null;
+    }
+
+    if (!Number.isFinite(hoursValue) || hoursValue < 0) {
+        alert('Hours must be a non-negative number.');
+        return null;
+    }
+
+    if (endDate && new Date(endDate) < new Date(startDate)) {
+        alert('End date cannot be before the start date.');
+        return null;
+    }
+
+    const allowedStatuses = new Set(['draft', 'ongoing', 'pending', 'completed']);
+    let normalizedStatus = allowedStatuses.has(statusValue) ? statusValue : 'draft';
+    if (normalizedStatus === 'pending') {
+        normalizedStatus = 'ongoing';
+    }
+
+    return {
+        title,
+        category,
+        description,
+        startDate,
+        endDate: endDate || null,
+        hours: hoursValue,
+        status: normalizedStatus,
+        learningOutcomes: [...learningOutcomes],
+        header_image_url: headerImageUrl,
+        galleryImageUrls: [],
+        evidenceUrls: [],
+        impacts: [],
+    };
 }
 
-function saveActivity(formData, headerImage) {
-    const isEditing = currentActivityId !== null;
-    const activity = {
-        id: isEditing ? currentActivityId : Date.now().toString(),
-        title: formData.get('title'),
-        category: formData.get('category'),
-        description: formData.get('description'),
-        startDate: formData.get('startDate'),
-        endDate: formData.get('endDate') || null,
-        hours: parseInt(formData.get('hours')),
-        status: formData.get('status'),
-        learningOutcomes: Array.from(formData.getAll('learningOutcomes')),
-        headerImage: headerImage,
-        createdAt: new Date().toISOString()
-    };
-    
-    if (isEditing) {
-        const index = currentActivities.findIndex(a => a.id === currentActivityId);
-        if (index !== -1) {
-            // Preserve the existing header image if not changed
-            if (!headerImage && currentActivities[index].headerImage) {
-                activity.headerImage = currentActivities[index].headerImage;
-            }
-            currentActivities[index] = activity;
-        }
+function showActivityImagePreview(url) {
+    const preview = document.getElementById('image-preview');
+    const img = document.getElementById('image-preview-img');
+    if (!preview || !img) return;
+    if (!isValidHttpsUrl(url)) {
+        clearActivityImagePreview(false);
+        return;
+    }
+    img.dataset.fallback = IMAGE_PLACEHOLDER;
+    img.dataset.usingFallback = '0';
+    img.classList.remove('is-placeholder');
+    img.src = url;
+    preview.hidden = false;
+    attachImageFallbacks(preview);
+}
+
+function clearActivityImagePreview(resetInput = false) {
+    const preview = document.getElementById('image-preview');
+    const img = document.getElementById('image-preview-img');
+    const imageUrlInput = document.getElementById('header-image-url');
+    if (resetInput && imageUrlInput) {
+        imageUrlInput.value = '';
+    }
+    if (img) {
+        img.classList.remove('is-placeholder');
+        img.removeAttribute('src');
+        delete img.dataset.usingFallback;
+    }
+    if (preview) {
+        preview.hidden = true;
+    }
+}
+
+function syncActivityImagePreview() {
+    const imageUrlInput = document.getElementById('header-image-url');
+    if (!imageUrlInput) return;
+    const value = imageUrlInput.value.trim();
+    if (isValidHttpsUrl(value)) {
+        showActivityImagePreview(value);
     } else {
-        currentActivities.push(activity);
+        clearActivityImagePreview(false);
     }
-    learningOutcomes = [];
-    saveData();
 }
 
-function handleReflectionFormSubmit(e) {
-    e.preventDefault();
-    
-    const form = e.target;
-    const formData = new FormData(form);
-    
-    const reflection = {
-        id: Date.now().toString(),
-        activityId: formData.get('activityId'),
-        title: formData.get('title'),
-        content: formData.get('content'),
-        createdAt: new Date().toISOString()
-    };
-    
-    currentReflections.push(reflection);
-    
-    // Save to localStorage
-    saveData();
-    
-    // Reset and close form
-    form.reset();
-    closeAddReflectionDialog();
-    
-    // Re-render the UI
-    renderActivitiesGrid();
-    renderTimeline();
-    renderProgressDashboard();
-    
-    closeAddReflectionDialog();
-    alert('Reflection created successfully!');
-}
+async function handleActivityFormSubmit(event) {
+    event.preventDefault();
 
-// Image upload and URL handler powers the activity header image picker
-document.addEventListener('DOMContentLoaded', function() {
-    // Elements
-    const imageUpload = document.getElementById('header-image-upload');
-    const imageUrlInput = document.getElementById('image-url-input');
-    const loadImageUrlBtn = document.getElementById('load-image-url');
-    const removeImageBtn = document.getElementById('remove-image');
-    const imagePreview = document.getElementById('image-preview');
-    const imagePreviewImg = document.getElementById('image-preview-img');
-    const uploadTab = document.querySelector('[data-tab="upload"]');
-    const urlTab = document.querySelector('[data-tab="url"]');
-    const uploadTabContent = document.getElementById('upload-tab');
-    const urlTabContent = document.getElementById('url-tab');
-    
-    // Tab switching
-    if (uploadTab && urlTab) {
-        uploadTab.addEventListener('click', () => switchTab('upload'));
-        urlTab.addEventListener('click', () => switchTab('url'));
-    }
-    
-    function switchTab(tab) {
-        // Update active tab
-        if (tab === 'upload') {
-            uploadTab.classList.add('active');
-            urlTab.classList.remove('active');
-            uploadTabContent.classList.add('active');
-            urlTabContent.classList.remove('active');
-        } else {
-            uploadTab.classList.remove('active');
-            urlTab.classList.add('active');
-            uploadTabContent.classList.remove('active');
-            urlTabContent.classList.add('active');
-        }
-    }
-    
-    // Handle file upload
-    if (imageUpload) {
-        imageUpload.addEventListener('change', handleFileUpload);
-    }
-    
-    // Handle URL load
-    if (loadImageUrlBtn) {
-        loadImageUrlBtn.addEventListener('click', handleImageUrl);
-    }
-    
-    // Handle remove image
-    if (removeImageBtn) {
-        removeImageBtn.addEventListener('click', removeImage);
+    const form = event.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const payload = buildActivityPayload(form);
+
+    if (!payload) {
+        return;
     }
 
-    function handleFileUpload(e) {
-        const file = e.target.files[0];
-        if (file) {
-            // Check file size (5MB max)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Image size should be less than 5MB');
-                return;
+    const isEditing = typeof currentActivityId === 'string' && currentActivityId.trim() !== '';
+
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.dataset.originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    }
+
+    try {
+        const activity = isEditing
+            ? await apiUpdateActivity(currentActivityId, payload)
+            : await apiCreateActivity(payload);
+
+        if (isEditing) {
+            const index = currentActivities.findIndex((item) => item.id === activity.id);
+            if (index !== -1) {
+                currentActivities[index] = activity;
             }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                showImagePreview(e.target.result);
-                // Clear URL input when uploading a file
-                imageUrlInput.value = '';
-            };
-            reader.readAsDataURL(file);
+        } else {
+            currentActivities.unshift(activity);
+        }
+
+        writeCache(CACHE_KEYS.ACTIVITIES, currentActivities);
+
+        learningOutcomes = [];
+        form.reset();
+        clearActivityImagePreview(true);
+        renderLearningOutcomes();
+        closeAddActivityDialog();
+
+        renderActivitiesGrid();
+        renderTimeline();
+        renderHeroStats();
+        renderCategoriesGrid();
+        renderProgressDashboard();
+        renderGallery();
+
+        alert(isEditing ? 'Activity updated successfully!' : 'Activity created successfully!');
+        currentActivityId = null;
+    } catch (error) {
+        console.error('Failed to save activity', error);
+        alert(error?.message || 'Unable to save the activity. Please try again.');
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = submitBtn.dataset.originalText || submitBtn.innerHTML;
         }
     }
-    
-    function handleImageUrl() {
-        const imageUrl = imageUrlInput.value.trim();
-        if (!imageUrl) {
-            alert('Please enter an image URL');
-            return;
-        }
-        
-        // Simple URL validation
-        try {
-            new URL(imageUrl);
-        } catch (e) {
-            alert('Please enter a valid URL');
-            return;
-        }
-        
-        // Create a temporary image to check if the URL is valid
-        const img = new Image();
-        img.onload = function() {
-            showImagePreview(imageUrl);
-            // Clear file input when using URL
-            if (imageUpload) imageUpload.value = '';
-        };
-        img.onerror = function() {
-            alert('Could not load image from the provided URL. Please check the URL and try again.');
-        };
-        img.src = imageUrl;
-    }
-    
-    function showImagePreview(src) {
-        imagePreviewImg.src = src;
-        imagePreview.style.display = 'block';
-    }
-    
-    function removeImage() {
-        imagePreviewImg.src = '';
-        imagePreview.style.display = 'none';
-        if (imageUpload) imageUpload.value = '';
-        if (imageUrlInput) imageUrlInput.value = '';
+}
+
+async function handleReflectionFormSubmit(event) {
+    event.preventDefault();
+
+    const form = event.target;
+    const activityId = form.elements['activityId']?.value || '';
+    const title = (form.elements['title']?.value || '').trim();
+    const content = (form.elements['content']?.value || '').trim();
+
+    if (!activityId) {
+        alert('Please select the activity this reflection belongs to.');
+        return;
     }
 
-});
+    try {
+        const reflection = await apiCreateReflection({
+            activity_id: activityId,
+            title,
+            content,
+        });
+
+        if (!reflection) {
+            throw new Error('Received an invalid reflection response.');
+        }
+
+        currentReflections.unshift(reflection);
+        writeCache(CACHE_KEYS.REFLECTIONS, currentReflections);
+
+        form.reset();
+        closeAddReflectionDialog();
+
+        renderActivitiesGrid();
+        renderTimeline();
+        renderProgressDashboard();
+        renderGallery();
+
+        alert('Reflection added successfully!');
+    } catch (error) {
+        console.error('Failed to save reflection', error);
+        alert(error?.message || 'Unable to save the reflection. Please try again.');
+    }
+}
 
 // Wire up event listeners that cannot be attached inline for accessibility reasons
 function initializeEventListeners() {
@@ -1431,7 +1755,25 @@ function initializeEventListeners() {
             addLearningOutcome();
         }
     });
-    
+
+    const imageUrlInput = document.getElementById('header-image-url');
+    if (imageUrlInput) {
+        imageUrlInput.addEventListener('input', syncActivityImagePreview);
+        imageUrlInput.addEventListener('change', syncActivityImagePreview);
+        imageUrlInput.addEventListener('blur', syncActivityImagePreview);
+    }
+
+    const removeImageBtn = document.getElementById('remove-image');
+    if (removeImageBtn) {
+        removeImageBtn.addEventListener('click', (evt) => {
+            evt.preventDefault();
+            clearActivityImagePreview(true);
+            if (imageUrlInput) {
+                imageUrlInput.focus();
+            }
+        });
+    }
+
     // Close modals when clicking outside
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', function(e) {
@@ -1441,7 +1783,7 @@ function initializeEventListeners() {
             }
         });
     });
-    
+
     // Close modals with Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
@@ -1466,8 +1808,404 @@ function initializeSelectControls() {
     enhanceSelectControl(document.querySelector('[data-testid="select-reflection-activity"]'));
 }
 
+async function handleLegacyMigration() {
+    if (!isAuthenticated) {
+        return;
+    }
+
+    if (localStorage.getItem(LEGACY_MIGRATION_FLAG) === 'done') {
+        return;
+    }
+
+    const legacyActivities = readLegacyArray(LEGACY_STORAGE_KEYS.ACTIVITIES);
+    const legacyReflections = readLegacyArray(LEGACY_STORAGE_KEYS.REFLECTIONS);
+    const legacyLayout = readLegacyObject(LEGACY_CUSTOMIZE_KEYS.LAYOUT, null);
+    const legacyTheme = readLegacyObject(LEGACY_CUSTOMIZE_KEYS.THEME, null);
+    const legacyContent = readLegacyObject(LEGACY_CUSTOMIZE_KEYS.CONTENT, null);
+    const legacyCustomSections = readLegacyArray(LEGACY_CUSTOMIZE_KEYS.CUSTOM_SECTIONS);
+
+    const hasLegacySettings = Boolean(legacyLayout) || Boolean(legacyTheme) || (legacyContent && Object.keys(legacyContent).length > 0) || legacyCustomSections.length > 0;
+
+    if (legacyActivities.length === 0 && legacyReflections.length === 0 && !hasLegacySettings) {
+        return;
+    }
+
+    if (!confirm('We found saved CASfolio data from an older version. Migrate it to your account now?')) {
+        return;
+    }
+
+    const migrationReport = {
+        skippedActivities: [],
+        skippedHero: false,
+        heroUploadError: null,
+        heroUploaded: false,
+        settingsMigrated: false,
+        settingsMigrationError: null,
+    };
+
+    const migratedMap = new Map();
+
+    for (const legacy of legacyActivities) {
+        const payload = buildLegacyActivityPayload(legacy, migrationReport);
+        if (!payload) {
+            continue;
+        }
+
+        try {
+            const created = await apiCreateActivity(payload);
+            currentActivities.unshift(created);
+            migratedMap.set(String(legacy.id), created.id);
+        } catch (error) {
+            console.error('Failed to migrate legacy activity', legacy, error);
+            migrationReport.skippedActivities.push(legacy.title || 'Untitled Activity');
+        }
+    }
+
+    for (const legacyReflection of legacyReflections) {
+        const legacyActivityId = String(legacyReflection.activityId || legacyReflection.activity_id || '');
+        const mappedActivityId = migratedMap.get(legacyActivityId);
+        if (!mappedActivityId) {
+            continue;
+        }
+
+        try {
+            const createdReflection = await apiCreateReflection({
+                activity_id: mappedActivityId,
+                title: (legacyReflection.title || 'Reflection').trim(),
+                content: (legacyReflection.content || '').trim(),
+            });
+            if (createdReflection) {
+                currentReflections.unshift(createdReflection);
+            }
+        } catch (error) {
+            console.error('Failed to migrate legacy reflection', legacyReflection, error);
+        }
+    }
+
+    if (currentActivities.length > 0) {
+        writeCache(CACHE_KEYS.ACTIVITIES, currentActivities);
+    }
+    if (currentReflections.length > 0) {
+        writeCache(CACHE_KEYS.REFLECTIONS, currentReflections);
+    }
+
+    await migrateLegacyCustomization({
+        layout: legacyLayout,
+        theme: legacyTheme,
+        content: legacyContent,
+        customSections: legacyCustomSections,
+    }, migrationReport);
+
+    localStorage.removeItem(LEGACY_STORAGE_KEYS.ACTIVITIES);
+    localStorage.removeItem(LEGACY_STORAGE_KEYS.REFLECTIONS);
+    localStorage.setItem(LEGACY_MIGRATION_FLAG, 'done');
+
+    const shouldRefreshUi = migratedMap.size > 0 || legacyReflections.length > 0;
+    if (shouldRefreshUi) {
+        renderActivitiesGrid();
+        renderTimeline();
+        renderHeroStats();
+        renderCategoriesGrid();
+        renderProgressDashboard();
+        renderGallery();
+    }
+
+    const summaryNotes = [];
+    if (migrationReport.skippedActivities.length > 0) {
+        summaryNotes.push(`Activities skipped: ${migrationReport.skippedActivities.join(', ')}`);
+    }
+    if (migrationReport.heroUploaded) {
+        summaryNotes.push('Hero image uploaded to cloud storage.');
+    }
+    if (migrationReport.skippedHero) {
+        summaryNotes.push('Hero image was not migrated and remains local.');
+    }
+    if (migrationReport.heroUploadError) {
+        summaryNotes.push(`Hero image upload failed: ${migrationReport.heroUploadError}`);
+    }
+    if (migrationReport.settingsMigrated) {
+        summaryNotes.push('Portfolio settings synchronized to your account.');
+    }
+    if (migrationReport.settingsMigrationError) {
+        summaryNotes.push(`Portfolio settings failed to migrate: ${migrationReport.settingsMigrationError}`);
+    }
+
+    if (summaryNotes.length > 0) {
+        const record = {
+            createdAt: new Date().toISOString(),
+            notes: summaryNotes,
+        };
+        try {
+            localStorage.setItem(LEGACY_MIGRATION_NOTES_KEY, JSON.stringify(record));
+        } catch (error) {
+            console.warn('Unable to record legacy migration notes', error);
+        }
+        console.info('CASfolio migration completed with notes:', summaryNotes.join(' | '));
+    } else {
+        localStorage.removeItem(LEGACY_MIGRATION_NOTES_KEY);
+    }
+}
+
+function buildLegacyActivityPayload(legacy, report) {
+    const statusMap = new Map([
+        ['completed', 'completed'],
+        ['pending', 'pending'],
+        ['draft', 'draft'],
+        ['ongoing', 'draft'],
+    ]);
+
+    const learning = Array.isArray(legacy.learningOutcomes)
+        ? legacy.learningOutcomes
+        : Array.isArray(legacy.learning_outcomes)
+            ? legacy.learning_outcomes
+            : [];
+
+    let headerUrl = '';
+    if (typeof legacy.header_image_url === 'string') {
+        headerUrl = legacy.header_image_url.trim();
+    } else if (typeof legacy.headerImageUrl === 'string') {
+        headerUrl = legacy.headerImageUrl.trim();
+    } else if (typeof legacy.headerImage === 'string') {
+        headerUrl = legacy.headerImage.trim();
+    }
+
+    if (headerUrl.startsWith('data:')) {
+        headerUrl = '';
+    }
+
+    while (!isValidHttpsUrl(headerUrl)) {
+        const response = prompt(`Provide an HTTPS image URL for the activity "${legacy.title || 'Untitled Activity'}".`);
+        if (response === null) {
+            if (confirm('Skip migrating this activity?')) {
+                if (report && Array.isArray(report.skippedActivities)) {
+                    report.skippedActivities.push(legacy.title || 'Untitled Activity');
+                }
+                return null;
+            }
+            continue;
+        }
+        const trimmed = response.trim();
+        if (isValidHttpsUrl(trimmed)) {
+            headerUrl = trimmed;
+        } else {
+            alert('Image URLs must start with https://.');
+        }
+    }
+
+    const startDate = (legacy.startDate || legacy.start_date || '').trim();
+    const endDate = (legacy.endDate || legacy.end_date || '').trim();
+    const hoursValue = Number(legacy.hours || 0);
+    const rawStatus = (legacy.status || '').toLowerCase();
+
+    return {
+        title: (legacy.title || 'Untitled Activity').trim(),
+        category: (legacy.category || '').trim() || 'creativity',
+        description: (legacy.description || '').trim(),
+        startDate,
+        endDate: endDate || null,
+        hours: Number.isFinite(hoursValue) && hoursValue >= 0 ? hoursValue : 0,
+        status: statusMap.get(rawStatus) || 'draft',
+        learningOutcomes: learning.filter((item) => typeof item === 'string' && item.trim() !== '').map((item) => item.trim()),
+        header_image_url: headerUrl,
+        galleryImageUrls: [],
+        evidenceUrls: [],
+        impacts: Array.isArray(legacy.impacts) ? legacy.impacts : [],
+    };
+}
+
+async function migrateLegacyCustomization(legacy, report) {
+    const hasLayout = legacy.layout && typeof legacy.layout === 'object' && Object.keys(legacy.layout).length > 0;
+    const hasTheme = legacy.theme && typeof legacy.theme === 'object' && Object.keys(legacy.theme).length > 0;
+    const hasContent = legacy.content && typeof legacy.content === 'object' && Object.keys(legacy.content).length > 0;
+    const hasSections = Array.isArray(legacy.customSections) && legacy.customSections.length > 0;
+
+    if (!hasLayout && !hasTheme && !hasContent && !hasSections) {
+        return false;
+    }
+
+    let contentPayload = null;
+    if (hasContent) {
+        contentPayload = await sanitizeLegacyContent(legacy.content, report);
+    }
+
+    const payload = {
+        layout: hasLayout ? legacy.layout : null,
+        theme: hasTheme ? legacy.theme : null,
+        content: contentPayload,
+        customSections: Array.isArray(legacy.customSections) ? legacy.customSections : [],
+    };
+
+    const result = await fetchJsonWithStatus(API_ENDPOINTS.SETTINGS, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+
+    if (!result.ok) {
+        const message = (result.data && result.data.error) || 'Unable to save portfolio settings.';
+        console.error('Failed to migrate legacy settings', message);
+        report.settingsMigrationError = message;
+        return false;
+    }
+
+    report.settingsMigrated = true;
+
+    Object.values(LEGACY_CUSTOMIZE_KEYS).forEach((key) => {
+        localStorage.removeItem(key);
+    });
+
+    return true;
+}
+
+async function sanitizeLegacyContent(legacyContent, report) {
+    if (!legacyContent || typeof legacyContent !== 'object') {
+        return null;
+    }
+
+    const clone = JSON.parse(JSON.stringify(legacyContent));
+    const candidateSources = [
+        typeof clone.heroImageUrl === 'string' ? clone.heroImageUrl : '',
+        typeof clone.hero_image_url === 'string' ? clone.hero_image_url : '',
+        typeof clone.heroImage === 'string' ? clone.heroImage : '',
+    ];
+    let heroSource = candidateSources.find((value) => typeof value === 'string' && value.trim() !== '') || '';
+    heroSource = heroSource.trim();
+
+    let heroPath = '';
+    if (typeof clone.heroImagePath === 'string' && clone.heroImagePath.trim() !== '') {
+        heroPath = clone.heroImagePath.trim();
+    } else if (typeof clone.hero_image_path === 'string' && clone.hero_image_path.trim() !== '') {
+        heroPath = clone.hero_image_path.trim();
+    }
+
+    const clearHeroFields = () => {
+        delete clone.heroImageUrl;
+        delete clone.hero_image_url;
+        delete clone.heroImage;
+        delete clone.hero_image;
+        delete clone.heroImagePath;
+        delete clone.hero_image_path;
+        heroPath = '';
+    };
+
+    if (heroSource && heroSource.startsWith('data:')) {
+        const shouldUpload = confirm('We found a hero image stored locally. Upload it now so it can sync across devices?');
+        if (shouldUpload) {
+            const upload = await uploadLegacyHeroImage(heroSource);
+            if (upload.ok) {
+                clone.heroImageUrl = upload.url;
+                clone.hero_image_url = upload.url;
+                if (upload.path) {
+                    clone.heroImagePath = upload.path;
+                    clone.hero_image_path = upload.path;
+                    heroPath = upload.path;
+                } else if (heroPath) {
+                    clone.heroImagePath = heroPath;
+                    clone.hero_image_path = heroPath;
+                } else {
+                    delete clone.heroImagePath;
+                    delete clone.hero_image_path;
+                }
+                clone._heroImageMigrated = true;
+                report.heroUploaded = true;
+            } else {
+                report.heroUploadError = upload.error || 'Unknown hero upload error';
+                clearHeroFields();
+            }
+        } else {
+            report.skippedHero = true;
+            clearHeroFields();
+        }
+    } else if (heroSource) {
+        if (isValidHttpsUrl(heroSource)) {
+            clone.heroImageUrl = heroSource;
+            clone.hero_image_url = heroSource;
+            if (!heroPath) {
+                delete clone.heroImagePath;
+                delete clone.hero_image_path;
+            }
+        } else {
+            report.skippedHero = true;
+            clearHeroFields();
+        }
+    } else if (heroPath) {
+        delete clone.heroImageUrl;
+        delete clone.hero_image_url;
+        clone.heroImagePath = heroPath;
+        clone.hero_image_path = heroPath;
+    } else {
+        clearHeroFields();
+    }
+
+    delete clone.heroImage;
+    delete clone.hero_image;
+
+    return clone;
+}
+
+async function uploadLegacyHeroImage(dataUrl) {
+    const uploadFile = dataUrlToFile(dataUrl, 'legacy-hero.png');
+    if (!uploadFile) {
+        return { ok: false, error: 'Unable to prepare hero image for upload.' };
+    }
+
+    const formData = new FormData();
+    if (typeof File !== 'undefined' && uploadFile instanceof File) {
+        formData.append('file', uploadFile);
+    } else {
+        formData.append('file', uploadFile, 'legacy-hero.png');
+    }
+
+    const result = await fetchJsonWithStatus(API_ENDPOINTS.HERO_IMAGE, {
+        method: 'POST',
+        body: formData,
+    });
+
+    if (!result.ok || !result.data || typeof result.data.url !== 'string') {
+        const message = (result.data && result.data.error) || 'Hero image upload failed.';
+        return { ok: false, error: message };
+    }
+
+    return {
+        ok: true,
+        url: result.data.url,
+        path: typeof result.data.path === 'string' ? result.data.path : null,
+    };
+}
+
+function dataUrlToFile(dataUrl, filename) {
+    try {
+        const [header, base64] = dataUrl.split(',');
+        if (!header || !base64) {
+            return null;
+        }
+        const mimeMatch = /data:(.*?);base64/i.exec(header);
+        const mime = mimeMatch ? mimeMatch[1] : 'image/png';
+        const binary = typeof atob === 'function' ? atob(base64) : null;
+        if (!binary) {
+            return null;
+        }
+        const len = binary.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        if (typeof File === 'function') {
+            return new File([bytes], filename, { type: mime });
+        }
+        return new Blob([bytes], { type: mime });
+    } catch (error) {
+        console.warn('Failed to convert legacy hero image', error);
+        return null;
+    }
+}
+
+
 // Kick off the initial render pipeline once the DOM is ready
-function initializeApp() {
+async function initializeApp() {
+    await bootstrapData();
+    await handleLegacyMigration();
+
     renderHeroStats();
     renderCategoriesGrid();
     renderActivitiesGrid();
@@ -1477,10 +2215,13 @@ function initializeApp() {
     initializeEventListeners();
     initializePortfolioQuestionnaire();
     initializeSelectControls();
+    attachImageFallbacks();
 }
 
 // Start the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeApp);
+document.addEventListener('DOMContentLoaded', () => {
+    initializeApp().catch((error) => console.error('Failed to initialize CASfolio', error));
+});
 
 // Photos modal
 function openPhotosModal() {
@@ -1489,8 +2230,8 @@ function openPhotosModal() {
     const empty = document.getElementById('photos-empty');
 
     const photos = currentActivities
-        .filter(a => !!a.headerImage)
-        .map(a => ({ url: a.headerImage, title: a.title, id: a.id }));
+        .filter(a => isValidHttpsUrl(a.header_image_url))
+        .map(a => ({ url: a.header_image_url, title: a.title, id: a.id }));
 
     if (!grid || !empty || !modal) return;
 
@@ -1504,13 +2245,14 @@ function openPhotosModal() {
         grid.innerHTML = photos.map(p => `
             <div class="gallery-card" data-testid="photo-item-${p.id}">
                 <div class="gallery-card-clickable" onclick="viewActivityDetail('${p.id}')">
-                    <div class="activity-image" style="background-image: url('${p.url}');"></div>
+                    <img class="activity-image" src="${escapeAttribute(p.url)}" alt="${escapeHtml(p.title)}" data-fallback="${IMAGE_PLACEHOLDER}" loading="lazy">
                     <div class="gallery-content">
                         <h4 class="gallery-title">${p.title}</h4>
                     </div>
                 </div>
             </div>
         `).join('');
+        attachImageFallbacks(grid);
     }
     
     modal.classList.add('show');
