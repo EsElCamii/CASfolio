@@ -100,6 +100,10 @@
     </script>
 </head>
 <body>
+    <button id="casfolio-logout" class="btn btn-primary floating-logout" type="button">
+        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+        <span>Logout</span>
+    </button>
     <!-- Navigation -->
     <nav class="nav">
         <div class="container" id="nav-container">
@@ -937,6 +941,34 @@
             </form>
         </div>
     </div>
+
+    <script>
+        (function () {
+            const logoutBtn = document.getElementById('casfolio-logout');
+            if (!logoutBtn) return;
+            logoutBtn.addEventListener('click', async () => {
+                logoutBtn.setAttribute('disabled', 'true');
+                try {
+                    await fetch('/api/auth/signout', { method: 'POST' });
+                } catch (error) {
+                    console.error('Error signing out', error);
+                } finally {
+                    try {
+                        if (typeof window !== 'undefined' && window.localStorage) {
+                            Object.keys(window.localStorage).forEach((key) => {
+                                if (key.startsWith('sb-')) {
+                                    window.localStorage.removeItem(key);
+                                }
+                            });
+                        }
+                    } catch (err) {
+                        console.error('Error clearing Supabase tokens', err);
+                    }
+                    window.location.href = '/';
+                }
+            });
+        })();
+    </script>
 
     <!-- Scripts -->
     <script src="script.js"></script>
