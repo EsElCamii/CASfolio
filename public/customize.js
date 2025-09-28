@@ -323,17 +323,6 @@
     return `${parseInt(m[1], 16)}, ${parseInt(m[2], 16)}, ${parseInt(m[3], 16)}`;
   }
 
-  // Load state
-  function loadState() {
-    customSections = load(KEYS.CUSTOM_SECTIONS, []);
-    const defaultOrder = defaultSections.map(s => s.id).concat(customSections.map(s => s.id));
-    const defaultVisibility = {};
-    defaultOrder.forEach(id => { defaultVisibility[id] = true; });
-    layout = load(KEYS.LAYOUT, { order: defaultOrder, visibility: defaultVisibility });
-    theme = load(KEYS.THEME, null);
-    content = load(KEYS.CONTENT, null);
-  }
-
   // Apply theme
   function applyTheme() {
     if (!theme) return;
