@@ -1,5 +1,5 @@
-import AuthForm from '../components/AuthForm';
-import { createSupabaseServerClient } from '../../lib/supabaseServer';
+import AuthForm from './components/AuthForm';
+import { createSupabaseServerClient } from '../lib/supabaseServer';
 import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
