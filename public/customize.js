@@ -21,7 +21,7 @@
   // State
   let layout = null; // { order: [], visibility: { id: boolean } }
   let theme = null;  // { primary, secondary, accent, radius, dark }
-  const MAX_HERO_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB limit keeps localStorage usage reasonable.
+  const MAX_HERO_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB limit keeps Supabase storage usage reasonable.
 
   let content = null; // { heroTitle, heroSubtitle, heroDescription, heroImageUrl }
   let customSections = []; // [{ id, name, content, visible }]
@@ -137,12 +137,164 @@
     Brand: 'Control the navigation brand text, image, and fallback icon.'
   };
 
+  // Remote persistence helpers
+  const SETTINGS_ENDPOINT = '/api/profile/settings';
+  const remoteState = { layout: null, theme: null, content: null, customSections: [] };
+  let remoteSyncDisabled = false;
+  let remoteSaveTimeout = null;
+
+  function persistLocal(key, value) {
+    try {
+      if (value === null || value === undefined) {
+        localStorage.removeItem(key);
+      } else {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
+    } catch (e) {
+      console.warn('Save failed', key, e);
+    }
+  }
+
+  function load(key, fallback) {
+    try {
+      const v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : fallback;
+    } catch (e) {
+      return fallback;
+    }
+  }
+
+  function queueRemoteSave() {
+    if (remoteSyncDisabled) return;
+    if (remoteSaveTimeout) {
+      clearTimeout(remoteSaveTimeout);
+    }
+    remoteSaveTimeout = setTimeout(() => {
+      remoteSaveTimeout = null;
+      pushRemoteSave();
+    }, 800);
+  }
+
+  async function pushRemoteSave() {
+    if (remoteSyncDisabled) return;
+    try {
+      const response = await fetch(SETTINGS_ENDPOINT, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(remoteState),
+      });
+      if (response.status === 401) {
+        remoteSyncDisabled = true;
+      } else if (!response.ok) {
+        throw new Error(await response.text());
+      }
+    } catch (error) {
+      console.error('Unable to persist customization remotely', error);
+    }
+  }
+
+  async function fetchRemoteSettings() {
+    if (remoteSyncDisabled) return null;
+    try {
+      const response = await fetch(SETTINGS_ENDPOINT, {
+        method: 'GET',
+        credentials: 'same-origin',
+      });
+      if (response.status === 401) {
+        remoteSyncDisabled = true;
+        return null;
+      }
+      if (!response.ok) {
+        throw new Error(await response.text());
+      }
+      const json = await response.json();
+      return json?.settings ?? null;
+    } catch (error) {
+      console.warn('Falling back to local customization settings', error);
+      return null;
+    }
+  }
+
+  function computeDefaultLayout(sections) {
+    const order = defaultSections.map(s => s.id).concat(sections.map(s => s.id));
+    const visibility = {};
+    order.forEach(id => { visibility[id] = true; });
+    return { order, visibility };
+  }
+
+  function normalizeLayout(layoutValue, sections) {
+    const defaults = computeDefaultLayout(sections);
+    if (!layoutValue || !Array.isArray(layoutValue.order)) {
+      return defaults;
+    }
+
+    const allowed = new Set(defaults.order);
+    const order = layoutValue.order.filter(id => allowed.has(id));
+    defaults.order.forEach(id => {
+      if (!order.includes(id)) order.push(id);
+    });
+
+    const visibility = Object.assign({}, defaults.visibility, layoutValue.visibility || {});
+    Object.keys(visibility).forEach(id => {
+      if (!allowed.has(id)) delete visibility[id];
+    });
+
+    return { order, visibility };
+  }
+
+  function applyRemoteStateToLocalCache() {
+    persistLocal(KEYS.CUSTOM_SECTIONS, customSections);
+    persistLocal(KEYS.LAYOUT, layout);
+    persistLocal(KEYS.THEME, theme);
+    persistLocal(KEYS.CONTENT, content);
+  }
+
+  async function loadState() {
+    let settings = await fetchRemoteSettings();
+
+    if (!settings) {
+      settings = {
+        layout: load(KEYS.LAYOUT, null),
+        theme: load(KEYS.THEME, null),
+        content: load(KEYS.CONTENT, null),
+        customSections: load(KEYS.CUSTOM_SECTIONS, []),
+      };
+    }
+
+    customSections = Array.isArray(settings.customSections) ? settings.customSections : [];
+    layout = normalizeLayout(settings.layout, customSections);
+    theme = settings.theme || null;
+    content = settings.content || null;
+
+    remoteState.layout = layout;
+    remoteState.theme = theme;
+    remoteState.content = content;
+    remoteState.customSections = customSections;
+
+    applyRemoteStateToLocalCache();
+  }
+
   // Utilities
   function save(key, value) {
-    try { localStorage.setItem(key, JSON.stringify(value)); } catch (e) { console.warn('Save failed', key, e); }
-  }
-  function load(key, fallback) {
-    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch (e) { return fallback; }
+    persistLocal(key, value);
+    switch (key) {
+      case KEYS.LAYOUT:
+        remoteState.layout = value;
+        break;
+      case KEYS.THEME:
+        remoteState.theme = value;
+        break;
+      case KEYS.CONTENT:
+        remoteState.content = value;
+        break;
+      case KEYS.CUSTOM_SECTIONS:
+        remoteState.customSections = value;
+        break;
+      default:
+        break;
+    }
+    queueRemoteSave();
   }
   function $(sel) { return document.querySelector(sel); }
   function $all(sel) { return Array.from(document.querySelectorAll(sel)); }
@@ -302,7 +454,7 @@
       return;
     }
     if (file.size > MAX_HERO_IMAGE_SIZE) {
-      alert('Please choose an image up to 5MB.');
+      alert('Please choose an image up to 2MB.');
       return;
     }
     const reader = new FileReader();
@@ -1041,12 +1193,36 @@
   }
 
   // Reset customization
-  function resetCustomization() {
+  async function resetCustomization() {
     if (!confirm('Reset customization to defaults?')) return;
+
     localStorage.removeItem(KEYS.LAYOUT);
     localStorage.removeItem(KEYS.THEME);
     localStorage.removeItem(KEYS.CONTENT);
     localStorage.removeItem(KEYS.CUSTOM_SECTIONS);
+
+    remoteState.layout = null;
+    remoteState.theme = null;
+    remoteState.content = null;
+    remoteState.customSections = [];
+
+    if (!remoteSyncDisabled) {
+      if (remoteSaveTimeout) {
+        clearTimeout(remoteSaveTimeout);
+        remoteSaveTimeout = null;
+      }
+      try {
+        await fetch(SETTINGS_ENDPOINT, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify(remoteState),
+        });
+      } catch (error) {
+        console.error('Failed to clear remote customization', error);
+      }
+    }
+
     window.location.reload();
   }
 
@@ -1058,8 +1234,8 @@
   window.resetCustomization = resetCustomization;
 
   // Initialize on DOMContentLoaded
-  document.addEventListener('DOMContentLoaded', () => {
-    loadState();
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadState();
     normalizeHeroTitle();
     ensureCustomSectionsInDOM();
     applyLayout();
