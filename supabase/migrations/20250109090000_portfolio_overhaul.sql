@@ -1,23 +1,12 @@
 -- Portfolio data model overhaul
- 
- -- Ensure helper enums exist before we change tables
- DO $$
- BEGIN
-     IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'activity_status') THEN
-         CREATE TYPE public.activity_status AS ENUM ('draft', 'pending', 'completed');
-     END IF;
- END$$;
- 
- -- Helper function: ensure all entries in a text[] start with https://
- -- Using a function avoids subqueries directly in CHECK constraints
- CREATE OR REPLACE FUNCTION public.all_https(arr text[])
- RETURNS boolean
- LANGUAGE sql
- IMMUTABLE
- AS $$
-   SELECT COALESCE(bool_and(url ~* '^https://'), TRUE)
-   FROM unnest(arr) AS url
- $$;
+
+-- Ensure helper enums exist before we change tables
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'activity_status') THEN
+        CREATE TYPE public.activity_status AS ENUM ('draft', 'pending', 'completed');
+    END IF;
+END$$;
 
 -- Profiles store top-level identity information for a portfolio owner
 CREATE TABLE IF NOT EXISTS public.profiles (
@@ -84,15 +73,19 @@ ALTER TABLE public.activities
     ALTER COLUMN header_image_url SET NOT NULL,
     ALTER COLUMN header_image_url DROP DEFAULT,
     ADD CONSTRAINT activities_header_image_https
-        CHECK (public.all_https(ARRAY[header_image_url]));
+        CHECK (header_image_url ~* '^https://');
 
 ALTER TABLE public.activities
     ADD CONSTRAINT activities_gallery_image_https
-        CHECK (public.all_https(gallery_image_urls));
+        CHECK (gallery_image_urls IS NULL OR NOT EXISTS (
+            SELECT 1 FROM unnest(gallery_image_urls) url WHERE url !~* '^https://'
+        ));
 
 ALTER TABLE public.activities
     ADD CONSTRAINT activities_evidence_urls_https
-        CHECK (public.all_https(evidence_urls));
+        CHECK (evidence_urls IS NULL OR NOT EXISTS (
+            SELECT 1 FROM unnest(evidence_urls) url WHERE url !~* '^https://'
+        ));
 
 -- Update indexes to match the user_id column name
 DROP INDEX IF EXISTS idx_activities_student_status;
