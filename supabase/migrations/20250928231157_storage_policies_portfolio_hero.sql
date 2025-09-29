@@ -1,21 +1,20 @@
 -- Storage policies for portfolio-hero bucket (user-scoped uploads)
--- Safe/idempotent: drops any existing conflicting policies, then recreates.
+  -- Safe/idempotent: drops any existing conflicting policies, then recreates.
 
--- Ensure bucket exists (in case previous migration didn't run)
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-SELECT 'portfolio-hero', 'portfolio-hero', false, 1048576, ARRAY['image/png','image/jpeg','image/gif','image/webp']
-WHERE NOT EXISTS (
-  SELECT 1 FROM storage.buckets WHERE id = 'portfolio-hero'
-);
+  -- Ensure bucket exists (in case previous migration didn't run)
+  INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+  SELECT 'portfolio-hero', 'portfolio-hero', false, 1048576, ARRAY['image/png','image/jpeg','image/gif','image/webp']
+  WHERE NOT EXISTS (
+    SELECT 1 FROM storage.buckets WHERE id = 'portfolio-hero'
+  );
 
--- Make sure RLS is enabled on storage.objects
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+  -- Note: RLS on storage.objects is managed by Supabase and typically enabled by default.
 
--- Drop old policies if present (avoids duplicates when re-running)
-DROP POLICY IF EXISTS portfolio_hero_select_own ON storage.objects;
-DROP POLICY IF EXISTS portfolio_hero_insert_own ON storage.objects;
-DROP POLICY IF EXISTS portfolio_hero_update_own ON storage.objects;
-DROP POLICY IF EXISTS portfolio_hero_delete_own ON storage.objects;
+  -- Drop old policies if present (avoids duplicates when re-running)
+  DROP POLICY IF EXISTS portfolio_hero_select_own ON storage.objects;
+  DROP POLICY IF EXISTS portfolio_hero_insert_own ON storage.objects;
+  DROP POLICY IF EXISTS portfolio_hero_update_own ON storage.objects;
+  DROP POLICY IF EXISTS portfolio_hero_delete_own ON storage.objects;
 
 -- Policy: users can read only their own hero images inside their UID folder
 CREATE POLICY portfolio_hero_select_own
