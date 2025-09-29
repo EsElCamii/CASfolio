@@ -21,7 +21,7 @@
   // State
   let layout = null; // { order: [], visibility: { id: boolean } }
   let theme = null;  // { primary, secondary, accent, radius, dark }
-  const MAX_HERO_IMAGE_SIZE = 1 * 1024 * 1024; // 1MB limit keeps Supabase storage usage reasonable.
+  const MAX_HERO_IMAGE_SIZE = 2 * 1024 * 1024; // 2MB limit keeps Supabase storage usage reasonable.
 
   let content = null; // { heroTitle, heroSubtitle, heroDescription, heroImageUrl }
   let customSections = []; // [{ id, name, content, visible }]
@@ -152,18 +152,6 @@
       }
     } catch (e) {
       console.warn('Save failed', key, e);
-    }
-  }
-
-  function isValidHttpsUrl(value) {
-    if (typeof value !== 'string' || value.trim() === '') {
-      return false;
-    }
-    try {
-      const parsed = new URL(value);
-      return parsed.protocol === 'https:';
-    } catch (error) {
-      return false;
     }
   }
 
@@ -361,15 +349,7 @@
         applyFieldToDom(field, content[field.key]);
       });
     }
-    const heroSource = content
-      ? (content.heroImageUrl || '')
-      : '';
-    renderHeroImage(heroSource);
-    if (heroSource && heroSource.startsWith('data:')) {
-      setTimeout(() => {
-        maybeUpgradeLegacyHeroImage(heroSource);
-      }, 0);
-    }
+    renderHeroImage((content && content.heroImageUrl) || '');
   }
 
   function migrateContentSchema() {
@@ -383,24 +363,6 @@
     map.forEach(([oldK, newK]) => {
       if (content && content[oldK] && !content[newK]) { content[newK] = content[oldK]; changed = true; }
     });
-    if (content) {
-      if (content.heroImage && !content.heroImageUrl) {
-        content.heroImageUrl = content.heroImage;
-        changed = true;
-      }
-      if (content.hero_image_url && !content.heroImageUrl) {
-        content.heroImageUrl = content.hero_image_url;
-        changed = true;
-      }
-      if (content.hero_image_path && !content.heroImagePath) {
-        content.heroImagePath = content.hero_image_path;
-        changed = true;
-      }
-      if (changed) {
-        delete content.hero_image_url;
-        delete content.hero_image_path;
-      }
-    }
     if (changed) save(KEYS.CONTENT, content);
   }
 
@@ -432,64 +394,13 @@
     };
   }
 
-  function heroHasStoredPath() {
-    return Boolean(content && (content.heroImagePath || content.hero_image_path));
-  }
-
-  function handleHeroImageError(event) {
-    const target = event?.currentTarget;
-    if (!target || target.dataset.suppressError === '1') {
-      return;
-    }
-
-    target.dataset.suppressError = '1';
-    const { dropzone } = getHeroElements();
-
-    if (heroHasStoredPath()) {
-      // Keep the stored reference but fall back to the dropzone so the user can retry.
-      target.hidden = true;
-      if (target.hasAttribute('src')) {
-        target.removeAttribute('src');
-      }
-      if (dropzone) {
-        dropzone.classList.remove('has-image');
-        dropzone.setAttribute('aria-label', 'Upload hero image');
-      }
-      setTimeout(() => {
-        delete target.dataset.suppressError;
-      }, 0);
-      console.warn('Hero image failed to load; leaving dropzone visible for retry.');
-      return;
-    }
-
-    clearHeroImage({ persist: true, storagePath: null });
-    target.hidden = true;
-    if (dropzone) {
-      dropzone.classList.remove('has-image');
-      dropzone.setAttribute('aria-label', 'Upload hero image');
-    }
-    if (target.hasAttribute('src')) {
-      target.removeAttribute('src');
-    }
-    setTimeout(() => {
-      delete target.dataset.suppressError;
-    }, 0);
-    alert('Hero image could not be loaded. Please verify the URL or try uploading again.');
-  }
-
   function renderHeroImage(src) {
     const { dropzone, image, badge } = getHeroElements();
     if (!dropzone || !image) return;
-    if (!image.dataset.errorBound) {
-      image.addEventListener('error', handleHeroImageError);
-      image.dataset.errorBound = '1';
-    }
     const hasImage = typeof src === 'string' && src.trim() !== '';
     if (hasImage) {
       image.hidden = false;
-      if (image.src !== src) {
-        image.src = src;
-      }
+      if (image.src !== src) image.src = src;
       dropzone.classList.add('has-image');
       dropzone.setAttribute('aria-label', 'Change hero image');
       if (badge) badge.hidden = false;
@@ -504,30 +415,17 @@
     }
   }
 
-  function setHeroImage(src, { persist = true, storagePath = null } = {}) {
+  function setHeroImage(src, { persist = true } = {}) {
     const normalized = (typeof src === 'string' && src.trim() !== '') ? src.trim() : '';
     renderHeroImage(normalized);
     if (!persist) return;
     content = content || {};
     if (normalized) {
       content.heroImageUrl = normalized;
-      content.hero_image_url = normalized;
-      if (storagePath) {
-        content.heroImagePath = storagePath;
-        content.hero_image_path = storagePath;
-      } else {
-        delete content.heroImagePath;
-        delete content.hero_image_path;
-      }
     } else {
       delete content.heroImageUrl;
-      delete content.hero_image_url;
-      delete content.heroImagePath;
-      delete content.hero_image_path;
     }
-    remoteState.content = content;
     save(KEYS.CONTENT, content);
-    queueRemoteSave();
     const { urlInput } = getHeroElements();
     if (urlInput) {
       urlInput.value = normalized;
@@ -535,108 +433,28 @@
   }
 
   function clearHeroImage(options) {
-    setHeroImage('', Object.assign({ storagePath: null }, options));
+    setHeroImage('', options);
   }
 
-  async function processHeroImageFile(file) {
+  function processHeroImageFile(file) {
     if (!file) return;
     if (!file.type || !file.type.startsWith('image/')) {
       alert('Please choose a valid image file.');
       return;
     }
     if (file.size > MAX_HERO_IMAGE_SIZE) {
-      alert('Please choose an image up to 1MB.');
+      alert('Please choose an image up to 2MB.');
       return;
     }
-
-    const { dropzone } = getHeroElements();
-    if (dropzone) {
-      dropzone.classList.add('is-uploading');
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/hero-image', {
-        method: 'POST',
-        body: formData,
-        credentials: 'same-origin',
-      });
-
-      if (response.status === 401) {
-        alert('Please sign in to upload a hero image.');
-        return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setHeroImage(reader.result);
+        const { urlInput } = getHeroElements();
+        if (urlInput) urlInput.value = '';
       }
-
-      if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || 'Upload failed.');
-      }
-
-      const data = await response.json();
-      if (!data || typeof data.url !== 'string') {
-        throw new Error('Upload did not return a hero image URL.');
-      }
-
-      setHeroImage(data.url, { storagePath: data.path || null });
-    } catch (error) {
-      console.error('Hero image upload failed', error);
-      alert(error?.message || 'Unable to upload the hero image. Please try again.');
-    } finally {
-      if (dropzone) {
-        dropzone.classList.remove('is-uploading');
-      }
-      const { fileInput } = getHeroElements();
-      if (fileInput) {
-        fileInput.value = '';
-      }
-    }
-  }
-
-  function dataUrlToFile(dataUrl, filename) {
-    try {
-      const [header, base64] = dataUrl.split(',');
-      if (!header || !base64) return null;
-      const mimeMatch = /data:(.*?);base64/.exec(header);
-      const mime = mimeMatch ? mimeMatch[1] : 'image/png';
-      const binary = atob(base64);
-      const len = binary.length;
-      const bytes = new Uint8Array(len);
-      for (let i = 0; i < len; i++) {
-        bytes[i] = binary.charCodeAt(i);
-      }
-      return new File([bytes], filename, { type: mime });
-    } catch (error) {
-      console.warn('Failed to convert legacy hero image', error);
-      return null;
-    }
-  }
-
-  async function maybeUpgradeLegacyHeroImage(dataUrl) {
-    if (!dataUrl || typeof dataUrl !== 'string' || !dataUrl.startsWith('data:')) {
-      return;
-    }
-
-    if (content && content._heroImageMigrated) {
-      return;
-    }
-
-    const shouldUpload = confirm('Your hero image is saved locally. Upload it to Supabase storage now?');
-    if (!shouldUpload) {
-      return;
-    }
-
-    const file = dataUrlToFile(dataUrl, 'hero-image.png');
-    if (!file) {
-      alert('Could not prepare the legacy hero image for upload.');
-      return;
-    }
-
-    await processHeroImageFile(file);
-    content = content || {};
-    content._heroImageMigrated = true;
-    save(KEYS.CONTENT, content);
+    };
+    reader.readAsDataURL(file);
   }
 
   function setupHeroImageControls() {
@@ -1015,19 +833,9 @@
     // Hero image input
     const input = document.getElementById('hero-image-url');
     if (input && !input.dataset.bound) {
-      input.value = (content && (content.heroImageUrl || content.hero_image_url)) || '';
+      input.value = (content && content.heroImageUrl) || '';
       input.addEventListener('change', () => {
-        const value = input.value.trim();
-        if (!value) {
-          clearHeroImage({ persist: true, storagePath: null });
-          return;
-        }
-        if (!isValidHttpsUrl(value)) {
-          alert('Hero image URL must start with https://');
-          input.focus();
-          return;
-        }
-        setHeroImage(value, { storagePath: null });
+        setHeroImage(input.value.trim());
       });
       input.dataset.bound = '1';
     }
@@ -1035,7 +843,7 @@
     const resetButton = document.getElementById('hero-image-reset');
     if (resetButton && !resetButton.dataset.bound) {
       resetButton.addEventListener('click', () => {
-        clearHeroImage({ persist: true, storagePath: null });
+        clearHeroImage({ persist: true });
         const { fileInput } = getHeroElements();
         if (fileInput) fileInput.value = '';
       });
