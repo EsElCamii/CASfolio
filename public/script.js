@@ -88,7 +88,7 @@ const sampleData = {
 const TOTAL_REQUIRED_HOURS = 240;
 const CATEGORY_TARGET_HOURS = 80;
 const MIN_DISPLAY_MONTHS = 1;
-const MAX_VALID_MONTHS = 240;
+const MAX_VALID_MONTHS = 24;
 
 // Data storage keys used to namespace everything we keep in localStorage
 const STORAGE_KEYS = {
