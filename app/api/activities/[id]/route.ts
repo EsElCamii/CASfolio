@@ -13,7 +13,7 @@ import { serverEnv } from '../../../../lib/env/server';
 
 export const runtime = 'nodejs';
 
-function sanitizePayload(payload: ActivityMutationPayload) {
+function sanitizePayload(payload: ActivityMutationPayload, ownerId: string) {
   const output: any = {};
 
   if (payload.title !== undefined) {
@@ -50,6 +50,40 @@ function sanitizePayload(payload: ActivityMutationPayload) {
 
   if (payload.learningOutcomes !== undefined) {
     output.learning_outcomes = normalizeLearningOutcomes(payload.learningOutcomes);
+  }
+
+  if (payload.headerImagePath !== undefined) {
+    if (payload.headerImagePath === null || payload.headerImagePath === '') {
+      output.header_image_path = null;
+    } else if (typeof payload.headerImagePath === 'string') {
+      const trimmedPath = payload.headerImagePath.trim();
+      if (!trimmedPath.startsWith(`${ownerId}/`)) {
+        throw new Error('Invalid header image path');
+      }
+      output.header_image_path = trimmedPath;
+    } else {
+      throw new Error('Invalid header image path');
+    }
+  }
+
+  if (payload.headerImageChecksum !== undefined) {
+    if (payload.headerImageChecksum === null || payload.headerImageChecksum === '') {
+      output.header_image_checksum = null;
+    } else if (typeof payload.headerImageChecksum === 'string') {
+      output.header_image_checksum = payload.headerImageChecksum.trim().slice(0, 128);
+    } else {
+      throw new Error('Invalid header image checksum');
+    }
+  }
+
+  if (payload.headerImageUpdatedAt !== undefined) {
+    if (payload.headerImageUpdatedAt === null || payload.headerImageUpdatedAt === '') {
+      output.header_image_updated_at = null;
+    } else if (typeof payload.headerImageUpdatedAt === 'string') {
+      output.header_image_updated_at = payload.headerImageUpdatedAt;
+    } else {
+      throw new Error('Invalid header image timestamp');
+    }
   }
 
   return output;
@@ -98,7 +132,7 @@ export async function PATCH(request: NextRequest, context: { params: { id: strin
 
   let sanitized;
   try {
-    sanitized = sanitizePayload(payload);
+    sanitized = sanitizePayload(payload, session.user.id);
   } catch (validationError: any) {
     return jsonError({ error: validationError.message }, 400);
   }

@@ -390,6 +390,8 @@ function applyPortfolioInformation(data) {
 // Global state
 let currentFilter = 'all';
 let learningOutcomes = [];
+let selectedHeaderImageFile = null;
+let selectedHeaderImageUrl = null;
 
 function lockBodyScroll() {
     document.body.style.overflow = 'hidden';
@@ -862,6 +864,9 @@ function openAddActivityDialog(activityId = null) {
     // Close any open modals first
     document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
     
+    selectedHeaderImageFile = null;
+    selectedHeaderImageUrl = null;
+
     if (activityId) {
         // Edit mode
         currentActivityId = activityId;
@@ -1332,25 +1337,11 @@ async function handleActivityFormSubmit(e) {
         return;
     }
 
-    const imagePreview = document.getElementById('image-preview');
-    const imagePreviewImg = document.getElementById('image-preview-img');
-    const headerImageUpload = document.getElementById('header-image-upload');
-    const imageUrlInput = document.getElementById('image-url-input');
-
-    const headerImageData = (imagePreview && imagePreview.style.display !== 'none' && imagePreviewImg && imagePreviewImg.src)
-        ? imagePreviewImg.src
-        : null;
-
     try {
-        await saveActivity(formValues, headerImageData, { isEditing });
+        await saveActivity(formValues, { isEditing });
 
         form.reset();
-        if (imagePreview) {
-            imagePreview.style.display = 'none';
-            if (imagePreviewImg) imagePreviewImg.src = '';
-        }
-        if (headerImageUpload) headerImageUpload.value = '';
-        if (imageUrlInput) imageUrlInput.value = '';
+        resetHeaderImageInputs();
         closeAddActivityDialog();
 
         rerenderActivityViews();
@@ -1361,10 +1352,22 @@ async function handleActivityFormSubmit(e) {
     }
 }
 
-async function saveActivity(values, headerImage, { isEditing }) {
+async function saveActivity(values, { isEditing }) {
     const editingId = isEditing ? currentActivityId : null;
     const previousActivity = editingId ? currentActivities.find((activity) => activity.id === editingId) : null;
     const previousHeaderImage = previousActivity?.headerImage || null;
+
+    let headerDescriptor = null;
+
+    if (selectedHeaderImageFile instanceof File) {
+        headerDescriptor = await uploadHeaderImage({ file: selectedHeaderImageFile }).catch((error) => {
+            throw new Error(error?.message || 'Failed to upload header image.');
+        });
+    } else if (selectedHeaderImageUrl) {
+        headerDescriptor = await uploadHeaderImage({ url: selectedHeaderImageUrl }).catch((error) => {
+            throw new Error(error?.message || 'Failed to import header image.');
+        });
+    }
 
     const payload = {
         title: values.title,
@@ -1377,8 +1380,10 @@ async function saveActivity(values, headerImage, { isEditing }) {
         learningOutcomes: Array.isArray(values.learningOutcomes) ? values.learningOutcomes : []
     };
 
-    if (headerImage && /^https?:/i.test(headerImage)) {
-        payload.headerImageUrl = headerImage;
+    if (headerDescriptor) {
+        payload.headerImagePath = headerDescriptor.path;
+        payload.headerImageChecksum = headerDescriptor.checksum;
+        payload.headerImageUpdatedAt = headerDescriptor.updatedAt;
     }
 
     const endpoint = isEditing ? `/api/activities/${currentActivityId}` : '/api/activities';
@@ -1407,7 +1412,7 @@ async function saveActivity(values, headerImage, { isEditing }) {
         console.error('Unable to refresh activities after save', error);
     });
 
-    const effectiveHeaderImage = headerImage || previousHeaderImage;
+    const effectiveHeaderImage = headerDescriptor?.url || previousHeaderImage;
 
     if (effectiveHeaderImage && activityId) {
         const targetIndex = currentActivities.findIndex((activity) => activity.id === activityId);
@@ -1419,7 +1424,49 @@ async function saveActivity(values, headerImage, { isEditing }) {
 
     currentActivityId = null;
     learningOutcomes = [];
+    selectedHeaderImageFile = null;
+    selectedHeaderImageUrl = null;
     return activityId;
+}
+
+async function uploadHeaderImage({ file, url }) {
+    const endpoint = '/api/activities/header-image';
+    let response;
+
+    if (file instanceof File) {
+        const form = new FormData();
+        form.append('file', file);
+        response = await fetch(endpoint, {
+            method: 'POST',
+            credentials: 'same-origin',
+            body: form,
+        });
+    } else if (typeof url === 'string' && url.trim()) {
+        response = await fetch(endpoint, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ url: url.trim() }),
+        });
+    } else {
+        throw new Error('No header image provided');
+    }
+
+    if (response.status === 401) {
+        handleSessionExpired();
+        throw new Error('Authentication required');
+    }
+
+    if (!response.ok) {
+        throw new Error(await parseApiError(response));
+    }
+
+    const payload = await response.json();
+    if (!payload || !payload.image) {
+        throw new Error('Invalid response from header image upload');
+    }
+
+    return payload.image;
 }
 
 function handleReflectionFormSubmit(e) {
@@ -1505,22 +1552,30 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function handleFileUpload(e) {
-        const file = e.target.files[0];
-        if (file) {
-            // Check file size (5MB max)
-            if (file.size > 5 * 1024 * 1024) {
-                alert('Image size should be less than 5MB');
-                return;
-            }
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                showImagePreview(e.target.result);
-                // Clear URL input when uploading a file
-                imageUrlInput.value = '';
-            };
-            reader.readAsDataURL(file);
+        const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+        if (!file) {
+            resetHeaderImageInputs();
+            return;
         }
+
+        // Check file size (5MB max)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size should be less than 5MB');
+            e.target.value = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            showImagePreview(event.target?.result || '');
+            if (imageUrlInput) {
+                imageUrlInput.value = '';
+            }
+        };
+        reader.readAsDataURL(file);
+
+        selectedHeaderImageFile = file;
+        selectedHeaderImageUrl = null;
     }
     
     function handleImageUrl() {
@@ -1544,6 +1599,8 @@ document.addEventListener('DOMContentLoaded', function() {
             showImagePreview(imageUrl);
             // Clear file input when using URL
             if (imageUpload) imageUpload.value = '';
+            selectedHeaderImageUrl = imageUrl;
+            selectedHeaderImageFile = null;
         };
         img.onerror = function() {
             alert('Could not load image from the provided URL. Please check the URL and try again.');
@@ -1555,15 +1612,35 @@ document.addEventListener('DOMContentLoaded', function() {
         imagePreviewImg.src = src;
         imagePreview.style.display = 'block';
     }
-    
+
     function removeImage() {
-        imagePreviewImg.src = '';
-        imagePreview.style.display = 'none';
-        if (imageUpload) imageUpload.value = '';
-        if (imageUrlInput) imageUrlInput.value = '';
+        resetHeaderImageInputs();
     }
 
 });
+
+function resetHeaderImageInputs() {
+    const imagePreview = document.getElementById('image-preview');
+    const imagePreviewImg = document.getElementById('image-preview-img');
+    const imageUpload = document.getElementById('header-image-upload');
+    const imageUrlInput = document.getElementById('image-url-input');
+
+    if (imagePreview) {
+        imagePreview.style.display = 'none';
+    }
+    if (imagePreviewImg) {
+        imagePreviewImg.src = '';
+    }
+    if (imageUpload) {
+        imageUpload.value = '';
+    }
+    if (imageUrlInput) {
+        imageUrlInput.value = '';
+    }
+
+    selectedHeaderImageFile = null;
+    selectedHeaderImageUrl = null;
+}
 
 // Wire up event listeners that cannot be attached inline for accessibility reasons
 function initializeEventListeners() {

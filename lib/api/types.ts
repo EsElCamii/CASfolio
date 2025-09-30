@@ -94,6 +94,9 @@ export interface ActivityMutationPayload {
   hours?: number;
   learningOutcomes?: string[];
   headerImageUrl?: string | null;
+  headerImagePath?: string | null;
+  headerImageChecksum?: string | null;
+  headerImageUpdatedAt?: string | null;
 }
 
 export interface MutationResult<T> {

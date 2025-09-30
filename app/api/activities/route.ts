@@ -76,7 +76,7 @@ export async function GET() {
   return jsonOk({ activities });
 }
 
-function sanitizePayload(payload: ActivityMutationPayload) {
+function sanitizePayload(payload: ActivityMutationPayload, ownerId: string) {
   if (!payload.title || typeof payload.title !== 'string') {
     throw new Error('Activity title is required');
   }
@@ -90,7 +90,7 @@ function sanitizePayload(payload: ActivityMutationPayload) {
   const endDate = payload.endDate ?? null;
   const learningOutcomes = normalizeLearningOutcomes(payload.learningOutcomes);
 
-  return {
+  const sanitized: Record<string, unknown> = {
     title,
     category,
     status,
@@ -100,6 +100,42 @@ function sanitizePayload(payload: ActivityMutationPayload) {
     end_date: endDate,
     learning_outcomes: learningOutcomes,
   };
+
+  if (payload.headerImagePath !== undefined) {
+    if (payload.headerImagePath === null || payload.headerImagePath === '') {
+      sanitized.header_image_path = null;
+    } else if (typeof payload.headerImagePath === 'string') {
+      const trimmedPath = payload.headerImagePath.trim();
+      if (!trimmedPath.startsWith(`${ownerId}/`)) {
+        throw new Error('Invalid header image path');
+      }
+      sanitized.header_image_path = trimmedPath;
+    } else {
+      throw new Error('Invalid header image path');
+    }
+  }
+
+  if (payload.headerImageChecksum !== undefined) {
+    if (payload.headerImageChecksum === null || payload.headerImageChecksum === '') {
+      sanitized.header_image_checksum = null;
+    } else if (typeof payload.headerImageChecksum === 'string') {
+      sanitized.header_image_checksum = payload.headerImageChecksum.trim().slice(0, 128);
+    } else {
+      throw new Error('Invalid header image checksum');
+    }
+  }
+
+  if (payload.headerImageUpdatedAt !== undefined) {
+    if (payload.headerImageUpdatedAt === null || payload.headerImageUpdatedAt === '') {
+      sanitized.header_image_updated_at = null;
+    } else if (typeof payload.headerImageUpdatedAt === 'string') {
+      sanitized.header_image_updated_at = payload.headerImageUpdatedAt;
+    } else {
+      throw new Error('Invalid header image timestamp');
+    }
+  }
+
+  return sanitized;
 }
 
 export async function POST(request: NextRequest) {
@@ -121,7 +157,7 @@ export async function POST(request: NextRequest) {
 
   let sanitized;
   try {
-    sanitized = sanitizePayload(payload);
+    sanitized = sanitizePayload(payload, session.user.id);
   } catch (validationError: any) {
     return jsonError({ error: validationError.message }, 400);
   }
