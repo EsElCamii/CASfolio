@@ -3,6 +3,11 @@ import { serverEnv } from '../env/server';
 import { getSupabaseAdminClient } from '../supabaseAdmin';
 
 const MIGRATION_KEY = 'legacy_casfolio_v1';
+const MIGRATION_LIMITS = serverEnv.legacyMigrationConfig;
+const PREVIEW_LIMIT = MIGRATION_LIMITS.previewLimit;
+const UPLOAD_RETRY_LIMIT = MIGRATION_LIMITS.uploadRetryLimit;
+const ASSET_CONCURRENCY = MIGRATION_LIMITS.assetConcurrency;
+const DRY_RUN = serverEnv.featureFlags.legacyMigrationDryRun;
 
 export class LegacyMigrationError extends Error {
   constructor(message: string, readonly cause?: unknown) {
@@ -52,6 +57,20 @@ interface UploadResult {
 interface MigrationLogEntry {
   id: string;
   status: 'pending' | 'running' | 'completed' | 'failed';
+  started_at: string | null;
+  completed_at: string | null;
+  updated_at: string | null;
+  error_message: string | null;
+}
+
+interface PreflightOutcome {
+  existingLog: MigrationLogEntry | null;
+  alreadyMigrated: boolean;
+}
+
+interface RollbackContext {
+  userId: string;
+  previousCasSettings?: Record<string, unknown> | null;
 }
 
 interface MigrationSummary {
@@ -65,6 +84,7 @@ export interface LegacyMigrationResult {
   summary: MigrationSummary;
   alreadyMigrated: boolean;
   revalidated: string[];
+  dryRun: boolean;
 }
 
 const REQUIRED_TABLES: Array<{ table: string; probe: string }> = [
@@ -76,10 +96,6 @@ const REQUIRED_TABLES: Array<{ table: string; probe: string }> = [
   { table: 'user_migrations', probe: 'id' },
   { table: 'users', probe: 'id' },
 ];
-
-const PREVIEW_LIMIT = 1;
-const UPLOAD_RETRY_LIMIT = 3;
-const ASSET_CONCURRENCY = 3;
 
 async function ensureTableAccessible(entry: { table: string; probe: string }) {
   const admin = getSupabaseAdminClient();
@@ -107,7 +123,7 @@ async function ensureStorageBuckets() {
   }
 }
 
-async function preflight(userId: string) {
+async function preflight(userId: string): Promise<PreflightOutcome> {
   if (!serverEnv.featureFlags.legacyMigration) {
     throw new LegacyMigrationError('Legacy migration feature flag disabled');
   }
@@ -118,7 +134,7 @@ async function preflight(userId: string) {
   const admin = getSupabaseAdminClient();
   const migrationResult = await admin
     .from('user_migrations')
-    .select('id, status')
+    .select('id, status, started_at, completed_at, updated_at, error_message')
     .eq('user_id', userId)
     .eq('migration_key', MIGRATION_KEY)
     .maybeSingle();
@@ -139,11 +155,14 @@ async function preflight(userId: string) {
     throw new LegacyMigrationError('Cannot run migration: user profile record is missing');
   }
 
-  if (migrationLog && migrationLog.status === 'completed') {
-    throw new LegacyMigrationError('Legacy data already migrated for this user');
+  if (migrationLog && migrationLog.status === 'running') {
+    throw new LegacyMigrationError('Legacy migration already in progress');
   }
 
-  return migrationLog;
+  return {
+    existingLog: migrationLog,
+    alreadyMigrated: Boolean(migrationLog && migrationLog.status === 'completed'),
+  };
 }
 
 function decodeBase64Asset(base64?: string | null) {
@@ -190,36 +209,55 @@ async function uploadWithRetry(
 async function updateMigrationLog(
   userId: string,
   status: 'running' | 'completed' | 'failed',
-  errorMessage?: string | null
-) {
+  errorMessage?: string | null,
+  existing?: MigrationLogEntry | null
+): Promise<MigrationLogEntry> {
   const admin = getSupabaseAdminClient();
+  const now = new Date().toISOString();
   const payload: any = {
     user_id: userId,
     migration_key: MIGRATION_KEY,
     status,
-    updated_at: new Date().toISOString(),
+    updated_at: now,
   };
   if (status === 'running') {
-    payload.started_at = new Date().toISOString();
+    payload.started_at = existing?.started_at ?? now;
     payload.error_message = null;
     payload.completed_at = null;
   }
   if (status === 'completed') {
-    payload.completed_at = new Date().toISOString();
+    if (existing?.started_at) {
+      payload.started_at = existing.started_at;
+    }
+    payload.completed_at = now;
     payload.error_message = null;
   }
   if (status === 'failed') {
     payload.error_message = errorMessage ?? 'Unknown migration failure';
     payload.completed_at = null;
+    if (existing?.started_at) {
+      payload.started_at = existing.started_at;
+    }
   }
 
-  const { error } = await admin
+  const { data, error } = await admin
     .from('user_migrations')
-    .upsert(payload, { onConflict: 'user_id,migration_key' });
+    .upsert(payload, { onConflict: 'user_id,migration_key' })
+    .select('id, status, started_at, completed_at, updated_at, error_message')
+    .single();
 
   if (error) {
     throw new LegacyMigrationError('Failed to persist migration log state', error);
   }
+
+  return (data as unknown as MigrationLogEntry) ?? {
+    id: '',
+    status,
+    started_at: payload.started_at ?? null,
+    completed_at: payload.completed_at ?? null,
+    updated_at: now,
+    error_message: payload.error_message ?? null,
+  };
 }
 
 async function fetchLegacyActivities(userId: string): Promise<LegacyActivityRecord[]> {
@@ -390,7 +428,8 @@ async function migrateActivity(
 async function rollback(
   insertedActivities: string[],
   insertedAssets: string[],
-  uploadedFiles: UploadResult[]
+  uploadedFiles: UploadResult[],
+  context: RollbackContext
 ) {
   const admin = getSupabaseAdminClient();
 
@@ -413,6 +452,13 @@ async function rollback(
   if (assetRemovals.length > 0) {
     await admin.storage.from(serverEnv.activityAssetBucket).remove(assetRemovals);
   }
+
+  if (context.previousCasSettings !== undefined) {
+    const usersTable = admin.from('users') as any;
+    await usersTable
+      .update({ cas_settings: context.previousCasSettings ?? null })
+      .eq('id', context.userId);
+  }
 }
 
 async function triggerActivityRegeneration(userId: string) {
@@ -433,9 +479,21 @@ async function purgeLegacyData(userId: string, legacyIds: string[]) {
 }
 
 export async function runLegacyMigration(userId: string): Promise<LegacyMigrationResult> {
-  const existing = await preflight(userId);
+  const { existingLog, alreadyMigrated } = await preflight(userId);
 
-  await updateMigrationLog(userId, 'running');
+  if (alreadyMigrated) {
+    return {
+      status: 'completed',
+      summary: {
+        migratedActivities: 0,
+        migratedAssets: 0,
+        purgedLegacyActivities: 0,
+      },
+      alreadyMigrated: true,
+      revalidated: [],
+      dryRun: DRY_RUN,
+    };
+  }
 
   const legacyActivities = await fetchLegacyActivities(userId);
   const legacyCustomization = await fetchLegacyCustomization(userId);
@@ -449,7 +507,24 @@ export async function runLegacyMigration(userId: string): Promise<LegacyMigratio
     purgedLegacyActivities: 0,
   };
 
+  const rollbackContext: RollbackContext = { userId };
+
+  if (legacyActivities.length === 0 && !legacyCustomization) {
+    await updateMigrationLog(userId, 'completed', null, existingLog);
+    return {
+      status: 'completed',
+      summary,
+      alreadyMigrated: false,
+      revalidated: [],
+      dryRun: DRY_RUN,
+    };
+  }
+
+  let migrationLog = existingLog;
+
   try {
+    migrationLog = await updateMigrationLog(userId, 'running', null, migrationLog);
+
     for (const activity of legacyActivities) {
       await migrateActivity(userId, activity, insertedActivities, insertedAssets, uploadedFiles, summary);
     }
@@ -473,8 +548,21 @@ export async function runLegacyMigration(userId: string): Promise<LegacyMigratio
       };
 
       const admin = getSupabaseAdminClient();
-      const usersTable = admin.from('users') as any;
-      const { error } = await usersTable.update({ cas_settings: normalizedSettings }).eq('id', userId);
+      const { data: currentSettingsRow, error: loadSettingsError } = await admin
+        .from('users')
+        .select('cas_settings')
+        .eq('id', userId)
+        .single();
+
+      if (loadSettingsError) {
+        throw new LegacyMigrationError('Failed to load existing customization state', loadSettingsError);
+      }
+
+      rollbackContext.previousCasSettings = (currentSettingsRow as any)?.cas_settings ?? null;
+
+      const { error } = await (admin.from('users') as any)
+        .update({ cas_settings: normalizedSettings } as any)
+        .eq('id', userId);
 
       if (error) {
         throw new LegacyMigrationError('Failed to migrate customization settings', error);
@@ -484,24 +572,50 @@ export async function runLegacyMigration(userId: string): Promise<LegacyMigratio
     await triggerActivityRegeneration(userId);
 
     const legacyIds = legacyActivities.map((activity) => activity.id);
-    await purgeLegacyData(userId, legacyIds);
-    summary.purgedLegacyActivities = legacyIds.length;
+    if (DRY_RUN) {
+      summary.purgedLegacyActivities = 0;
+      try {
+        await rollback(insertedActivities, insertedAssets, uploadedFiles, rollbackContext);
+      } catch (cleanupError) {
+        console.warn('Legacy migration dry run cleanup encountered an issue', cleanupError);
+      }
+    } else {
+      await purgeLegacyData(userId, legacyIds);
+      summary.purgedLegacyActivities = legacyIds.length;
+    }
 
-    await updateMigrationLog(userId, 'completed');
+    const finalizeStatus: 'completed' | 'failed' = DRY_RUN ? 'failed' : 'completed';
+    const finalizeMessage = DRY_RUN ? 'Dry run complete: no changes committed' : null;
+
+    migrationLog = await updateMigrationLog(userId, finalizeStatus, finalizeMessage, migrationLog);
+
+    const revalidatedTags = new Set<string>();
+    if (!DRY_RUN && (summary.migratedActivities > 0 || summary.purgedLegacyActivities > 0)) {
+      revalidatedTags.add('activities');
+    }
+    if (!DRY_RUN && legacyCustomization) {
+      revalidatedTags.add('customize');
+    }
+
     return {
       status: 'completed',
       summary,
-      alreadyMigrated: Boolean(existing && existing.status === 'running'),
-      revalidated: ['activities', 'customize'],
+      alreadyMigrated: false,
+      revalidated: Array.from(revalidatedTags),
+      dryRun: DRY_RUN,
     };
   } catch (error: any) {
     try {
-      await rollback(insertedActivities, insertedAssets, uploadedFiles);
+      await rollback(insertedActivities, insertedAssets, uploadedFiles, rollbackContext);
     } catch (rollbackError) {
       console.error('Legacy migration rollback failed', rollbackError);
     }
     const message = error instanceof LegacyMigrationError ? error.message : 'Legacy migration failed';
-    await updateMigrationLog(userId, 'failed', message);
+    try {
+      await updateMigrationLog(userId, 'failed', message, migrationLog);
+    } catch (logError) {
+      console.error('Failed to mark legacy migration as failed', logError);
+    }
     throw error;
   }
 }

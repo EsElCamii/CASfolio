@@ -20,7 +20,8 @@
     "incremental": true,
     "types": [
       "@vercel/analytics/next",
-      "@vercel/speed-insights/next"
+      "@vercel/speed-insights/next",
+      "vitest/globals"
     ],
     "plugins": [
       {

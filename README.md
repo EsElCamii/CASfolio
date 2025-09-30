@@ -102,11 +102,22 @@ Follow these steps to adapt the platform to your Supabase-backed CAS portfolio.
    - Transactional writes with rollback on failure.
    - Activity regeneration and cleanup of legacy `casfolio_*` tables when complete.
 
+> 💡 **Dry run support:** set `LEGACY_MIGRATION_DRY_RUN=1` to execute the full workflow without purging legacy tables. The migration log will be marked `failed` with a `Dry run` message so it can be rerun after inspection.
+
 ### 5. Build & deploy
 
 1. Build the production bundle: `npm run build`.
 2. Deploy to your preferred platform (Vercel, Netlify, custom hosting) with the same environment variables.
 3. Monitor Supabase logs and the `user_migrations` table to track migration progress and troubleshoot issues.
+
+## 🧪 Quality & Operations
+
+- **Tests:** `npm run test` executes unit, integration, contract, and placeholder E2E suites via Vitest (coverage emitted to `./coverage`).
+- **Migrations & seeds:** Supabase DDL is versioned in `supabase/migrations` with QA-friendly seed data under `supabase/seed`.
+- **Docs:**
+  - `docs/qa-plan.md` – manual + automated verification checklist.
+  - `docs/monitoring-and-rollout.md` – feature flag strategy, dry-run workflow, and metrics guidance.
+- **Env guards:** see `.env.local.example` for required variables including legacy migration concurrency limits and metrics toggles.
 
 ## 📸 Screenshots
 

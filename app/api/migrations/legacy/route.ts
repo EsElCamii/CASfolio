@@ -37,16 +37,13 @@ export async function POST(_request: NextRequest) {
       summary: result.summary,
       alreadyMigrated: result.alreadyMigrated,
       revalidated: result.revalidated,
+      dryRun: result.dryRun,
     });
   } catch (error: any) {
     if (error instanceof LegacyMigrationError) {
-      return jsonError(
-        {
-          error: error.message,
-          details: error.cause instanceof Error ? error.cause.message : undefined,
-        },
-        error.message.includes('already migrated') ? 409 : 400
-      );
+      const details = error.cause instanceof Error ? error.cause.message : undefined;
+      const status = error.message.includes('already in progress') ? 409 : 400;
+      return jsonError({ error: error.message, details }, status);
     }
     console.error('Legacy migration crashed', error);
     return jsonError({ error: 'Legacy migration failed', details: String(error?.message ?? error) }, 500);

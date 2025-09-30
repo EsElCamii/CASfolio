@@ -7,6 +7,7 @@ import {
   normalizeLearningOutcomes,
   mapActivityRow,
   signStoragePaths,
+  signHeroPaths,
 } from '../../../lib/api/activities';
 import type { ActivityRow } from '../../../lib/api/activities';
 import type { ActivityMutationPayload } from '../../../lib/api/types';
@@ -64,7 +65,7 @@ export async function GET() {
   let assetSignedUrls = new Map<string, string>();
 
   try {
-    headerSignedUrls = await signStoragePaths(headerPaths);
+    headerSignedUrls = await signHeroPaths(headerPaths);
     assetSignedUrls = await signStoragePaths(assetPaths);
   } catch (signError: any) {
     console.error('Failed to sign activity assets', signError);
@@ -161,7 +162,7 @@ export async function POST(request: NextRequest) {
 
   let activity;
   try {
-    const headerSignedUrls = await signStoragePaths(created.header_image_path ? [created.header_image_path] : []);
+    const headerSignedUrls = await signHeroPaths(created.header_image_path ? [created.header_image_path] : []);
     activity = mapActivityRow({ ...created, activity_assets: [] }, headerSignedUrls, new Map());
   } catch (signError: any) {
     console.error('Failed to sign new activity header', signError);
