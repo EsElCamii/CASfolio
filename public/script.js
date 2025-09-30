@@ -99,8 +99,121 @@ const STORAGE_KEYS = {
 const PORTFOLIO_ONBOARDING_KEY = 'casfolio_portfolio_onboarding';
 
 // Load data from localStorage or initialize with empty arrays so a new visitor starts fresh
-let currentActivities = JSON.parse(localStorage.getItem(STORAGE_KEYS.ACTIVITIES)) || [];
-let currentReflections = JSON.parse(localStorage.getItem(STORAGE_KEYS.REFLECTIONS)) || [];
+let currentActivities = [];
+let currentReflections = [];
+
+try {
+    const storedActivities = localStorage.getItem(STORAGE_KEYS.ACTIVITIES);
+    if (storedActivities) {
+        const parsed = JSON.parse(storedActivities);
+        if (Array.isArray(parsed)) {
+            currentActivities = parsed;
+        }
+    }
+
+    const storedReflections = localStorage.getItem(STORAGE_KEYS.REFLECTIONS);
+    if (storedReflections) {
+        const parsed = JSON.parse(storedReflections);
+        if (Array.isArray(parsed)) {
+            currentReflections = parsed;
+        }
+    }
+} catch (error) {
+    console.warn('Failed to hydrate cached portfolio data, falling back to in-memory defaults.', error);
+    currentActivities = [];
+    currentReflections = [];
+}
+
+let activitiesSyncPromise = null;
+let sessionExpiredNotified = false;
+
+function handleSessionExpired() {
+    if (sessionExpiredNotified) return;
+    sessionExpiredNotified = true;
+    alert('Your session has expired. Please sign in again.');
+    window.location.replace('/');
+}
+
+function mapDtoToActivity(dto) {
+    return {
+        id: dto.id,
+        title: dto.title,
+        description: dto.description || '',
+        category: dto.category,
+        status: dto.status,
+        startDate: dto.startDate,
+        endDate: dto.endDate,
+        hours: Number.isFinite(dto.hours) ? dto.hours : 0,
+        learningOutcomes: Array.isArray(dto.learningOutcomes) ? dto.learningOutcomes : [],
+        headerImage: dto.headerImageUrl,
+        headerImagePath: dto.headerImagePath,
+        createdAt: dto.createdAt,
+        updatedAt: dto.updatedAt,
+        assets: Array.isArray(dto.assets) ? dto.assets : []
+    };
+}
+
+async function parseApiError(response) {
+    try {
+        const payload = await response.json();
+        if (payload && typeof payload.error === 'string') {
+            return payload.details ? `${payload.error}: ${payload.details}` : payload.error;
+        }
+    } catch (parseError) {
+        console.warn('Failed to parse API error payload', parseError);
+    }
+    return response.statusText || 'Request failed';
+}
+
+async function hydrateActivitiesFromServer({ force = false, silent = false } = {}) {
+    if (activitiesSyncPromise && !force) {
+        return activitiesSyncPromise;
+    }
+
+    activitiesSyncPromise = (async () => {
+        try {
+            const response = await fetch('/api/activities', {
+                method: 'GET',
+                credentials: 'same-origin',
+                cache: 'no-store',
+                headers: { Accept: 'application/json' }
+            });
+
+            if (response.status === 401) {
+                handleSessionExpired();
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(await parseApiError(response));
+            }
+
+            const payload = await response.json();
+            if (payload && Array.isArray(payload.activities)) {
+                currentActivities = payload.activities.map(mapDtoToActivity);
+                saveData();
+            }
+        } catch (error) {
+            if (!silent) {
+                console.error('Failed to load activities from Supabase', error);
+            }
+            throw error;
+        } finally {
+            activitiesSyncPromise = null;
+        }
+    })();
+
+    return activitiesSyncPromise;
+}
+
+function rerenderActivityViews() {
+    renderActivitiesGrid();
+    renderTimeline();
+    renderHeroStats();
+    renderCategoriesGrid();
+    renderProgressDashboard();
+    renderGallery();
+}
 
 // Persist the latest activities and reflections to localStorage, warning the user if the write fails
 function saveData() {
@@ -1149,35 +1262,41 @@ function viewActivityDetail(activityId) {
     lockBodyScroll();
 }
 
-function deleteActivity(activityId) {
-    if (confirm('Are you sure you want to delete this activity? This action cannot be undone.')) {
-        // Remove the activity
-        currentActivities = currentActivities.filter(a => a.id !== activityId);
-        
-        // Also remove any associated reflections
-        currentReflections = currentReflections.filter(r => r.activityId !== activityId);
-        
-        // Save data to localStorage
-        saveData();
-        
-        // Close the modal and reset body overflow
-        const detailModal = document.getElementById('activity-detail-modal');
-        if (detailModal) {
-            detailModal.classList.remove('show');
+async function deleteActivity(activityId) {
+    if (!confirm('Are you sure you want to delete this activity? This action cannot be undone.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/activities/${activityId}`, {
+            method: 'DELETE',
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' }
+        });
+
+        if (response.status === 401) {
+            handleSessionExpired();
+            return;
         }
-        unlockBodyScroll();
-        
-        // Re-render the UI
-        renderActivitiesGrid();
-        renderTimeline();
-        renderHeroStats();
-        renderCategoriesGrid();
-        renderProgressDashboard();
-        renderGallery();
-        renderProgressDashboard();
-        
-        // Show a success message
+
+        if (!response.ok && response.status !== 404) {
+            throw new Error(await parseApiError(response));
+        }
+
+        currentActivities = currentActivities.filter((activity) => activity.id !== activityId);
+        currentReflections = currentReflections.filter((reflection) => reflection.activityId !== activityId);
+        saveData();
+
+        await hydrateActivitiesFromServer({ force: true, silent: true }).catch((error) => {
+            console.error('Unable to refresh activities after delete', error);
+        });
+
+        closeActivityDetail();
+        rerenderActivityViews();
         alert('Activity deleted successfully!');
+    } catch (error) {
+        console.error('Failed to delete activity', error);
+        alert(error?.message || 'Failed to delete activity. Please try again.');
     }
 }
 
@@ -1191,88 +1310,116 @@ function closeActivityDetail() {
 }
 
 // Form submission handlers capture and persist user input from the activity and reflection modals
-function handleActivityFormSubmit(e) {
+async function handleActivityFormSubmit(e) {
     e.preventDefault();
-    
+
     const form = e.target;
-    const formData = new FormData(form);
-    
-    // Get learning outcomes
-    const learningOutcomes = [];
-    document.querySelectorAll('.learning-outcome-tag').forEach(tag => {
-        learningOutcomes.push(tag.textContent);
-    });
-    
-    // Add learning outcomes to form data
-    formData.delete('learningOutcomes');
-    learningOutcomes.forEach(outcome => {
-        formData.append('learningOutcomes', outcome);
-    });
-    
-    // Handle image - check both file upload and URL
+    const isEditing = currentActivityId !== null;
+
+    const formValues = {
+        title: (form.elements['title']?.value || '').trim(),
+        category: form.elements['category']?.value || 'creativity',
+        description: (form.elements['description']?.value || '').trim(),
+        startDate: form.elements['startDate']?.value || null,
+        endDate: form.elements['endDate']?.value || null,
+        hours: Number.parseInt(form.elements['hours']?.value, 10) || 0,
+        status: form.elements['status']?.value || 'draft',
+        learningOutcomes: Array.isArray(learningOutcomes) ? [...learningOutcomes] : []
+    };
+
+    if (!formValues.title) {
+        alert('Activity title is required.');
+        return;
+    }
+
     const imagePreview = document.getElementById('image-preview');
     const imagePreviewImg = document.getElementById('image-preview-img');
     const headerImageUpload = document.getElementById('header-image-upload');
     const imageUrlInput = document.getElementById('image-url-input');
-    const statusValue = formData.get('status');
 
     const headerImageData = (imagePreview && imagePreview.style.display !== 'none' && imagePreviewImg && imagePreviewImg.src)
         ? imagePreviewImg.src
         : null;
 
-    saveActivity(formData, headerImageData);
-    
-    // Reset form and close modal
-    form.reset();
-    if (imagePreview) {
-        imagePreview.style.display = 'none';
-        if (imagePreviewImg) imagePreviewImg.src = '';
+    try {
+        await saveActivity(formValues, headerImageData, { isEditing });
+
+        form.reset();
+        if (imagePreview) {
+            imagePreview.style.display = 'none';
+            if (imagePreviewImg) imagePreviewImg.src = '';
+        }
+        if (headerImageUpload) headerImageUpload.value = '';
+        if (imageUrlInput) imageUrlInput.value = '';
+        closeAddActivityDialog();
+
+        rerenderActivityViews();
+        alert(isEditing ? 'Activity updated successfully!' : 'Activity created successfully!');
+    } catch (error) {
+        console.error('Failed to save activity', error);
+        alert(error?.message || 'Failed to save activity. Please try again.');
     }
-    if (headerImageUpload) headerImageUpload.value = '';
-    if (imageUrlInput) imageUrlInput.value = '';
-    closeAddActivityDialog();
-    
-    // Re-render the UI
-    renderActivitiesGrid();
-    renderTimeline();
-    renderHeroStats();
-    renderCategoriesGrid();
-    renderProgressDashboard();
-    renderGallery();
-    
-    alert('Activity created successfully!');
 }
 
-function saveActivity(formData, headerImage) {
-    const isEditing = currentActivityId !== null;
-    const activity = {
-        id: isEditing ? currentActivityId : Date.now().toString(),
-        title: formData.get('title'),
-        category: formData.get('category'),
-        description: formData.get('description'),
-        startDate: formData.get('startDate'),
-        endDate: formData.get('endDate') || null,
-        hours: parseInt(formData.get('hours')),
-        status: formData.get('status'),
-        learningOutcomes: Array.from(formData.getAll('learningOutcomes')),
-        headerImage: headerImage,
-        createdAt: new Date().toISOString()
+async function saveActivity(values, headerImage, { isEditing }) {
+    const editingId = isEditing ? currentActivityId : null;
+    const previousActivity = editingId ? currentActivities.find((activity) => activity.id === editingId) : null;
+    const previousHeaderImage = previousActivity?.headerImage || null;
+
+    const payload = {
+        title: values.title,
+        category: values.category,
+        status: values.status,
+        description: values.description || null,
+        startDate: values.startDate || null,
+        endDate: values.endDate || null,
+        hours: Number.isFinite(values.hours) ? values.hours : 0,
+        learningOutcomes: Array.isArray(values.learningOutcomes) ? values.learningOutcomes : []
     };
-    
-    if (isEditing) {
-        const index = currentActivities.findIndex(a => a.id === currentActivityId);
-        if (index !== -1) {
-            // Preserve the existing header image if not changed
-            if (!headerImage && currentActivities[index].headerImage) {
-                activity.headerImage = currentActivities[index].headerImage;
-            }
-            currentActivities[index] = activity;
-        }
-    } else {
-        currentActivities.push(activity);
+
+    if (headerImage && /^https?:/i.test(headerImage)) {
+        payload.headerImageUrl = headerImage;
     }
+
+    const endpoint = isEditing ? `/api/activities/${currentActivityId}` : '/api/activities';
+    const method = isEditing ? 'PATCH' : 'POST';
+
+    const response = await fetch(endpoint, {
+        method,
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify(payload)
+    });
+
+    if (response.status === 401) {
+        handleSessionExpired();
+        throw new Error('Authentication required');
+    }
+
+    if (!response.ok) {
+        throw new Error(await parseApiError(response));
+    }
+
+    const body = await response.json();
+    const activityId = body?.activity?.id;
+
+    await hydrateActivitiesFromServer({ force: true, silent: true }).catch((error) => {
+        console.error('Unable to refresh activities after save', error);
+    });
+
+    const effectiveHeaderImage = headerImage || previousHeaderImage;
+
+    if (effectiveHeaderImage && activityId) {
+        const targetIndex = currentActivities.findIndex((activity) => activity.id === activityId);
+        if (targetIndex !== -1) {
+            currentActivities[targetIndex].headerImage = effectiveHeaderImage;
+            saveData();
+        }
+    }
+
+    currentActivityId = null;
     learningOutcomes = [];
-    saveData();
+    return activityId;
 }
 
 function handleReflectionFormSubmit(e) {
@@ -1467,20 +1614,29 @@ function initializeSelectControls() {
 }
 
 // Kick off the initial render pipeline once the DOM is ready
-function initializeApp() {
-    renderHeroStats();
-    renderCategoriesGrid();
-    renderActivitiesGrid();
-    renderTimeline();
-    renderProgressDashboard();
-    renderGallery();
-    initializeEventListeners();
-    initializePortfolioQuestionnaire();
-    initializeSelectControls();
+async function initializeApp() {
+    try {
+        await hydrateActivitiesFromServer({ silent: true });
+    } catch (error) {
+        console.warn('Falling back to cached activities', error);
+    } finally {
+        rerenderActivityViews();
+        initializeEventListeners();
+        initializePortfolioQuestionnaire();
+        initializeSelectControls();
+    }
 }
 
 // Start the app when DOM is loaded
-document.addEventListener('DOMContentLoaded', initializeApp);
+document.addEventListener('DOMContentLoaded', () => {
+    initializeApp().catch((error) => {
+        console.error('Failed to initialize CASfolio app', error);
+        rerenderActivityViews();
+        initializeEventListeners();
+        initializePortfolioQuestionnaire();
+        initializeSelectControls();
+    });
+});
 
 // Photos modal
 function openPhotosModal() {
