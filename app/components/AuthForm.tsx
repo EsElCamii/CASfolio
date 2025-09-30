@@ -75,20 +75,17 @@ export default function AuthForm({ initialMode = 'login' }: AuthFormProps) {
       return;
     }
 
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const trimmedDisplayName = displayName.trim();
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      ...(trimmedDisplayName
+        ? { options: { data: { display_name: trimmedDisplayName } } }
+        : {}),
+    });
     if (error) {
       setMessage({ kind: 'error', text: error.message });
       return;
-    }
-
-    if (data.user) {
-      const upsertResult = await supabase
-        .from('users')
-        .upsert({ id: data.user.id, email: data.user.email, display_name: displayName || null });
-      if (upsertResult.error) {
-        setMessage({ kind: 'error', text: upsertResult.error.message });
-        return;
-      }
     }
 
     if (data.session) {
