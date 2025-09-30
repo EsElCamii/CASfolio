@@ -1,20 +1,7 @@
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!SUPABASE_URL) {
-  throw new Error('Missing env var: NEXT_PUBLIC_SUPABASE_URL');
-}
-
-if (!SUPABASE_ANON_KEY) {
-  throw new Error('Missing env var: NEXT_PUBLIC_SUPABASE_ANON_KEY');
-}
-
-const SUPABASE_URL_TYPED: string = SUPABASE_URL;
-const SUPABASE_ANON_KEY_TYPED: string = SUPABASE_ANON_KEY;
+import { serverEnv } from '../../../../lib/env/server';
 
 export async function POST(request: Request) {
   const { event, session } = await request.json();
@@ -22,7 +9,7 @@ export async function POST(request: Request) {
   const cookieStore = cookies();
   const response = NextResponse.json({ received: true });
 
-  const supabase = createServerClient(SUPABASE_URL_TYPED, SUPABASE_ANON_KEY_TYPED, {
+  const supabase = createServerClient(serverEnv.supabaseUrl, serverEnv.supabaseAnonKey, {
     cookies: {
       get(name: string) {
         return cookieStore.get(name)?.value;

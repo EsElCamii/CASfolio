@@ -1,14 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
+import { publicEnv } from './env/public';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl) {
-  throw new Error('Missing env var: NEXT_PUBLIC_SUPABASE_URL');
-}
-
-if (!supabaseAnonKey) {
-  throw new Error('Missing env var: NEXT_PUBLIC_SUPABASE_ANON_KEY');
-}
-
-export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+export const supabaseClient = createClient(publicEnv.supabaseUrl, publicEnv.supabaseAnonKey);

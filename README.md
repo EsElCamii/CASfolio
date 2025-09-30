@@ -46,10 +46,67 @@
    cd CASfolio
    ```
 
-2. **Open in your browser**
+2. **Install dependencies**
    ```bash
-   open index.html
+   npm install
    ```
+
+3. **Start the local development server**
+   ```bash
+   npm run dev
+   ```
+
+4. **Open the app**
+   Visit [http://localhost:3000](http://localhost:3000) in your browser to explore the portfolio experience.
+
+## 🧭 Applying CASfolio to Your Own Project
+
+Follow these steps to adapt the platform to your Supabase-backed CAS portfolio.
+
+### 1. Prepare Supabase
+
+1. Create a new Supabase project (or choose an existing one).
+2. Configure storage buckets for hero headers and activity assets. CASfolio expects:
+   - A bucket for hero images (`SUPABASE_HERO_BUCKET`).
+   - A bucket for activity media (`SUPABASE_ACTIVITY_BUCKET`).
+3. Apply the SQL migration in `supabase/migrations/20251001090000_legacy_migration_runner.sql` using the Supabase SQL editor or CLI to provision tables (`activities`, `activity_assets`, `user_migrations`, etc.), functions, and policies.
+
+### 2. Configure environment variables
+
+1. Duplicate `.env.local.example` and rename it to `.env.local`.
+2. Fill in your Supabase credentials and runtime options:
+   ```bash
+   NEXT_PUBLIC_SUPABASE_URL=your-project-url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+   SUPABASE_HERO_BUCKET=hero-bucket-name
+   SUPABASE_ACTIVITY_BUCKET=activity-bucket-name
+   NEXT_PUBLIC_HERO_SIGNED_URL_TTL=3600
+   ACTIVITY_SIGNED_URL_TTL=3600
+   ACTIVITY_MAX_UPLOAD_BYTES=5242880
+   ENABLE_LEGACY_MIGRATION=1   # optional – only if you need to migrate legacy data
+   ```
+
+### 3. Seed your data
+
+1. Populate `users`, `casfolio_activities`, and `casfolio_activity_assets` with your existing records (CSV import or SQL scripts).
+2. Optional: create a minimal hero customization entry in `casfolio_customizations` to hydrate the UI before migration.
+
+### 4. Run the legacy migration (optional)
+
+1. Ensure `ENABLE_LEGACY_MIGRATION` is enabled and the service-role key is present in `.env.local`.
+2. Start the dev server (`npm run dev`) or deploy the app with the same environment variables.
+3. Invoke `POST /api/migrations/legacy` while authenticated. The route performs:
+   - Preflight checks for schema and storage readiness.
+   - Bounded, checksummed uploads for Base64 assets.
+   - Transactional writes with rollback on failure.
+   - Activity regeneration and cleanup of legacy `casfolio_*` tables when complete.
+
+### 5. Build & deploy
+
+1. Build the production bundle: `npm run build`.
+2. Deploy to your preferred platform (Vercel, Netlify, custom hosting) with the same environment variables.
+3. Monitor Supabase logs and the `user_migrations` table to track migration progress and troubleshoot issues.
 
 ## 📸 Screenshots
 
