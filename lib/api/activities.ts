@@ -3,7 +3,7 @@ import { serverEnv } from '../env/server';
 import type { ActivityDTO, ActivityAssetDTO, ActivityCategory, ActivityStatus } from './types';
 
 const CATEGORY_VALUES: ActivityCategory[] = ['creativity', 'activity', 'service'];
-const STATUS_VALUES: ActivityStatus[] = ['draft', 'pending', 'completed'];
+const STATUS_VALUES: ActivityStatus[] = ['draft', 'pending', 'completed', 'ongoing'];
 
 export function assertCategory(value: unknown): ActivityCategory {
   if (typeof value !== 'string') {

@@ -1,5 +1,5 @@
 export type ActivityCategory = 'creativity' | 'activity' | 'service';
-export type ActivityStatus = 'draft' | 'pending' | 'completed';
+export type ActivityStatus = 'draft' | 'pending' | 'completed' | 'ongoing';
 
 export interface CustomizeLayout {
   order: string[];
