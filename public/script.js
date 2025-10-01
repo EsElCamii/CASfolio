@@ -126,6 +126,27 @@ try {
 
 let activitiesSyncPromise = null;
 let sessionExpiredNotified = false;
+let isPrinting = false;
+
+function setPrintMode(enabled) {
+    if (isPrinting === enabled) {
+        return;
+    }
+
+    isPrinting = enabled;
+
+    if (typeof document !== 'undefined' && document.body) {
+        document.body.classList.toggle('print-mode', enabled);
+    }
+
+    // Re-render key sections so print mode can surface full content
+    try {
+        renderActivitiesGrid();
+        renderTimeline();
+    } catch (error) {
+        console.warn('Failed to refresh views for print mode', error);
+    }
+}
 
 function handleSessionExpired() {
     if (sessionExpiredNotified) return;
@@ -520,7 +541,10 @@ function toggleMobileMenu() {
 
 // Quick actions wired to CTA buttons in the hero and gallery
 function handleDownload() {
-    window.print();
+    setPrintMode(true);
+    setTimeout(() => {
+        window.print();
+    }, 0);
 }
 
 function handleShare() {
@@ -534,6 +558,26 @@ function handleShare() {
         navigator.clipboard.writeText(window.location.href).then(() => {
             alert('Link copied to clipboard!');
         });
+    }
+}
+
+if (typeof window !== 'undefined') {
+    window.addEventListener('beforeprint', () => setPrintMode(true));
+    window.addEventListener('afterprint', () => setPrintMode(false));
+
+    if (typeof window.matchMedia === 'function') {
+        const mediaQueryList = window.matchMedia('print');
+        if (mediaQueryList) {
+            const handleMediaQueryChange = (mql) => {
+                setPrintMode(mql.matches);
+            };
+
+            if (typeof mediaQueryList.addEventListener === 'function') {
+                mediaQueryList.addEventListener('change', handleMediaQueryChange);
+            } else if (typeof mediaQueryList.addListener === 'function') {
+                mediaQueryList.addListener(handleMediaQueryChange);
+            }
+        }
     }
 }
 
@@ -627,18 +671,21 @@ function renderCategoriesGrid() {
 function renderActivitiesGrid() {
     const container = document.getElementById('activities-grid');
     const emptyState = document.getElementById('activities-empty');
-    const recentActivities = currentActivities.slice(0, 3);
-    
-    if (recentActivities.length === 0) {
+    if (!container || !emptyState) {
+        return;
+    }
+    const visibleActivities = isPrinting ? currentActivities : currentActivities.slice(0, 3);
+
+    if (visibleActivities.length === 0) {
         container.style.display = 'none';
         emptyState.style.display = 'block';
         return;
     }
-    
+
     container.style.display = 'grid';
     emptyState.style.display = 'none';
-    
-    container.innerHTML = recentActivities.map(activity => renderActivityCard(activity)).join('');
+
+    container.innerHTML = visibleActivities.map(activity => renderActivityCard(activity)).join('');
 }
 
 function renderActivityCard(activity) {
@@ -674,7 +721,10 @@ function renderActivityCard(activity) {
 function renderTimeline() {
     const container = document.getElementById('timeline-list');
     const emptyState = document.getElementById('timeline-empty');
-    const timelineActivities = currentActivities.slice(0, 3);
+    if (!container || !emptyState) {
+        return;
+    }
+    const timelineActivities = isPrinting ? currentActivities : currentActivities.slice(0, 3);
     
     if (timelineActivities.length === 0) {
         container.style.display = 'none';

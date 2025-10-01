@@ -2445,6 +2445,39 @@ margin-top: 1rem;
     }
 }
 
+/* Print preparation styles */
+body.print-mode .container {
+    max-width: none;
+    width: 100%;
+}
+
+body.print-mode .activities-grid,
+body.print-mode .progress-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+}
+
+body.print-mode .activity-description,
+body.print-mode .timeline-description,
+body.print-mode .reflection-content {
+    display: block;
+    -webkit-line-clamp: unset;
+    -webkit-box-orient: unset;
+    overflow: visible;
+}
+
+body.print-mode .card,
+body.print-mode .activity-card,
+body.print-mode .timeline-item,
+body.print-mode section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+}
+
+body.print-mode .timeline-container {
+    max-width: none;
+}
+
 /* Print Styles */
 @media print {
     .no-print,
@@ -2455,20 +2488,49 @@ margin-top: 1rem;
     .mobile-menu {
         display: none !important;
     }
-    
+
     body {
         color: black !important;
         background: white !important;
+        font-size: 12pt;
     }
-    
+
     .card:hover {
         transform: none;
         box-shadow: none;
     }
-    
+
     .activity-card:hover {
         transform: none;
         box-shadow: none;
+    }
+
+    .container {
+        max-width: none !important;
+        width: 100% !important;
+    }
+
+    .activities-grid,
+    .progress-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+    }
+
+    .activity-description,
+    .timeline-description,
+    .reflection-content {
+        display: block !important;
+        -webkit-line-clamp: unset !important;
+        -webkit-box-orient: unset !important;
+        overflow: visible !important;
+    }
+
+    .card,
+    .activity-card,
+    .timeline-item,
+    section {
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
     }
 }
 
