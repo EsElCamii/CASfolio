@@ -86,6 +86,7 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 1rem 0;
+    gap: 1.5rem;
 }
 
 .nav-brand {
@@ -109,6 +110,12 @@ body {
     font-size: 1.25rem;
 }
 
+.nav-right {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
 /* Brand image in nav-logo (fallback to icon when not provided) */
 .nav-logo img {
     width: 100%;
@@ -128,6 +135,16 @@ body {
     display: flex;
     align-items: center;
     gap: 2rem;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.nav-actions .btn {
+    padding: 0.5rem 1.25rem;
 }
 
 .nav-links button {
@@ -2249,21 +2266,6 @@ margin-top: 1rem;
     animation: spin 1s linear infinite;
 }
 
-.floating-logout {
-    position: fixed;
-    top: 1rem;
-    right: 1rem;
-    z-index: 2000;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.floating-logout[disabled] {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
@@ -2296,7 +2298,15 @@ margin-top: 1rem;
         box-sizing: border-box;
     }
 
+    .nav-right {
+        gap: 1rem;
+    }
+
     .nav-links {
+        display: none;
+    }
+
+    .nav-actions {
         display: none;
     }
     
@@ -2306,6 +2316,13 @@ margin-top: 1rem;
     
     .mobile-menu.show {
         display: flex;
+    }
+
+    .mobile-menu .mobile-login,
+    .mobile-menu .mobile-logout {
+        margin-top: 0.5rem;
+        width: 100%;
+        justify-content: center;
     }
     
     .hero-content {

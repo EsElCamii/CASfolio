@@ -100,10 +100,6 @@
     </script>
 </head>
 <body>
-    <button id="casfolio-logout" class="btn btn-primary floating-logout" type="button">
-        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
-        <span>Logout</span>
-    </button>
     <!-- Navigation -->
     <nav class="nav">
         <div class="container" id="nav-container">
@@ -117,18 +113,31 @@
                     <h1>CASfolio</h1>
                 </div>
                 
-                <!-- Desktop Navigation -->
-                <div class="nav-links">
-                    <button onclick="scrollToSection('home')" data-testid="nav-home">Home</button>
-                    <button onclick="scrollToSection('timeline')" data-testid="nav-timeline">Timeline</button>
-                    <button onclick="scrollToSection('contact')" data-testid="nav-contact">Export</button>
-                    <button onclick="openCustomizePanel()" aria-label="Customize" title="Customize" data-testid="nav-customize">Customize</button>
+                <div class="nav-right">
+                    <!-- Desktop Navigation -->
+                    <div class="nav-links">
+                        <button onclick="scrollToSection('home')" data-testid="nav-home">Home</button>
+                        <button onclick="scrollToSection('timeline')" data-testid="nav-timeline">Timeline</button>
+                        <button onclick="scrollToSection('contact')" data-testid="nav-contact">Export</button>
+                        <button onclick="openCustomizePanel()" aria-label="Customize" title="Customize" data-testid="nav-customize">Customize</button>
+                    </div>
+
+                    <div class="nav-actions">
+                        <a class="btn btn-ghost" href="/login" id="casfolio-login-link">
+                            <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                            <span>Login</span>
+                        </a>
+                        <button id="casfolio-logout" class="btn btn-primary" type="button" hidden>
+                            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                            <span>Logout</span>
+                        </button>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button class="mobile-menu-btn" onclick="toggleMobileMenu()" data-testid="button-mobile-menu">
+                        <i class="fas fa-bars" id="mobile-menu-icon"></i>
+                    </button>
                 </div>
-                
-                <!-- Mobile Menu Button -->
-                <button class="mobile-menu-btn" onclick="toggleMobileMenu()" data-testid="button-mobile-menu">
-                    <i class="fas fa-bars" id="mobile-menu-icon"></i>
-                </button>
             </div>
             
             <!-- Mobile Navigation -->
@@ -137,6 +146,14 @@
                 <button onclick="scrollToSection('timeline')" data-testid="nav-mobile-timeline">Timeline</button>
                 <button onclick="scrollToSection('contact')" data-testid="nav-mobile-contact">Export</button>
                 <button onclick="openCustomizePanel()" data-testid="nav-mobile-customize">Customize</button>
+                <a href="/login" class="btn btn-primary mobile-login" id="casfolio-mobile-login">
+                    <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                    <span>Login</span>
+                </a>
+                <button id="casfolio-logout-mobile" class="btn btn-outline mobile-logout" type="button" hidden>
+                    <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                    <span>Logout</span>
+                </button>
             </div>
         </div>
     </nav>
@@ -926,11 +943,80 @@
 
     <script>
         (function () {
-            const logoutBtn = document.getElementById('casfolio-logout');
-            if (!logoutBtn) return;
+            const logoutButtons = [
+                document.getElementById('casfolio-logout'),
+                document.getElementById('casfolio-logout-mobile')
+            ].filter(Boolean);
 
-            logoutBtn.addEventListener('click', async () => {
-                logoutBtn.setAttribute('disabled', 'true');
+            const loginLinks = [
+                document.getElementById('casfolio-login-link'),
+                document.getElementById('casfolio-mobile-login')
+            ].filter(Boolean);
+
+            if (logoutButtons.length === 0 && loginLinks.length === 0) {
+                return;
+            }
+
+            const toggleHidden = (element, shouldHide) => {
+                if (!element) return;
+                element.hidden = shouldHide;
+            };
+
+            const hasSupabaseSession = () => {
+                try {
+                    const cookieEntries = (document.cookie || '').split(';');
+                    const hasCookieSession = cookieEntries.some((entry) => {
+                        const name = entry.trim().split('=')[0];
+                        return Boolean(name) && name.startsWith('sb-');
+                    });
+
+                    if (hasCookieSession) {
+                        return true;
+                    }
+
+                    if (typeof window !== 'undefined' && window.localStorage) {
+                        if (window.localStorage.getItem('supabase.auth.token')) {
+                            return true;
+                        }
+
+                        for (const key of Object.keys(window.localStorage)) {
+                            if (key.startsWith('sb-')) {
+                                return true;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Unable to inspect Supabase session state', error);
+                }
+
+                return false;
+            };
+
+            const updateAuthControls = () => {
+                const authenticated = hasSupabaseSession();
+
+                logoutButtons.forEach((button) => {
+                    toggleHidden(button, !authenticated);
+                    if (authenticated) {
+                        button.removeAttribute('disabled');
+                    } else {
+                        button.setAttribute('disabled', 'true');
+                    }
+                });
+
+                loginLinks.forEach((link) => {
+                    toggleHidden(link, authenticated);
+                });
+            };
+
+            const disableLogoutButtons = () => {
+                logoutButtons.forEach((button) => {
+                    button.setAttribute('disabled', 'true');
+                });
+            };
+
+            const handleLogout = async () => {
+                disableLogoutButtons();
 
                 try {
                     const response = await fetch('/api/auth/signout', {
@@ -969,8 +1055,17 @@
                     console.error('Error clearing Supabase tokens', err);
                 }
 
+                updateAuthControls();
                 window.location.replace('/');
+            };
+
+            logoutButtons.forEach((button) => {
+                button.hidden = true;
+                button.addEventListener('click', handleLogout);
             });
+
+            updateAuthControls();
+            window.addEventListener('storage', updateAuthControls);
         })();
     </script>
 
