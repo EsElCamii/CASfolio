@@ -40,6 +40,54 @@ body {
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
+/* Welcome Popup */
+.welcome-popup .modal-content {
+    max-width: 480px;
+    padding: 2rem;
+    text-align: center;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+}
+
+.welcome-popup-header {
+    margin-bottom: 1.5rem;
+}
+
+.welcome-popup-header h3 {
+    font-size: 1.5rem;
+    color: var(--primary);
+    margin-bottom: 0.5rem;
+}
+
+.welcome-popup-body {
+    margin-bottom: 2rem;
+    color: var(--foreground);
+    line-height: 1.6;
+}
+
+.welcome-popup-body p {
+    margin-bottom: 1rem;
+}
+
+.welcome-popup-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.welcome-popup .btn-primary {
+    padding: 0.75rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 50px;
+    transition: all 0.2s ease;
+}
+
+.welcome-popup .btn-primary i {
+    margin-right: 0.5rem;
+}
+
 /* Dark Theme */
 .dark {
     --background: #0a0a0a;
@@ -810,6 +858,7 @@ section {
 }
 
 .activity-description {
+
     color: var(--muted-foreground);
     font-size: 0.875rem;
     line-height: 1.6;
@@ -818,6 +867,7 @@ section {
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    margin-top: 1 rem;
 }
 
 .activity-footer {

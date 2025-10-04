@@ -1062,6 +1062,48 @@ function persistPortfolioOnboardingState(form, completed, options = {}) {
     return state;
 }
 
+function initializePortfolioPopUp() {
+    const welcomeModal = document.getElementById('welcome-popup');
+    const startSetupBtn = document.getElementById('start-setup-btn');
+    const onboardingModal = document.getElementById('portfolio-onboarding-modal');
+    
+    if (!welcomeModal || !startSetupBtn || !onboardingModal) return;
+    
+    // Check if user has seen the welcome popup before
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    const onboardingState = getPortfolioOnboardingState();
+    
+    // Show welcome popup if it's the first visit and onboarding isn't completed
+    if (!hasSeenWelcome && !onboardingState.completed) {
+        welcomeModal.classList.add('show');
+        welcomeModal.setAttribute('aria-hidden', 'false');
+        lockBodyScroll();
+    }
+    
+    // Handle the Get Started button click
+    startSetupBtn.addEventListener('click', () => {
+        welcomeModal.classList.remove('show');
+        welcomeModal.setAttribute('aria-hidden', 'true');
+        unlockBodyScroll();
+        
+        // Mark as seen
+        localStorage.setItem('hasSeenWelcome', 'true');
+        
+        // Show the onboarding form
+        onboardingModal.classList.add('show');
+        onboardingModal.setAttribute('aria-hidden', 'false');
+        lockBodyScroll();
+        
+        // Focus the first input in the onboarding form
+        const firstInput = document.querySelector('#portfolio-onboarding-form input, #portfolio-onboarding-form select, #portfolio-onboarding-form textarea');
+        if (firstInput) {
+            setTimeout(() => firstInput.focus(), 100);
+        }
+    });
+}
+
+
+
 // Mount the first-visit questionnaire, handle partial saves, and hide it once the student finishes
 function initializePortfolioQuestionnaire() {
     const modal = document.getElementById('portfolio-onboarding-modal');
@@ -1749,6 +1791,7 @@ async function initializeApp() {
     } finally {
         rerenderActivityViews();
         initializeEventListeners();
+        initializePortfolioPopUp();
         initializePortfolioQuestionnaire();
         initializeSelectControls();
     }

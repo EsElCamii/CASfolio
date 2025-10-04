@@ -722,7 +722,6 @@
                         <select name="status" class="select-control select-control--status" data-testid="select-activity-status" required>
                             <option value="draft">Draft</option>
                             <option value="ongoing">Ongoing</option>
-                            <option value="pending">Pending</option>
                             <option value="completed">Completed</option>
                         </select>
                     </div>
@@ -912,6 +911,24 @@
             </div>
         </div>
     </aside>
+
+    <!-- Welcome Popup -->
+    <div class="modal welcome-popup" id="welcome-popup" aria-hidden="true">
+        <div class="modal-content welcome-popup-content" role="dialog" aria-modal="true" aria-labelledby="welcome-popup-title">
+            <div class="welcome-popup-header">
+                <h3 id="welcome-popup-title" data-testid="text-welcome-title">Welcome to Your CAS Portfolio! 🎉</h3>
+            </div>
+            <div class="welcome-popup-body">
+                <p>Let's get started by answering a few quick questions to personalize your portfolio.</p>
+                <p>This will help us create the best experience for tracking your CAS journey.</p>
+            </div>
+            <div class="welcome-popup-actions">
+                <button class="btn btn-primary" id="start-setup-btn" data-testid="button-start-setup">
+                    <i class="fas fa-rocket"></i> Get Started
+                </button>
+            </div>
+        </div>
+    </div>
 
     <!-- Add Custom Section Modal -->
     <div class="modal" id="add-section-modal">
