@@ -1503,6 +1503,10 @@ async function saveActivity(values, { isEditing }) {
         payload.headerImagePath = headerDescriptor.path;
         payload.headerImageChecksum = headerDescriptor.checksum;
         payload.headerImageUpdatedAt = headerDescriptor.updatedAt;
+        payload.headerImageUrl = headerDescriptor.source === 'external' ? headerDescriptor.url : null;
+    } else if (!previousActivity?.headerImagePath && typeof previousHeaderImage === 'string' && /^https?:\/\//i.test(previousHeaderImage)) {
+        // Preserve existing remote URLs when editing without choosing a new image.
+        payload.headerImageUrl = previousHeaderImage;
     }
 
     const endpoint = isEditing ? `/api/activities/${currentActivityId}` : '/api/activities';

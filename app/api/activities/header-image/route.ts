@@ -63,6 +63,7 @@ async function uploadBuffer(userId: string, buffer: Buffer, mimeType: string) {
     checksum,
     url: signed.signedUrl,
     updatedAt: now,
+    source: 'storage' as const,
   };
 }
 
@@ -94,7 +95,7 @@ async function handleFileUpload(request: NextRequest, userId: string) {
   }
 }
 
-async function handleRemoteUrl(request: NextRequest, userId: string) {
+async function handleRemoteUrl(request: NextRequest, _userId: string) {
   let payload: any;
   try {
     payload = await request.json();
@@ -118,32 +119,54 @@ async function handleRemoteUrl(request: NextRequest, userId: string) {
     return jsonError({ error: 'Only HTTP(S) image URLs are supported' }, 400);
   }
 
-  let response: globalThis.Response;
+  const remoteUrl = parsed.toString();
+
+  // Attempt a lightweight HEAD request first; fall back to GET if not supported.
+  let response: globalThis.Response | null = null;
   try {
-    response = await fetch(parsed.toString(), { redirect: 'follow' });
-  } catch (error) {
-    console.error('Failed to fetch remote image', error);
-    return serverError('Unable to download image from URL', 'Network error while fetching image');
+    response = await fetch(remoteUrl, { method: 'HEAD', redirect: 'follow' });
+    if (!response.ok) {
+      response = null;
+    }
+  } catch (_headError) {
+    response = null;
   }
 
-  if (!response.ok) {
-    return serverError('Unable to download image from URL', `Remote server responded with ${response.status}`);
+  if (!response) {
+    try {
+      response = await fetch(remoteUrl, { method: 'GET', redirect: 'follow' });
+    } catch (error) {
+      console.error('Failed to reach remote image', error);
+      return serverError('Unable to download image from URL', 'Network error while fetching image');
+    }
+  }
+
+  if (!response || !response.ok) {
+    const status = response?.status ?? 'unknown';
+    return serverError('Unable to download image from URL', `Remote server responded with ${status}`);
   }
 
   const mimeType = response.headers.get('content-type') ?? 'application/octet-stream';
-  const arrayBuffer = await response.arrayBuffer();
-
-  if (arrayBuffer.byteLength > serverEnv.maxUploadBytes) {
-    return jsonError({ error: 'Image exceeds upload limit' }, 413);
+  if (!mimeType.toLowerCase().startsWith('image/')) {
+    return jsonError({ error: 'Provided URL does not point to an image' }, 415);
   }
 
+  // Stop any ongoing body read to avoid downloading the entire asset when using GET.
   try {
-    const descriptor = await uploadBuffer(userId, Buffer.from(arrayBuffer), mimeType);
-    return jsonOk({ image: descriptor });
-  } catch (error: any) {
-    console.error('Failed to persist remote header image', error);
-    return serverError('Unable to store header image', error?.message ?? 'Upload failed');
+    await response.body?.cancel?.();
+  } catch (_cancelError) {
+    // Ignore cancellation errors – the fetch implementation might not support it.
   }
+
+  const descriptor = {
+    path: null,
+    checksum: null,
+    url: remoteUrl,
+    updatedAt: new Date().toISOString(),
+    source: 'external' as const,
+  };
+
+  return jsonOk({ image: descriptor });
 }
 
 export async function POST(request: NextRequest) {

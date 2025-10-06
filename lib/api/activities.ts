@@ -57,6 +57,7 @@ export interface ActivityRow {
   header_image_path: string | null;
   header_image_checksum: string | null;
   header_image_updated_at: string | null;
+  header_image_url?: string | null;
   created_at: string;
   updated_at: string;
   activity_assets?: Array<{
@@ -95,7 +96,15 @@ export async function signStoragePaths(paths: string[]): Promise<Map<string, str
 }
 
 export async function signHeroPaths(paths: string[]): Promise<Map<string, string>> {
-  const unique = Array.from(new Set(paths.filter(Boolean)));
+  const unique = Array.from(
+    new Set(
+      paths.filter((value) => {
+        if (!value) return false;
+        const trimmed = value.trim();
+        return trimmed !== '' && !/^https?:\/\//i.test(trimmed);
+      })
+    )
+  );
   if (unique.length === 0) {
     return new Map();
   }
@@ -140,6 +149,9 @@ export function mapActivityRow(
   headerSignedUrls: Map<string, string>,
   assetSignedUrls: Map<string, string>
 ): ActivityDTO {
+  const isExternalHeader = typeof row.header_image_url === 'string' && row.header_image_url.trim() !== '';
+  const headerUrlFromStorage = row.header_image_path ? headerSignedUrls.get(row.header_image_path) ?? null : null;
+  const resolvedHeaderUrl = isExternalHeader ? row.header_image_url ?? null : headerUrlFromStorage;
   const assets = (row.activity_assets ?? []).map((asset) => mapAsset(asset, assetSignedUrls));
   return {
     id: row.id,
@@ -154,7 +166,7 @@ export function mapActivityRow(
     learningOutcomes: row.learning_outcomes ?? [],
     headerImagePath: row.header_image_path,
     headerImageChecksum: row.header_image_checksum,
-    headerImageUrl: row.header_image_path ? headerSignedUrls.get(row.header_image_path) ?? null : null,
+    headerImageUrl: resolvedHeaderUrl,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     assets,
@@ -183,6 +195,7 @@ export async function fetchActivityById(
         'header_image_path',
         'header_image_checksum',
         'header_image_updated_at',
+        'header_image_url',
         'created_at',
         'updated_at',
         'activity_assets(id, activity_id, storage_path, mime_type, checksum, size_bytes, created_at)',
@@ -199,7 +212,7 @@ export async function fetchActivityById(
     throw error;
   }
 
-  const headerSigned = await signStoragePaths(data.header_image_path ? [data.header_image_path] : []);
+  const headerSigned = await signHeroPaths(data.header_image_path ? [data.header_image_path] : []);
   const assetPaths = data.activity_assets?.map((asset) => asset.storage_path).filter(Boolean) as string[];
   const assetSigned = await signStoragePaths(assetPaths ?? []);
 

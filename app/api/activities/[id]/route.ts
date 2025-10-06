@@ -86,6 +86,28 @@ function sanitizePayload(payload: ActivityMutationPayload, ownerId: string) {
     }
   }
 
+  if (payload.headerImageUrl !== undefined) {
+    if (payload.headerImageUrl === null || payload.headerImageUrl === '') {
+      output.header_image_url = null;
+    } else if (typeof payload.headerImageUrl === 'string') {
+      const trimmed = payload.headerImageUrl.trim();
+      let parsed: URL;
+      try {
+        parsed = new URL(trimmed);
+      } catch (_error) {
+        throw new Error('Invalid header image URL');
+      }
+
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error('Invalid header image URL protocol');
+      }
+
+      output.header_image_url = parsed.toString();
+    } else {
+      throw new Error('Invalid header image URL');
+    }
+  }
+
   return output;
 }
 

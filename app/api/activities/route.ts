@@ -41,6 +41,7 @@ export async function GET() {
         'header_image_path',
         'header_image_checksum',
         'header_image_updated_at',
+        'header_image_url',
         'created_at',
         'updated_at',
         'activity_assets(id, activity_id, storage_path, mime_type, checksum, size_bytes, created_at)',
@@ -135,6 +136,28 @@ function sanitizePayload(payload: ActivityMutationPayload, ownerId: string) {
     }
   }
 
+  if (payload.headerImageUrl !== undefined) {
+    if (payload.headerImageUrl === null || payload.headerImageUrl === '') {
+      sanitized.header_image_url = null;
+    } else if (typeof payload.headerImageUrl === 'string') {
+      const trimmedUrl = payload.headerImageUrl.trim();
+      let parsed: URL;
+      try {
+        parsed = new URL(trimmedUrl);
+      } catch (_error) {
+        throw new Error('Invalid header image URL');
+      }
+
+      if (!['http:', 'https:'].includes(parsed.protocol)) {
+        throw new Error('Invalid header image URL protocol');
+      }
+
+      sanitized.header_image_url = parsed.toString();
+    } else {
+      throw new Error('Invalid header image URL');
+    }
+  }
+
   return sanitized;
 }
 
@@ -183,6 +206,7 @@ export async function POST(request: NextRequest) {
         'header_image_path',
         'header_image_checksum',
         'header_image_updated_at',
+        'header_image_url',
         'created_at',
         'updated_at',
       ].join(',')
