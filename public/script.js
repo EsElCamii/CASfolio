@@ -413,6 +413,36 @@ let currentFilter = 'all';
 let learningOutcomes = [];
 let selectedHeaderImageUrl = null;
 
+function toEmbeddableImageUrl(url) {
+    const trimmed = typeof url === 'string' ? url.trim() : '';
+    if (!trimmed) {
+        return trimmed;
+    }
+
+    let parsedUrl;
+    try {
+        parsedUrl = new URL(trimmed);
+    } catch (_error) {
+        return trimmed;
+    }
+
+    const host = parsedUrl.hostname.toLowerCase();
+    if (host === 'drive.google.com' || host === 'docs.google.com') {
+        const fileMatch = parsedUrl.pathname.match(/\/file\/d\/([^/]+)/);
+        let imageId = fileMatch ? fileMatch[1] : null;
+
+        if (!imageId) {
+            imageId = parsedUrl.searchParams.get('id') || parsedUrl.searchParams.get('docid');
+        }
+
+        if (imageId) {
+            return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(imageId)}`;
+        }
+    }
+
+    return trimmed;
+}
+
 function lockBodyScroll() {
     document.body.style.overflow = 'hidden';
     document.documentElement.style.overflow = 'hidden';
@@ -1601,8 +1631,10 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        const finalUrl = toEmbeddableImageUrl(normalizedUrl);
+
         try {
-            new URL(normalizedUrl);
+            new URL(finalUrl);
         } catch (_error) {
             alert('Please enter a valid URL');
             return;
@@ -1610,13 +1642,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const img = new Image();
         img.onload = function() {
-            showImagePreview(normalizedUrl);
-            selectedHeaderImageUrl = normalizedUrl;
+            showImagePreview(finalUrl);
+            selectedHeaderImageUrl = finalUrl;
+            imageUrlInput.value = finalUrl;
         };
         img.onerror = function() {
             alert('Could not load image from the provided URL. Please check the URL and try again.');
         };
-        img.src = normalizedUrl;
+        img.src = finalUrl;
     }
 
     if (loadImageUrlBtn) {
