@@ -411,7 +411,6 @@ function applyPortfolioInformation(data) {
 // Global state
 let currentFilter = 'all';
 let learningOutcomes = [];
-let selectedHeaderImageFile = null;
 let selectedHeaderImageUrl = null;
 
 function lockBodyScroll() {
@@ -914,7 +913,6 @@ function openAddActivityDialog(activityId = null) {
     // Close any open modals first
     document.querySelectorAll('.modal.show').forEach(m => m.classList.remove('show'));
     
-    selectedHeaderImageFile = null;
     selectedHeaderImageUrl = null;
 
     if (activityId) {
@@ -1451,12 +1449,8 @@ async function saveActivity(values, { isEditing }) {
 
     let headerDescriptor = null;
 
-    if (selectedHeaderImageFile instanceof File) {
-        headerDescriptor = await uploadHeaderImage({ file: selectedHeaderImageFile }).catch((error) => {
-            throw new Error(error?.message || 'Failed to upload header image.');
-        });
-    } else if (selectedHeaderImageUrl) {
-        headerDescriptor = await uploadHeaderImage({ url: selectedHeaderImageUrl }).catch((error) => {
+    if (selectedHeaderImageUrl) {
+        headerDescriptor = await uploadHeaderImage(selectedHeaderImageUrl).catch((error) => {
             throw new Error(error?.message || 'Failed to import header image.');
         });
     }
@@ -1516,24 +1510,15 @@ async function saveActivity(values, { isEditing }) {
 
     currentActivityId = null;
     learningOutcomes = [];
-    selectedHeaderImageFile = null;
     selectedHeaderImageUrl = null;
     return activityId;
 }
 
-async function uploadHeaderImage({ file, url }) {
+async function uploadHeaderImage(url) {
     const endpoint = '/api/activities/header-image';
     let response;
 
-    if (file instanceof File) {
-        const form = new FormData();
-        form.append('file', file);
-        response = await fetch(endpoint, {
-            method: 'POST',
-            credentials: 'same-origin',
-            body: form,
-        });
-    } else if (typeof url === 'string' && url.trim()) {
+    if (typeof url === 'string' && url.trim()) {
         response = await fetch(endpoint, {
             method: 'POST',
             credentials: 'same-origin',
@@ -1593,128 +1578,68 @@ function handleReflectionFormSubmit(e) {
     alert('Reflection created successfully!');
 }
 
-// Image upload and URL handler powers the activity header image picker
+// Image URL handler powers the activity header image picker
 document.addEventListener('DOMContentLoaded', function() {
-    // Elements
-    const imageUpload = document.getElementById('header-image-upload');
     const imageUrlInput = document.getElementById('image-url-input');
     const loadImageUrlBtn = document.getElementById('load-image-url');
     const removeImageBtn = document.getElementById('remove-image');
     const imagePreview = document.getElementById('image-preview');
     const imagePreviewImg = document.getElementById('image-preview-img');
-    const uploadTab = document.querySelector('[data-tab="upload"]');
-    const urlTab = document.querySelector('[data-tab="url"]');
-    const uploadTabContent = document.getElementById('upload-tab');
-    const urlTabContent = document.getElementById('url-tab');
-    
-    // Tab switching
-    if (uploadTab && urlTab) {
-        uploadTab.addEventListener('click', () => switchTab('upload'));
-        urlTab.addEventListener('click', () => switchTab('url'));
-    }
-    
-    function switchTab(tab) {
-        // Update active tab
-        if (tab === 'upload') {
-            uploadTab.classList.add('active');
-            urlTab.classList.remove('active');
-            uploadTabContent.classList.add('active');
-            urlTabContent.classList.remove('active');
-        } else {
-            uploadTab.classList.remove('active');
-            urlTab.classList.add('active');
-            uploadTabContent.classList.remove('active');
-            urlTabContent.classList.add('active');
-        }
-    }
-    
-    // Handle file upload
-    if (imageUpload) {
-        imageUpload.addEventListener('change', handleFileUpload);
-    }
-    
-    // Handle URL load
-    if (loadImageUrlBtn) {
-        loadImageUrlBtn.addEventListener('click', handleImageUrl);
-    }
-    
-    // Handle remove image
-    if (removeImageBtn) {
-        removeImageBtn.addEventListener('click', removeImage);
-    }
 
-    function handleFileUpload(e) {
-        const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-        if (!file) {
-            resetHeaderImageInputs();
-            return;
-        }
-
-        // Check file size (5MB max)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('Image size should be less than 5MB');
-            e.target.value = '';
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            showImagePreview(event.target?.result || '');
-            if (imageUrlInput) {
-                imageUrlInput.value = '';
-            }
-        };
-        reader.readAsDataURL(file);
-
-        selectedHeaderImageFile = file;
-        selectedHeaderImageUrl = null;
-    }
-    
-    function handleImageUrl() {
-        const imageUrl = imageUrlInput.value.trim();
-        if (!imageUrl) {
-            alert('Please enter an image URL');
-            return;
-        }
-        
-        // Simple URL validation
-        try {
-            new URL(imageUrl);
-        } catch (e) {
-            alert('Please enter a valid URL');
-            return;
-        }
-        
-        // Create a temporary image to check if the URL is valid
-        const img = new Image();
-        img.onload = function() {
-            showImagePreview(imageUrl);
-            // Clear file input when using URL
-            if (imageUpload) imageUpload.value = '';
-            selectedHeaderImageUrl = imageUrl;
-            selectedHeaderImageFile = null;
-        };
-        img.onerror = function() {
-            alert('Could not load image from the provided URL. Please check the URL and try again.');
-        };
-        img.src = imageUrl;
-    }
-    
     function showImagePreview(src) {
+        if (!imagePreview || !imagePreviewImg) return;
         imagePreviewImg.src = src;
         imagePreview.style.display = 'block';
     }
 
-    function removeImage() {
-        resetHeaderImageInputs();
+    function handleImageUrl() {
+        if (!imageUrlInput) return;
+        const rawValue = imageUrlInput.value || '';
+        const normalizedUrl = rawValue.trim();
+        if (!normalizedUrl) {
+            alert('Please enter an image URL');
+            return;
+        }
+
+        try {
+            new URL(normalizedUrl);
+        } catch (_error) {
+            alert('Please enter a valid URL');
+            return;
+        }
+
+        const img = new Image();
+        img.onload = function() {
+            showImagePreview(normalizedUrl);
+            selectedHeaderImageUrl = normalizedUrl;
+        };
+        img.onerror = function() {
+            alert('Could not load image from the provided URL. Please check the URL and try again.');
+        };
+        img.src = normalizedUrl;
     }
 
+    if (loadImageUrlBtn) {
+        loadImageUrlBtn.addEventListener('click', handleImageUrl);
+    }
+
+    if (imageUrlInput) {
+        imageUrlInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleImageUrl();
+            }
+        });
+    }
+
+    if (removeImageBtn) {
+        removeImageBtn.addEventListener('click', resetHeaderImageInputs);
+    }
 });
 
 function resetHeaderImageInputs() {
     const imagePreview = document.getElementById('image-preview');
     const imagePreviewImg = document.getElementById('image-preview-img');
-    const imageUpload = document.getElementById('header-image-upload');
     const imageUrlInput = document.getElementById('image-url-input');
 
     if (imagePreview) {
@@ -1723,14 +1648,10 @@ function resetHeaderImageInputs() {
     if (imagePreviewImg) {
         imagePreviewImg.src = '';
     }
-    if (imageUpload) {
-        imageUpload.value = '';
-    }
     if (imageUrlInput) {
         imageUrlInput.value = '';
     }
 
-    selectedHeaderImageFile = null;
     selectedHeaderImageUrl = null;
 }
 

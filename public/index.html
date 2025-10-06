@@ -662,20 +662,9 @@
                 <div class="form-group">
                     <label>Header Image (Optional)</label>
                     <div class="image-upload-options">
-                        <div class="form-tabs">
-                            <button type="button" class="tab-btn active" data-tab="upload">Upload Image</button>
-                            <button type="button" class="tab-btn" data-tab="url">Use Image URL</button>
-                        </div>
-                        
-                        <div id="upload-tab" class="tab-content active">
-                            <input type="file" name="headerImage" accept="image/*" id="header-image-upload" data-testid="input-header-image">
-                            <p class="helper-text">Supported formats: JPG, PNG, GIF (max 5MB)</p>
-                        </div>
-                        
-                        <div id="url-tab" class="tab-content">
-                            <input type="url" name="imageUrl" id="image-url-input" placeholder="https://example.com/image.jpg" data-testid="input-image-url">
-                            <button type="button" id="load-image-url" class="btn btn-outline" style="margin-top: 8px;">Load Image</button>
-                        </div>
+                        <p class="helper-text">Provide a publicly accessible image URL.</p>
+                        <input type="url" name="imageUrl" id="image-url-input" placeholder="https://example.com/image.jpg" data-testid="input-image-url">
+                        <button type="button" id="load-image-url" class="btn btn-outline" style="margin-top: 8px;">Load Image</button>
                         
                         <div id="image-preview" class="image-preview" style="display: none; margin-top: 15px; text-align: center;">
                             <img id="image-preview-img" src="" alt="Preview" style="max-width: 100%; max-height: 200px; border-radius: 4px; margin: 0 auto; display: block;">
