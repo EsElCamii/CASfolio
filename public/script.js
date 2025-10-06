@@ -436,7 +436,10 @@ function toEmbeddableImageUrl(url) {
         }
 
         if (imageId) {
-            return `https://drive.google.com/uc?export=view&id=${encodeURIComponent(imageId)}`;
+            // Use Googleusercontent CDN so the image can load cross-origin without Drive's HTML shell.
+            const safeId = encodeURIComponent(imageId);
+            const googleContentCdnUrl = `https://lh3.googleusercontent.com/d/${safeId}=s0`;
+            return googleContentCdnUrl;
         }
     }
 
