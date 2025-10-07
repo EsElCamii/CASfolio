@@ -1239,14 +1239,27 @@ function renderExperienceMetrics(stats) {
         if (Number.isFinite(stats.averageRating) && stats.averageRating > 0) {
             const rounded = Math.round(stats.averageRating * 10) / 10;
             const filledStars = Math.round(stats.averageRating);
-            ratingDisplay.innerHTML = Array.from({ length: 5 }).map((_, index) => {
+            const starsMarkup = Array.from({ length: 5 }).map((_, index) => {
                 const active = index < filledStars;
                 return `<i class="fas fa-star${active ? '' : ' inactive'}"></i>`;
             }).join('');
+            ratingDisplay.innerHTML = `
+                <div class="rating-box rating-box--stars" aria-hidden="true">
+                    ${starsMarkup}
+                </div>
+                <div class="rating-box rating-box--score">
+                    <span class="rating-score">${rounded.toFixed(1).replace(/\\.0$/, '')}</span>
+                    <span class="rating-max">out of 5</span>
+                </div>
+            `;
+            ratingDisplay.setAttribute('role', 'group');
+            ratingDisplay.setAttribute('aria-label', `Average enjoyment rating ${rounded} out of 5`);
             ratingDisplay.title = `Average enjoyment rating ${rounded}/5`;
         } else {
-            ratingDisplay.textContent = '–';
+            ratingDisplay.innerHTML = '<span class="rating-empty">–</span>';
+            ratingDisplay.removeAttribute('role');
             ratingDisplay.removeAttribute('title');
+            ratingDisplay.removeAttribute('aria-label');
         }
     }
 
@@ -1503,7 +1516,6 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
     const totalDays = Math.round((end - start) / MS_PER_DAY) + 1;
 
     const dayData = [];
-    let hasActivity = false;
 
     for (let index = 0; index < totalDays; index += 1) {
         const cellDate = new Date(start);
@@ -1523,10 +1535,6 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
                 categoryCounts[category] += 1;
             }
         });
-
-        if (totalCount > 0) {
-            hasActivity = true;
-        }
 
         dayData.push({ date: cellDate, iso, totalCount, totalHours, categoryHours, categoryCounts });
     }
@@ -1587,12 +1595,13 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
     });
 
     heatmap.innerHTML = fragments.join('');
+    const hasEntriesForSelection = dayData.some((entry) => entry.totalCount > 0);
     if (emptyMessage) {
-        emptyMessage.textContent = hasActivity
+        emptyMessage.textContent = hasEntriesForSelection
             ? 'No CAS activity matches the selected filters yet.'
-            : 'Select at least one category to see the heatmap.';
+            : 'No CAS activity logged for these categories yet.';
     }
-    emptyState.hidden = hasActivity;
+    emptyState.hidden = hasEntriesForSelection;
 
     const rangeLabel = HEATMAP_RANGE_OPTIONS[heatmapSettings.range]?.label
         || HEATMAP_RANGE_OPTIONS[DEFAULT_HEATMAP_SETTINGS.range].label;

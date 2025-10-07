@@ -36,6 +36,7 @@ body {
     --secondary-foreground: #064e3b;
     --accent: #f59e0b;
     --accent-foreground: #92400e;
+    --heatmap-accent: var(--accent);
     --muted: #f8fafc;
     --muted-foreground: #64748b;
     --border: #e2e8f0;
@@ -114,6 +115,7 @@ body {
     --secondary-foreground: #1c1d21;
     --accent: #3f414b;
     --accent-foreground: #f2f3f5;
+    --heatmap-accent: var(--accent);
     --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
     --shadow-lg: 0 20px 45px rgba(0, 0, 0, 0.45);
     color-scheme: dark;
@@ -1272,18 +1274,18 @@ section {
 }
 
 .achievement-icon.star {
-    background: rgba(245, 158, 11, 0.1);
-    color: var(--accent);
+    background: rgba(245, 158, 11, 0.16);
+    color: #f59e0b;
 }
 
 .achievement-icon.users {
-    background: rgba(16, 185, 129, 0.1);
-    color: var(--secondary);
+    background: rgba(16, 185, 129, 0.16);
+    color: #10b981;
 }
 
 .achievement-icon.medal {
-    background: rgba(59, 130, 246, 0.1);
-    color: var(--primary);
+    background: rgba(59, 130, 246, 0.16);
+    color: #3b82f6;
 }
 
 .achievement-text p {
@@ -2836,6 +2838,9 @@ body.print-mode .timeline-container {
 .heatmap-category-btn .legend-dot {
     width: 10px;
     height: 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 75%, transparent);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 25%, transparent);
 }
 
 .heatmap-category-btn:hover,
@@ -2844,9 +2849,9 @@ body.print-mode .timeline-container {
 }
 
 .heatmap-category-btn.active {
-    background: rgba(var(--primary-rgb), 0.12);
-    border-color: rgba(var(--primary-rgb), 0.45);
-    color: var(--primary);
+    background: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 16%, transparent);
+    border-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 45%, transparent);
+    color: var(--heatmap-accent, var(--accent, var(--primary)));
 }
 
 .heatmap-body {
@@ -2858,30 +2863,33 @@ body.print-mode .timeline-container {
 .calendar-heatmap {
     --heatmap-gap: 4px;
     --heatmap-columns: 52;
+    --heatmap-cell-max: 18px;
+    --heatmap-cell-min: 8px;
+    --heatmap-cell-size: clamp(
+        var(--heatmap-cell-min),
+        calc((100% - (var(--heatmap-gap) * (var(--heatmap-columns) - 1))) / var(--heatmap-columns)),
+        var(--heatmap-cell-max)
+    );
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(0, 1fr);
-    grid-template-columns: repeat(var(--heatmap-columns), minmax(0, 1fr));
-    grid-template-rows: repeat(7, auto);
+    grid-auto-columns: var(--heatmap-cell-size);
+    grid-template-columns: repeat(var(--heatmap-columns), var(--heatmap-cell-size));
+    grid-template-rows: repeat(7, var(--heatmap-cell-size));
     gap: var(--heatmap-gap);
     align-content: start;
     justify-content: start;
     overflow: hidden;
     width: 100%;
-    max-width: calc((16px * var(--heatmap-columns)) + (var(--heatmap-gap) * (var(--heatmap-columns) - 1)));
-    margin-left: 0;
-    margin-right: auto;
     padding-bottom: 0;
 }
 
 .calendar-heatmap .heatmap-cell {
     position: relative;
-    width: 100%;
-    aspect-ratio: 1 / 1;
+    width: var(--heatmap-cell-size);
+    height: var(--heatmap-cell-size);
     border-radius: 4px;
-    background: var(--heatmap-cell-color, rgba(var(--primary-rgb), 0.55));
-    border: 1px solid rgba(var(--primary-rgb), 0.08);
-    opacity: 0.12;
+    background: var(--heatmap-cell-color, color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 60%, transparent));
+    border: 1px solid color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 25%, transparent);
     transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
 }
 
@@ -2896,14 +2904,16 @@ body.print-mode .timeline-container {
     box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
 }
 
-.heatmap-cell.level-0 { opacity: 0.16; --heatmap-cell-color: rgba(34, 197, 94, 0.85); }
-.heatmap-cell.level-1 { opacity: 0.38; --heatmap-cell-color: rgba(34, 197, 94, 0.85); }
-.heatmap-cell.level-2 { opacity: 0.7; --heatmap-cell-color: rgba(34, 197, 94, 0.85); }
-.heatmap-cell.level-3 { opacity: 1; --heatmap-cell-color: rgba(34, 197, 94, 0.9); }
+.heatmap-cell.level-0 { --heatmap-cell-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 18%, transparent); }
+.heatmap-cell.level-1 { --heatmap-cell-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 38%, transparent); }
+.heatmap-cell.level-2 { --heatmap-cell-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 62%, transparent); }
+.heatmap-cell.level-3 { --heatmap-cell-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 88%, transparent); }
 
-.heatmap-cell.creativity { --heatmap-cell-color: rgba(59, 130, 246, 0.85); }
-.heatmap-cell.activity { --heatmap-cell-color: rgba(16, 185, 129, 0.85); }
-.heatmap-cell.service { --heatmap-cell-color: rgba(249, 115, 22, 0.85); }
+.heatmap-cell.creativity,
+.heatmap-cell.activity,
+.heatmap-cell.service {
+    --heatmap-cell-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 88%, transparent);
+}
 
 .heatmap-legend {
     display: flex;
@@ -2927,9 +2937,9 @@ body.print-mode .timeline-container {
     opacity: 1;
 }
 
-.heatmap-scale .heatmap-cell.level-1 { background: rgba(var(--primary-rgb), 0.35); }
-.heatmap-scale .heatmap-cell.level-2 { background: rgba(var(--primary-rgb), 0.6); }
-.heatmap-scale .heatmap-cell.level-3 { background: rgba(var(--primary-rgb), 0.85); }
+.heatmap-scale .heatmap-cell.level-1 { background: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 38%, transparent); }
+.heatmap-scale .heatmap-cell.level-2 { background: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 62%, transparent); }
+.heatmap-scale .heatmap-cell.level-3 { background: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 88%, transparent); }
 
 .heatmap-cell[data-tooltip]::after,
 .heatmap-cell[data-tooltip]::before {
@@ -2941,8 +2951,8 @@ body.print-mode .timeline-container {
 
 .heatmap-cell[data-tooltip]::after {
     content: attr(data-tooltip);
-    background: rgba(28, 29, 33, 0.98);
-    color: #f8fafc;
+    background: color-mix(in srgb, var(--card, #1c1d21) 92%, rgba(0, 0, 0, 0.08));
+    color: var(--foreground);
     padding: 0.4rem 0.65rem;
     border-radius: 6px;
     font-size: 0.7rem;
@@ -2951,15 +2961,15 @@ body.print-mode .timeline-container {
     left: 50%;
     transform: translate(-50%, -100%);
     z-index: 4;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
-    border: 1px solid rgba(148, 163, 184, 0.18);
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
+    border: 1px solid color-mix(in srgb, var(--border, #2f3036) 75%, transparent);
 }
 
 .heatmap-cell[data-tooltip]::before {
     content: '';
     width: 8px;
     height: 8px;
-    background: rgba(28, 29, 33, 0.98);
+    background: color-mix(in srgb, var(--card, #1c1d21) 92%, rgba(0, 0, 0, 0.08));
     transform: translate(-50%, -160%) rotate(45deg);
     top: -0.28rem;
     left: 50%;
@@ -3022,10 +3032,60 @@ body.print-mode .timeline-container {
 }
 
 .rating-display {
+    display: flex;
+    gap: 0.75rem;
+    align-items: stretch;
+    justify-content: flex-start;
+}
+
+.rating-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: calc(var(--radius) - 2px);
+    border: 1px solid rgba(var(--primary-rgb), 0.18);
+    background: color-mix(in srgb, var(--card, #ffffff) 92%, rgba(var(--primary-rgb), 0.08));
+    box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.04), 0 6px 16px rgba(15, 23, 42, 0.12);
+    padding: 0.65rem 1rem;
+    min-width: 0;
+}
+
+.rating-box--stars {
+    gap: 0.45rem;
+    color: #facc15;
+    font-size: 1.35rem;
+}
+
+.rating-box--score {
+    flex-direction: column;
+    min-width: 4.25rem;
+    padding: 0.65rem 0.85rem;
+    text-align: center;
+    gap: 0.1rem;
+}
+
+.rating-score {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--foreground);
+    line-height: 1;
+}
+
+.rating-max {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted-foreground);
+}
+
+.rating-empty {
     display: inline-flex;
-    gap: 0.35rem;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
     font-size: 1.5rem;
-    color: #fbbf24;
+    color: var(--muted-foreground);
 }
 
 .trend-card {
