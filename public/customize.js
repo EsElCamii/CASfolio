@@ -12,10 +12,10 @@
     { id: 'overview', name: 'CAS Overview', builtin: true, visible: true },
     { id: 'recent', name: 'Recent Activities', builtin: true, visible: true },
     { id: 'timeline', name: 'Timeline', builtin: true, visible: true },
-    { id: 'heatmap', name: 'Activity Heatmap', builtin: true, visible: true },
     { id: 'reflection', name: 'Reflection Journal', builtin: true, visible: true },
     { id: 'progress', name: 'Progress Overview', builtin: true, visible: true },
     { id: 'gallery', name: 'Activity Gallery', builtin: true, visible: true },
+    { id: 'heatmap', name: 'Activity Heatmap', builtin: true, visible: true },
     { id: 'contact', name: 'Portfolio Information', builtin: true, visible: true }
   ];
 

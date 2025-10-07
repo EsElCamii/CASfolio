@@ -2144,9 +2144,14 @@ function initializeLearningOutcomesForm() {
 
     const optionsMarkup = LEARNING_OUTCOME_PRESETS.map((option) => `
         <label class="learning-outcome-option">
-            <input type="checkbox" value="${option.value}" data-learning-outcome-option>
+            <input
+                type="checkbox"
+                value="${option.value}"
+                data-learning-outcome-option
+                aria-label="${option.code}: ${option.label}"
+            >
+            <span class="learning-outcome-indicator" aria-hidden="true"></span>
             <span class="learning-outcome-label">
-                <span class="learning-outcome-code">${option.code}</span>
                 <span class="learning-outcome-title">${option.label}</span>
             </span>
         </label>
@@ -2154,9 +2159,15 @@ function initializeLearningOutcomesForm() {
 
     const customMarkup = `
         <label class="learning-outcome-option learning-outcome-option--custom">
-            <input type="checkbox" value="__custom__" data-learning-outcome-option data-custom-option>
+            <input
+                type="checkbox"
+                value="__custom__"
+                data-learning-outcome-option
+                data-custom-option
+                aria-label="Custom learning outcomes"
+            >
+            <span class="learning-outcome-indicator" aria-hidden="true"></span>
             <span class="learning-outcome-label">
-                <span class="learning-outcome-code">Custom</span>
                 <span class="learning-outcome-title">Add personalised learning outcomes</span>
             </span>
         </label>

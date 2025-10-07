@@ -290,6 +290,61 @@
         </div>
     </section>
 
+    <!-- Activity Heatmap -->
+    <section id="heatmap" class="activity-heatmap" role="region" aria-label="Activity Heatmap">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-testid="text-section-title">Activity Heatmap</h2>
+                <p data-testid="text-section-description">Visualise streaks and strand intensity with a GitHub-style contribution view.</p>
+            </div>
+
+            <div class="card heatmap-card">
+                <div class="heatmap-toolbar">
+                    <div class="heatmap-filter">
+                        <label for="heatmap-range">Date range</label>
+                        <select id="heatmap-range" class="select-control heatmap-range" data-testid="select-heatmap-range" disabled aria-disabled="true">
+                            <option value="52w">Last 52 weeks</option>
+                        </select>
+                    </div>
+                    <div class="heatmap-filter">
+                        <span>Categories</span>
+                        <div class="heatmap-category-toggle" id="heatmap-category-filters" role="group" aria-label="Filter heatmap by category">
+                            <button type="button" class="heatmap-category-btn" data-heatmap-category="creativity">
+                                <span class="legend-dot creativity" aria-hidden="true"></span>
+                                <span>Creativity</span>
+                            </button>
+                            <button type="button" class="heatmap-category-btn" data-heatmap-category="activity">
+                                <span class="legend-dot activity" aria-hidden="true"></span>
+                                <span>Activity</span>
+                            </button>
+                            <button type="button" class="heatmap-category-btn" data-heatmap-category="service">
+                                <span class="legend-dot service" aria-hidden="true"></span>
+                                <span>Service</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="heatmap-body">
+                    <div id="activity-heatmap" class="calendar-heatmap" role="grid" aria-label="CAS activity heatmap"></div>
+                    <div id="activity-heatmap-empty" class="empty-state" hidden>
+                        <p data-testid="text-heatmap-empty">No CAS activity matches the selected filters yet.</p>
+                    </div>
+                    <div class="heatmap-legend" aria-hidden="true">
+                        <span>Low</span>
+                        <div class="heatmap-scale">
+                            <span class="heatmap-cell level-1"></span>
+                            <span class="heatmap-cell level-2"></span>
+                            <span class="heatmap-cell level-3"></span>
+                            <span class="heatmap-cell level-4"></span>
+                        </div>
+                        <span>High</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- CAS Overview -->
     <section id="overview" class="cas-overview" role="region" aria-label="CAS Overview">
         <div class="container">
@@ -347,61 +402,6 @@
                 
                 <div class="empty-state" id="timeline-empty" style="display: none;">
                     <p data-testid="text-no-timeline-activities">No activities to display in timeline yet.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Activity Heatmap -->
-    <section id="heatmap" class="activity-heatmap" role="region" aria-label="Activity Heatmap">
-        <div class="container">
-            <div class="section-header">
-                <h2 data-testid="text-section-title">Activity Heatmap</h2>
-                <p data-testid="text-section-description">Visualise streaks and strand intensity with a GitHub-style contribution view.</p>
-            </div>
-
-            <div class="card heatmap-card">
-                <div class="heatmap-toolbar">
-                    <div class="heatmap-filter">
-                        <label for="heatmap-range">Date range</label>
-                        <select id="heatmap-range" class="select-control heatmap-range" data-testid="select-heatmap-range" disabled aria-disabled="true">
-                            <option value="52w">Last 52 weeks</option>
-                        </select>
-                    </div>
-                    <div class="heatmap-filter">
-                        <span>Categories</span>
-                        <div class="heatmap-category-toggle" id="heatmap-category-filters" role="group" aria-label="Filter heatmap by category">
-                            <button type="button" class="heatmap-category-btn" data-heatmap-category="creativity">
-                                <span class="legend-dot creativity" aria-hidden="true"></span>
-                                <span>Creativity</span>
-                            </button>
-                            <button type="button" class="heatmap-category-btn" data-heatmap-category="activity">
-                                <span class="legend-dot activity" aria-hidden="true"></span>
-                                <span>Activity</span>
-                            </button>
-                            <button type="button" class="heatmap-category-btn" data-heatmap-category="service">
-                                <span class="legend-dot service" aria-hidden="true"></span>
-                                <span>Service</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="heatmap-body">
-                    <div id="activity-heatmap" class="calendar-heatmap" role="grid" aria-label="CAS activity heatmap"></div>
-                    <div id="activity-heatmap-empty" class="empty-state" hidden>
-                        <p data-testid="text-heatmap-empty">No CAS activity matches the selected filters yet.</p>
-                    </div>
-                    <div class="heatmap-legend" aria-hidden="true">
-                        <span>Low</span>
-                        <div class="heatmap-scale">
-                            <span class="heatmap-cell level-1"></span>
-                            <span class="heatmap-cell level-2"></span>
-                            <span class="heatmap-cell level-3"></span>
-                            <span class="heatmap-cell level-4"></span>
-                        </div>
-                        <span>High</span>
-                    </div>
                 </div>
             </div>
         </div>
