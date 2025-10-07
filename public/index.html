@@ -122,12 +122,15 @@
                         <button onclick="openCustomizePanel()" aria-label="Customize" title="Customize" data-testid="nav-customize">Customize</button>
                     </div>
 
-                    <div class="nav-actions">
-                        <button id="casfolio-logout" class="btn btn-primary" type="button" hidden>
-                            <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
-                            <span>Logout</span>
-                        </button>
-                    </div>
+                <div class="nav-actions">
+                    <button id="theme-toggle" class="btn btn-icon" type="button" aria-label="Toggle theme" data-testid="button-theme-toggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    <button id="casfolio-logout" class="btn btn-primary" type="button" hidden>
+                        <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
 
                     <!-- Mobile Menu Button -->
                     <button class="mobile-menu-btn" onclick="toggleMobileMenu()" data-testid="button-mobile-menu">
@@ -142,6 +145,10 @@
                 <button onclick="scrollToSection('timeline')" data-testid="nav-mobile-timeline">Timeline</button>
                 <button onclick="scrollToSection('contact')" data-testid="nav-mobile-contact">Export</button>
                 <button onclick="openCustomizePanel()" data-testid="nav-mobile-customize">Customize</button>
+                <button id="theme-toggle-mobile" class="btn btn-outline" type="button" data-testid="button-theme-toggle-mobile">
+                    <i class="fas fa-moon"></i>
+                    <span>Theme</span>
+                </button>
                 <a href="/login" class="btn btn-primary mobile-login" id="casfolio-mobile-login">
                     <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
                     <span>Login</span>
@@ -276,6 +283,69 @@
         </div>
     </section>
 
+    <!-- Calendar Overview -->
+    <section id="calendar" class="calendar-section">
+        <div class="container">
+            <div class="section-header">
+                <h2 data-testid="text-section-title">Calendar Overview</h2>
+                <p data-testid="text-section-description">Visualise CAS activity streaks and drill into daily contributions</p>
+            </div>
+
+            <div class="calendar-surface">
+                <div class="calendar-toolbar">
+                    <div class="calendar-navigation">
+                        <button class="btn btn-icon" id="calendar-prev" aria-label="Previous period" data-testid="button-calendar-prev">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <h3 id="calendar-label" data-testid="text-calendar-label">October 2024</h3>
+                        <button class="btn btn-icon" id="calendar-next" aria-label="Next period" data-testid="button-calendar-next">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="calendar-view-toggle" role="group" aria-label="Calendar view mode">
+                        <button class="toggle-btn active" id="calendar-view-month" type="button" data-view="month" data-testid="button-calendar-month">Month</button>
+                        <button class="toggle-btn" id="calendar-view-week" type="button" data-view="week" data-testid="button-calendar-week">Week</button>
+                    </div>
+                </div>
+
+                <div id="calendar-grid" class="calendar-grid" role="table" aria-label="CAS activity calendar"></div>
+                <div id="calendar-empty" class="empty-state" style="display: none;">
+                    <p data-testid="text-calendar-empty">No activities recorded for this period yet.</p>
+                </div>
+
+                <div class="calendar-legend" aria-hidden="true">
+                    <span class="legend-item">
+                        <span class="legend-dot creativity"></span> Creativity
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-dot activity"></span> Activity
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-dot service"></span> Service
+                    </span>
+                </div>
+            </div>
+
+            <div class="heatmap-card">
+                <div class="heatmap-header">
+                    <h3 data-testid="text-heatmap-title">Daily Contribution Heatmap</h3>
+                    <p data-testid="text-heatmap-description">See streak intensity and dominant CAS strand over the past 20 weeks.</p>
+                </div>
+                <div id="calendar-heatmap" class="calendar-heatmap" role="img" aria-label="CAS daily contribution heatmap"></div>
+                <div class="heatmap-legend" aria-hidden="true">
+                    <span>Low</span>
+                    <div class="heatmap-scale">
+                        <span class="heatmap-cell level-1"></span>
+                        <span class="heatmap-cell level-2"></span>
+                        <span class="heatmap-cell level-3"></span>
+                        <span class="heatmap-cell level-4"></span>
+                    </div>
+                    <span>High</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Reflection Journal -->
     <section id="reflection" class="reflection-journal" role="region" aria-label="Reflection Journal">
         <div class="container">
@@ -323,6 +393,23 @@
                             <p class="progress-message" data-testid="text-progress-message" id="progress-message">
                                 30 hours remaining to reach minimum requirement
                             </p>
+                        </div>
+
+                        <div class="experience-metrics">
+                            <div class="metric-card">
+                                <h4>Average Enjoyment</h4>
+                                <div class="rating-display" id="average-rating-display" data-testid="text-average-rating">-</div>
+                            </div>
+                            <div class="metric-card">
+                                <h4>Average Difficulty</h4>
+                                <div class="metric-value" id="average-difficulty-display" data-testid="text-average-difficulty">-</div>
+                            </div>
+                        </div>
+
+                        <div class="trend-card">
+                            <h4>Difficulty Trend</h4>
+                            <svg id="difficulty-trend-chart" class="trend-chart" viewBox="0 0 320 80" preserveAspectRatio="none"></svg>
+                            <p class="trend-caption" data-testid="text-difficulty-trend-caption">Average difficulty over time</p>
                         </div>
                     </div>
                 </div>
@@ -407,29 +494,29 @@
                         <div class="contact-item">
                             <i class="fas fa-user"></i>
                             <div>
-                                <p data-testid="text-student-name">Alex Johnson</p>
+                                <p data-testid="text-student-name">Isabella van Dijk</p>
                                 <span data-testid="text-student-role">IB Diploma Candidate</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-school"></i>
                             <div>
-                                <p data-testid="text-student-school">International School of Excellence</p>
+                                <p data-testid="text-student-school">Noordwijk International College</p>
                                 <span data-testid="text-graduation-class">Class of 2025</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-envelope"></i>
                             <div>
-                                <p data-testid="text-student-email">alex.johnson@student.ise.edu</p>
+                                <p data-testid="text-student-email">isabella.vandijk@noordwijk-ic.nl</p>
                                 <span>Student Email</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-calendar"></i>
                             <div>
-                                <p data-testid="text-cas-period">CAS Period: Sep 2023 - May 2025</p>
-                                <span data-testid="text-cas-summary">Two-year program</span>
+                                <p data-testid="text-cas-period">CAS Period: Aug 2023 – May 2025</p>
+                                <span data-testid="text-cas-summary">Coastal stewardship, creativity & wellbeing</span>
                             </div>
                         </div>
                     </div>
@@ -442,38 +529,38 @@
                         <div class="contact-item">
                             <i class="fas fa-user-check"></i>
                             <div>
-                                <p data-testid="text-supervisor-name">Ms. Sarah Martinez</p>
+                                <p data-testid="text-supervisor-name">Mr. Ruben Janssen</p>
                                 <span data-testid="text-supervisor-role">CAS Coordinator</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-envelope"></i>
                             <div>
-                                <p data-testid="text-supervisor-email">s.martinez@ise.edu</p>
+                                <p data-testid="text-supervisor-email">r.janssen@noordwijk-ic.nl</p>
                                 <span>Coordinator Email</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-phone"></i>
                             <div>
-                                <p data-testid="text-supervisor-phone">+1 (555) 123-4567</p>
+                                <p data-testid="text-supervisor-phone">+31 71 123 4567</p>
                                 <span>Office Phone</span>
                             </div>
                         </div>
                         <div class="contact-item">
                             <i class="fas fa-check-circle"></i>
                             <div>
-                                <p data-testid="text-portfolio-verified">Portfolio Verified</p>
-                                <span data-testid="text-last-review">Last reviewed: Nov 20, 2024</span>
+                                <p data-testid="text-portfolio-verified">Portfolio In Progress</p>
+                                <span data-testid="text-last-review">Last reviewed: Oct 28, 2024</span>
                             </div>
                         </div>
                     </div>
                     
                     <div class="supervisor-comment">
                         <p data-testid="text-supervisor-comment">
-                            "Alex has demonstrated exceptional commitment to their CAS journey, showing genuine reflection and meaningful engagement with all activities."
+                            "Isabella consistently leads service initiatives with empathy and organisation, inspiring peers across Noordwijk International College."
                         </p>
-                        <p class="signature" data-testid="text-supervisor-signature">- Ms. Martinez, CAS Coordinator</p>
+                        <p class="signature" data-testid="text-supervisor-signature">- Mr. Janssen, CAS Coordinator</p>
                     </div>
                 </div>
             </div>
@@ -692,37 +779,53 @@
 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label>Start Date</label>
-                        <input type="date" name="startDate" data-testid="input-start-date" required>
+                        <label>Date</label>
+                        <input type="date" name="dateGeneral" data-testid="input-date-general" required>
                     </div>
-                    <div class="form-group">
-                        <label>End Date (optional)</label>
-                        <input type="date" name="endDate" data-testid="input-end-date">
-                    </div>
-                </div>
-
-                <div class="form-grid">
                     <div class="form-group">
                         <label>Total Hours</label>
-                        <input type="number" name="hours" min="0" step="1" placeholder="e.g., 10" data-testid="input-hours" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select name="status" class="select-control select-control--status" data-testid="select-activity-status" required>
-                            <option value="draft">Draft</option>
-                            <option value="ongoing">Ongoing</option>
-                            <option value="completed">Completed</option>
-                        </select>
+                        <input type="number" name="totalHours" min="0" step="0.5" placeholder="e.g., 3" data-testid="input-total-hours" required>
                     </div>
                 </div>
 
                 <div class="form-group">
+                    <label>Status</label>
+                    <select name="status" class="select-control select-control--status" data-testid="select-activity-status" required>
+                        <option value="draft">Draft</option>
+                        <option value="ongoing">Ongoing</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Challenge Faced</label>
+                    <textarea name="challengeDescription" placeholder="Describe a challenge you faced during this activity." data-testid="input-challenge-description"></textarea>
+                </div>
+
+                <div class="form-group">
                     <label>Learning Outcomes</label>
-                    <div class="learning-outcomes-input">
-                        <input type="text" id="learning-outcome-input" placeholder="Type an outcome and press Enter" data-testid="input-learning-outcome">
-                        <button type="button" class="btn btn-outline" onclick="addLearningOutcome()" data-testid="button-add-outcome">Add</button>
-                    </div>
+                    <p class="helper-text">Select the IB CAS learning outcomes demonstrated during this activity.</p>
+                    <div id="learning-outcomes-options" class="learning-outcomes-options" data-testid="learning-outcomes-options"></div>
                     <div id="learning-outcomes-list" class="learning-outcomes-list"></div>
+                </div>
+
+                <div class="form-grid form-grid--stacked">
+                    <div class="form-group">
+                        <label>Enjoyment Rating</label>
+                        <div class="rating-input" id="rating-control" role="radiogroup" aria-label="Enjoyment rating" data-testid="rating-control">
+                            <button type="button" class="rating-star" data-value="1" aria-label="1 star"><i class="fas fa-star"></i></button>
+                            <button type="button" class="rating-star" data-value="2" aria-label="2 stars"><i class="fas fa-star"></i></button>
+                            <button type="button" class="rating-star" data-value="3" aria-label="3 stars"><i class="fas fa-star"></i></button>
+                            <button type="button" class="rating-star" data-value="4" aria-label="4 stars"><i class="fas fa-star"></i></button>
+                            <button type="button" class="rating-star" data-value="5" aria-label="5 stars"><i class="fas fa-star"></i></button>
+                        </div>
+                        <input type="hidden" name="rating" id="rating-value" value="0">
+                    </div>
+                    <div class="form-group difficulty-group">
+                        <label for="difficulty-input">Difficulty</label>
+                        <input type="range" name="difficulty" id="difficulty-input" min="1" max="10" value="5" data-testid="input-difficulty">
+                        <div class="difficulty-value"><span id="difficulty-value">5</span>/10</div>
+                    </div>
                 </div>
 
                 <div class="modal-actions">

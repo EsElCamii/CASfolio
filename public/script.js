@@ -3,87 +3,110 @@ const sampleData = {
     activities: [
         {
             id: "1",
-            title: "Digital Art Exhibition",
-            description: "Organized and curated a digital art exhibition showcasing student work from our school community.",
-            category: "creativity",
-            startDate: "2024-10-01",
-            endDate: "2024-11-15",
-            hours: 15,
+            title: "Noordwijk Shoreline Clean-Up",
+            description: "Coordinated a weekend clean-up along the Noordwijk beach with fellow students and local volunteers.",
+            category: "service",
+            dateGeneral: "2024-09-14",
+            totalHours: 4,
+            challengeDescription: "Managing shifting tides while keeping volunteers motivated throughout the day.",
+            learningOutcomes: ["collaboration", "commitment"],
+            rating: 5,
+            difficulty: 6,
             images: [],
-            learningOutcomes: ["Creative Thinking", "Project Management", "Communication"],
             status: "completed",
-            createdAt: "2024-10-01"
+            createdAt: "2024-09-14"
         },
         {
             id: "2",
-            title: "Charity Marathon",
-            description: "Participated in a 10K charity run to raise funds for local environmental conservation efforts.",
-            category: "activity",
-            startDate: "2024-09-15",
-            endDate: "2024-10-20",
-            hours: 20,
+            title: "CAS Jazz Collective Rehearsal",
+            description: "Led a jazz improvisation workshop for underclassmen interested in joining the school ensemble.",
+            category: "creativity",
+            dateGeneral: "2024-10-03",
+            totalHours: 3,
+            challengeDescription: "Balancing theory explanations with hands-on practice so everyone felt confident improvising.",
+            learningOutcomes: ["initiative", "perseverance"],
+            rating: 4,
+            difficulty: 5,
             images: [],
-            learningOutcomes: ["Physical Endurance", "Teamwork", "Community Engagement"],
             status: "completed",
-            createdAt: "2024-09-15"
+            createdAt: "2024-10-03"
         },
         {
             id: "3",
-            title: "Community Garden Project",
-            description: "Established and maintained a community garden to provide fresh produce for local food bank.",
-            category: "service",
-            startDate: "2024-08-01",
-            endDate: null,
-            hours: 25,
+            title: "Noordwijk Cycle Tour",
+            description: "Organised a coastal cycling challenge to promote healthy lifestyles for first-year students.",
+            category: "activity",
+            dateGeneral: "2024-10-19",
+            totalHours: 5,
+            challengeDescription: "Supporting riders of different abilities while tracking everyone's safety across the route.",
+            learningOutcomes: ["challenge", "global_value"],
+            rating: 5,
+            difficulty: 7,
             images: [],
-            learningOutcomes: ["Environmental Awareness", "Community Service", "Leadership"],
-            status: "ongoing",
-            createdAt: "2024-08-01"
+            status: "completed",
+            createdAt: "2024-10-19"
         },
         {
             id: "4",
-            title: "School Theater Production",
-            description: "Led the production design for our school's annual theater performance of 'A Midsummer Night's Dream.'",
-            category: "creativity",
-            startDate: "2024-08-01",
-            endDate: "2024-11-30",
-            hours: 35,
+            title: "Holiday Food Drive Planning",
+            description: "Planned logistics for the annual CAS holiday food drive supporting Noordwijk community partners.",
+            category: "service",
+            dateGeneral: "2024-11-07",
+            totalHours: 2,
+            challengeDescription: "Coordinating vendor donations while keeping our team organised before launch week.",
+            learningOutcomes: ["collaboration", "ethics"],
+            rating: 3,
+            difficulty: 8,
             images: [],
-            learningOutcomes: ["Creative Thinking", "Team Collaboration", "Project Management"],
             status: "ongoing",
-            createdAt: "2024-08-01"
-        },
-        {
-            id: "5",
-            title: "Basketball Training Program",
-            description: "Joined school basketball team and implemented intensive training regimen to improve teamwork and physical fitness.",
-            category: "activity",
-            startDate: "2024-09-01",
-            endDate: null,
-            hours: 25,
-            images: [],
-            learningOutcomes: ["Physical Fitness", "Team Collaboration", "Discipline"],
-            status: "ongoing",
-            createdAt: "2024-09-01"
+            createdAt: "2024-11-07"
         }
     ],
     reflections: [
         {
             id: "r1",
             activityId: "1",
-            title: "Leadership Through Art",
-            content: "Organizing the digital art exhibition taught me that leadership isn't just about directing others, but about creating space for everyone's creativity to flourish. I learned to balance my vision with collaborative input from fellow students and teachers. The process of curating work from diverse backgrounds showed me how art can bridge cultural differences and foster understanding within our school community.",
-            createdAt: "2024-11-15"
+            title: "Leading with Care",
+            content: "The shoreline clean-up reminded me that leadership is equal parts planning and empathy. When the weather shifted, I had to adapt the schedule and reassure volunteers. Seeing the bags of collected waste made the effort tangible and strengthened my commitment to environmental advocacy.",
+            createdAt: "2024-09-15"
         },
         {
             id: "r2",
             activityId: "2",
-            title: "Physical Challenge and Community Impact",
-            content: "The charity marathon was more than just a physical challenge. It showed me how individual effort can contribute to larger community goals. Training for the 10K taught me discipline and perseverance, but the real learning came from understanding how fundraising and awareness campaigns work. I realized that environmental conservation requires both personal commitment and collective action.",
-            createdAt: "2024-10-20"
+            title: "Improvisation Confidence",
+            content: "Running the jazz workshop pushed me to communicate musical concepts in different ways. Hearing participants improvise by the end of the session proved that patient coaching and structured practice build confidence quickly.",
+            createdAt: "2024-10-04"
         }
     ]
 };
+
+const SAMPLE_PORTFOLIO_PROFILE = {
+    student_name: "Isabella van Dijk",
+    student_role: "IB Diploma Candidate",
+    student_school: "Noordwijk International College",
+    graduation_class: "Class of 2025",
+    student_email: "isabella.vandijk@noordwijk-ic.nl",
+    cas_period: "Aug 2023 – May 2025",
+    cas_summary: "Focused on coastal stewardship, creative leadership, and active wellbeing for the Noordwijk community.",
+    portfolio_status: "in-progress",
+    last_reviewed: "2024-10-28",
+    verification_notes: "Demonstrates consistent initiative across CAS strands.",
+    include_coordinator: true,
+    coordinator_name: "Mr. Ruben Janssen",
+    coordinator_role: "CAS Coordinator",
+    coordinator_email: "r.janssen@noordwijk-ic.nl",
+    coordinator_phone: "+31 71 123 4567"
+};
+
+const LEARNING_OUTCOME_OPTIONS = [
+    { value: "collaboration", label: "Collaboration & Teamwork" },
+    { value: "commitment", label: "Commitment & Perseverance" },
+    { value: "initiative", label: "Initiative & Planning" },
+    { value: "challenge", label: "Undertake New Challenges" },
+    { value: "global_value", label: "Global Value & Engagement" },
+    { value: "ethics", label: "Ethics & Integrity" },
+    { value: "perseverance", label: "Resilience & Perseverance" }
+];
 
 const TOTAL_REQUIRED_HOURS = 240;
 const CATEGORY_TARGET_HOURS = 80;
@@ -97,6 +120,8 @@ const STORAGE_KEYS = {
 };
 
 const PORTFOLIO_ONBOARDING_KEY = 'casfolio_portfolio_onboarding';
+const DEMO_SEEDED_KEY = 'casfolio_demo_seeded_noordwijk';
+const THEME_STORAGE_KEY = 'casfolio_theme_preference';
 
 // Load data from localStorage or initialize with empty arrays so a new visitor starts fresh
 let currentActivities = [];
@@ -107,7 +132,26 @@ try {
     if (storedActivities) {
         const parsed = JSON.parse(storedActivities);
         if (Array.isArray(parsed)) {
-            currentActivities = parsed;
+            currentActivities = parsed.map((activity) => {
+                const normalized = { ...activity };
+                normalized.dateGeneral = activity.dateGeneral || activity.date_general || activity.startDate || null;
+                normalized.totalHours = Number.isFinite(activity.totalHours)
+                    ? activity.totalHours
+                    : Number.isFinite(activity.total_hours)
+                        ? activity.total_hours
+                        : Number.isFinite(activity.hours)
+                            ? activity.hours
+                            : 0;
+                normalized.challengeDescription = activity.challengeDescription || activity.challenge_description || '';
+                normalized.learningOutcomes = Array.isArray(activity.learningOutcomes)
+                    ? activity.learningOutcomes
+                    : Array.isArray(activity.learning_outcomes)
+                        ? activity.learning_outcomes
+                        : [];
+                normalized.rating = Number.isFinite(activity.rating) ? activity.rating : null;
+                normalized.difficulty = Number.isFinite(activity.difficulty) ? activity.difficulty : null;
+                return normalized;
+            });
         }
     }
 
@@ -124,9 +168,43 @@ try {
     currentReflections = [];
 }
 
+try {
+    const demoFlag = localStorage.getItem(DEMO_SEEDED_KEY);
+    if (!demoFlag && currentActivities.length === 0 && currentReflections.length === 0) {
+        currentActivities = sampleData.activities.map((activity) => ({
+            ...activity,
+            dateGeneral: activity.dateGeneral,
+            totalHours: activity.totalHours,
+            learningOutcomes: Array.isArray(activity.learningOutcomes) ? [...activity.learningOutcomes] : [],
+            rating: Number.isFinite(activity.rating) ? activity.rating : null,
+            difficulty: Number.isFinite(activity.difficulty) ? activity.difficulty : null,
+            headerImage: null,
+            headerImagePath: null,
+            assets: [],
+            updatedAt: activity.createdAt
+        }));
+        currentReflections = sampleData.reflections.map((reflection) => ({ ...reflection }));
+        localStorage.setItem(STORAGE_KEYS.ACTIVITIES, JSON.stringify(currentActivities));
+        localStorage.setItem(STORAGE_KEYS.REFLECTIONS, JSON.stringify(currentReflections));
+        localStorage.setItem(DEMO_SEEDED_KEY, '1');
+
+        if (!localStorage.getItem(PORTFOLIO_ONBOARDING_KEY)) {
+            localStorage.setItem(
+                PORTFOLIO_ONBOARDING_KEY,
+                JSON.stringify({ completed: false, data: SAMPLE_PORTFOLIO_PROFILE })
+            );
+        }
+    }
+} catch (seedError) {
+    console.warn('Unable to seed Noordwijk demo data', seedError);
+}
+
 let activitiesSyncPromise = null;
 let sessionExpiredNotified = false;
 let isPrinting = false;
+let currentTheme = 'light';
+let calendarViewMode = 'month';
+let calendarReferenceDate = new Date();
 
 function setPrintMode(enabled) {
     if (isPrinting === enabled) {
@@ -148,6 +226,85 @@ function setPrintMode(enabled) {
     }
 }
 
+function updateThemeToggleIcons() {
+    const iconClass = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
+    const label = currentTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
+    const desktopToggle = document.getElementById('theme-toggle');
+    const mobileToggle = document.getElementById('theme-toggle-mobile');
+
+    [desktopToggle, mobileToggle].forEach((button) => {
+        if (!button) return;
+        const icon = button.querySelector('i');
+        if (icon) {
+            icon.className = iconClass;
+        }
+        button.setAttribute('aria-label', label);
+        if (button.id === 'theme-toggle-mobile') {
+            const text = button.querySelector('span');
+            if (text) {
+                text.textContent = currentTheme === 'dark' ? 'Light Theme' : 'Dark Theme';
+            }
+        }
+    });
+}
+
+function applyTheme(theme) {
+    currentTheme = theme === 'dark' ? 'dark' : 'light';
+    if (typeof document !== 'undefined') {
+        document.documentElement.classList.toggle('dark', currentTheme === 'dark');
+    }
+    try {
+        localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
+    } catch (error) {
+        console.warn('Unable to persist theme preference', error);
+    }
+    updateThemeToggleIcons();
+}
+
+function toggleTheme() {
+    applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+}
+
+function initializeTheme() {
+    let storedTheme = null;
+    try {
+        storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+    } catch (error) {
+        console.warn('Unable to access stored theme preference', error);
+    }
+
+    const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const startingTheme = storedTheme || (prefersDark ? 'dark' : 'light');
+    applyTheme(startingTheme);
+
+    const toggles = [document.getElementById('theme-toggle'), document.getElementById('theme-toggle-mobile')]
+        .filter(Boolean);
+    toggles.forEach((button) => button.addEventListener('click', toggleTheme));
+
+    if (typeof window !== 'undefined' && window.matchMedia) {
+        const media = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = (event) => {
+            const persisted = (() => {
+                try {
+                    return localStorage.getItem(THEME_STORAGE_KEY);
+                } catch (error) {
+                    console.warn('Unable to read theme preference', error);
+                    return null;
+                }
+            })();
+            if (!persisted) {
+                applyTheme(event.matches ? 'dark' : 'light');
+            }
+        };
+
+        if (typeof media.addEventListener === 'function') {
+            media.addEventListener('change', handleChange);
+        } else if (typeof media.addListener === 'function') {
+            media.addListener(handleChange);
+        }
+    }
+}
+
 function handleSessionExpired() {
     if (sessionExpiredNotified) return;
     sessionExpiredNotified = true;
@@ -156,16 +313,33 @@ function handleSessionExpired() {
 }
 
 function mapDtoToActivity(dto) {
+    const learningOutcomes = Array.isArray(dto.learning_outcomes)
+        ? dto.learning_outcomes
+        : Array.isArray(dto.learningOutcomes)
+            ? dto.learningOutcomes
+            : [];
+    const totalHours = Number.isFinite(dto.total_hours)
+        ? dto.total_hours
+        : Number.isFinite(dto.totalHours)
+            ? dto.totalHours
+            : Number.isFinite(dto.hours)
+                ? dto.hours
+                : 0;
+    const dateGeneral = dto.date_general || dto.dateGeneral || dto.startDate || null;
+    const challengeDescription = dto.challenge_description || dto.challengeDescription || '';
+
     return {
         id: dto.id,
         title: dto.title,
         description: dto.description || '',
         category: dto.category,
         status: dto.status,
-        startDate: dto.startDate,
-        endDate: dto.endDate,
-        hours: Number.isFinite(dto.hours) ? dto.hours : 0,
-        learningOutcomes: Array.isArray(dto.learningOutcomes) ? dto.learningOutcomes : [],
+        dateGeneral,
+        totalHours,
+        challengeDescription,
+        learningOutcomes,
+        rating: Number.isFinite(dto.rating) ? dto.rating : null,
+        difficulty: Number.isFinite(dto.difficulty) ? dto.difficulty : null,
         headerImage: dto.headerImageUrl,
         headerImagePath: dto.headerImagePath,
         createdAt: dto.createdAt,
@@ -234,6 +408,7 @@ function rerenderActivityViews() {
     renderCategoriesGrid();
     renderProgressDashboard();
     renderGallery();
+    renderCalendar();
 }
 
 // Persist the latest activities and reflections to localStorage, warning the user if the write fails
@@ -519,29 +694,41 @@ function generateId() {
 // Derived statistics shown in the hero counters and progress dashboard
 function calculateStats() {
     const totalActivities = currentActivities.length;
-    const totalHours = currentActivities.reduce((sum, activity) => sum + activity.hours, 0);
+    const totalHours = currentActivities.reduce((sum, activity) => sum + (activity.totalHours || 0), 0);
     const totalReflections = currentReflections.length;
-    
+
     const categoryStats = {
         creativity: {
             count: currentActivities.filter(a => a.category === 'creativity').length,
-            hours: currentActivities.filter(a => a.category === 'creativity').reduce((sum, a) => sum + a.hours, 0)
+            hours: currentActivities.filter(a => a.category === 'creativity').reduce((sum, a) => sum + (a.totalHours || 0), 0)
         },
         activity: {
             count: currentActivities.filter(a => a.category === 'activity').length,
-            hours: currentActivities.filter(a => a.category === 'activity').reduce((sum, a) => sum + a.hours, 0)
+            hours: currentActivities.filter(a => a.category === 'activity').reduce((sum, a) => sum + (a.totalHours || 0), 0)
         },
         service: {
             count: currentActivities.filter(a => a.category === 'service').length,
-            hours: currentActivities.filter(a => a.category === 'service').reduce((sum, a) => sum + a.hours, 0)
+            hours: currentActivities.filter(a => a.category === 'service').reduce((sum, a) => sum + (a.totalHours || 0), 0)
         }
     };
-    
+
+    const ratingValues = currentActivities.map((activity) => activity.rating).filter((value) => Number.isFinite(value));
+    const difficultyValues = currentActivities.map((activity) => activity.difficulty).filter((value) => Number.isFinite(value));
+
+    const averageRating = ratingValues.length > 0
+        ? ratingValues.reduce((sum, value) => sum + value, 0) / ratingValues.length
+        : null;
+    const averageDifficulty = difficultyValues.length > 0
+        ? difficultyValues.reduce((sum, value) => sum + value, 0) / difficultyValues.length
+        : null;
+
     return {
         totalActivities,
         totalHours,
         totalReflections,
-        categoryStats
+        categoryStats,
+        averageRating,
+        averageDifficulty
     };
 }
 
@@ -632,15 +819,18 @@ function renderHeroStats() {
 // Approximate duration in months based on activities (earliest start → latest end or today)
 function calculateDurationMonths() {
     if (currentActivities.length === 0) return 0;
-    const starts = currentActivities.map(a => new Date(a.startDate)).filter(d => !isNaN(d));
-    const ends = currentActivities.map(a => a.endDate ? new Date(a.endDate) : new Date()).filter(d => !isNaN(d));
-    if (starts.length === 0 || ends.length === 0) return 0;
-    const minStart = new Date(Math.min.apply(null, starts));
-    const maxEnd = new Date(Math.max.apply(null, ends));
-    const years = maxEnd.getFullYear() - minStart.getFullYear();
-    const months = maxEnd.getMonth() - minStart.getMonth();
-    const total = years * 12 + months + (maxEnd.getDate() >= minStart.getDate() ? 0 : -1);
-    return Math.max(0, total + 1); // inclusive month rounding
+    const activityDates = currentActivities
+        .map((activity) => new Date(activity.dateGeneral))
+        .filter((date) => !isNaN(date));
+
+    if (activityDates.length === 0) return 0;
+
+    const minDate = new Date(Math.min.apply(null, activityDates));
+    const maxDate = new Date(Math.max.apply(null, activityDates));
+    const years = maxDate.getFullYear() - minDate.getFullYear();
+    const months = maxDate.getMonth() - minDate.getMonth();
+    const total = years * 12 + months;
+    return Math.max(1, total + 1);
 }
 
 function renderCategoriesGrid() {
@@ -735,11 +925,11 @@ function renderActivityCard(activity) {
                     <span class="badge ${getCategoryColor(activity.category)}" data-testid="badge-${activity.category}-${activity.id}">
                         ${activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
                     </span>
-                    <span class="activity-date" data-testid="text-date-${activity.id}">${formatDate(activity.startDate)}</span>
+                    <span class="activity-date" data-testid="text-date-${activity.id}">${formatDate(activity.dateGeneral)}</span>
                 </div>
                 <p class="activity-description" data-testid="text-description-${activity.id}">${activity.description}</p>
                 <div class="activity-footer">
-                    <span class="activity-hours" data-testid="text-hours-${activity.id}">${activity.hours} hours</span>
+                    <span class="activity-hours" data-testid="text-hours-${activity.id}">${activity.totalHours} hours</span>
                     <button class="btn btn-ghost" onclick="event.stopPropagation();" data-testid="button-view-details-${activity.id}">
                         View Details 
                         <i class="fas fa-arrow-right"></i>
@@ -772,13 +962,13 @@ function renderTimeline() {
             <div class="timeline-content">
                 <div class="timeline-header">
                     <h3 class="timeline-title" data-testid="text-timeline-title-${activity.id}">${activity.title}</h3>
-                    <span class="activity-date" data-testid="text-timeline-date-${activity.id}">${formatDate(activity.startDate)}</span>
+                    <span class="activity-date" data-testid="text-timeline-date-${activity.id}">${formatDate(activity.dateGeneral)}</span>
                 </div>
                 <div class="timeline-meta">
                     <span class="badge ${getCategoryColor(activity.category)}" data-testid="badge-timeline-${activity.category}-${activity.id}">
                         ${activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
                     </span>
-                    <span class="activity-hours" data-testid="text-timeline-hours-${activity.id}">${activity.hours} hours</span>
+                    <span class="activity-hours" data-testid="text-timeline-hours-${activity.id}">${activity.totalHours} hours</span>
                 </div>
                 <p class="timeline-description" data-testid="text-timeline-description-${activity.id}">${activity.description}</p>
                 <button class="btn btn-ghost" onclick="viewActivityDetail('${activity.id}')" data-testid="button-timeline-view-${activity.id}">
@@ -863,32 +1053,102 @@ function renderProgressDashboard() {
             </div>
         </div>
     `).join('');
+
+    renderExperienceMetrics(stats);
+}
+
+function renderExperienceMetrics(stats) {
+    const ratingDisplay = document.getElementById('average-rating-display');
+    const difficultyDisplay = document.getElementById('average-difficulty-display');
+
+    if (ratingDisplay) {
+        if (Number.isFinite(stats.averageRating) && stats.averageRating > 0) {
+            const rounded = Math.round(stats.averageRating * 10) / 10;
+            const filledStars = Math.round(stats.averageRating);
+            ratingDisplay.innerHTML = Array.from({ length: 5 }).map((_, index) => {
+                const active = index < filledStars;
+                return `<i class="fas fa-star${active ? '' : ' inactive'}"></i>`;
+            }).join('');
+            ratingDisplay.title = `Average enjoyment rating ${rounded}/5`;
+        } else {
+            ratingDisplay.textContent = '–';
+            ratingDisplay.removeAttribute('title');
+        }
+    }
+
+    if (difficultyDisplay) {
+        if (Number.isFinite(stats.averageDifficulty)) {
+            difficultyDisplay.textContent = (Math.round(stats.averageDifficulty * 10) / 10).toString();
+        } else {
+            difficultyDisplay.textContent = '–';
+        }
+    }
+
+    renderDifficultyTrendChart();
+}
+
+function renderDifficultyTrendChart() {
+    const chart = document.getElementById('difficulty-trend-chart');
+    if (!chart) return;
+
+    const dataPoints = currentActivities
+        .filter((activity) => Number.isFinite(activity.difficulty) && activity.dateGeneral)
+        .sort((a, b) => new Date(a.dateGeneral) - new Date(b.dateGeneral));
+
+    if (dataPoints.length === 0) {
+        chart.innerHTML = '';
+        chart.setAttribute('aria-hidden', 'true');
+        return;
+    }
+
+    const width = 320;
+    const height = 80;
+    const minDifficulty = 1;
+    const maxDifficulty = 10;
+    const stepX = dataPoints.length > 1 ? width / (dataPoints.length - 1) : 0;
+
+    const points = dataPoints.map((activity, index) => {
+        const x = dataPoints.length === 1 ? width / 2 : index * stepX;
+        const normalized = (activity.difficulty - minDifficulty) / (maxDifficulty - minDifficulty);
+        const y = height - (normalized * height);
+        return `${x},${y}`;
+    });
+
+    const areaPoints = `${points.join(' ')} ${width},${height} 0,${height}`;
+    chart.setAttribute('viewBox', `0 0 ${width} ${height}`);
+    chart.setAttribute('role', 'img');
+    chart.setAttribute('aria-label', 'Average difficulty trend');
+    chart.setAttribute('aria-hidden', 'false');
+    chart.innerHTML = `
+        <polygon points="${areaPoints}" fill="rgba(var(--primary-rgb), 0.1)"></polygon>
+        <polyline points="${points.join(' ')}" fill="none" stroke="rgba(var(--primary-rgb), 0.85)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+    `;
 }
 
 function renderGallery() {
     const container = document.getElementById('gallery-grid');
     const emptyState = document.getElementById('gallery-empty');
-    
-    const filteredActivities = currentFilter === 'all' 
-        ? currentActivities 
+
+    const filteredActivities = currentFilter === 'all'
+        ? currentActivities
         : currentActivities.filter(activity => activity.category === currentFilter);
-    
+
     if (filteredActivities.length === 0) {
         container.style.display = 'none';
         emptyState.style.display = 'block';
         return;
     }
-    
+
     container.style.display = 'grid';
     emptyState.style.display = 'none';
-    
+
     container.innerHTML = filteredActivities.map(activity => {
-        const headerImage = activity.headerImage ? 
-            `<div class="activity-image" style="background-image: url('${activity.headerImage}');"></div>` : 
+        const headerImage = activity.headerImage ?
+            `<div class="activity-image" style="background-image: url('${activity.headerImage}');"></div>` :
             `<div class="activity-image" style="background-color: #f0f0f0; display: flex; align-items: center; justify-content: center;">
                 <i class="fas fa-image" style="font-size: 2rem; color: #ccc;"></i>
             </div>`;
-            
+
         return `
         <div class="gallery-card" data-testid="gallery-item-${activity.id}">
             <div class="gallery-card-clickable" onclick="viewActivityDetail('${activity.id}')">
@@ -898,12 +1158,12 @@ function renderGallery() {
                         <span class="badge ${getCategoryColor(activity.category)}" data-testid="badge-gallery-${activity.category}-${activity.id}">
                             ${activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
                         </span>
-                        <span class="gallery-date" data-testid="text-gallery-date-${activity.id}">${formatDate(activity.startDate)}</span>
+                        <span class="gallery-date" data-testid="text-gallery-date-${activity.id}">${formatDate(activity.dateGeneral)}</span>
                     </div>
                     <h4 class="gallery-title" data-testid="text-gallery-title-${activity.id}">${activity.title}</h4>
                     <p class="gallery-description" data-testid="text-gallery-desc-${activity.id}">${activity.description.substring(0, 80)}${activity.description.length > 80 ? '...' : ''}</p>
                     <div class="gallery-footer">
-                        <span class="gallery-hours" data-testid="text-gallery-hours-${activity.id}">${activity.hours} hours</span>
+                        <span class="gallery-hours" data-testid="text-gallery-hours-${activity.id}">${activity.totalHours} hours</span>
                         <span class="gallery-status ${activity.status}" data-testid="badge-status-${activity.status}-${activity.id}">${activity.status}</span>
                     </div>
                 </div>
@@ -915,6 +1175,203 @@ function renderGallery() {
             </div>
         </div>`;
     }).join('');
+}
+
+function getActivitiesGroupedByDate() {
+    return currentActivities.reduce((acc, activity) => {
+        if (!activity.dateGeneral) {
+            return acc;
+        }
+        const parsed = new Date(activity.dateGeneral);
+        if (isNaN(parsed)) {
+            return acc;
+        }
+        const iso = parsed.toISOString().split('T')[0];
+        if (!acc[iso]) {
+            acc[iso] = [];
+        }
+        acc[iso].push(activity);
+        return acc;
+    }, {});
+}
+
+function formatWeekRange(start, end) {
+    const startLabel = start.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const endLabel = end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: start.getFullYear() === end.getFullYear() ? undefined : 'numeric' });
+    const yearLabel = end.getFullYear();
+    return `${startLabel} – ${endLabel}, ${yearLabel}`;
+}
+
+function renderCalendar() {
+    const container = document.getElementById('calendar-grid');
+    const label = document.getElementById('calendar-label');
+    const emptyState = document.getElementById('calendar-empty');
+    if (!container || !label || !emptyState) {
+        return;
+    }
+
+    const grouped = getActivitiesGroupedByDate();
+    const today = new Date();
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    let html = '';
+
+    const reference = new Date(calendarReferenceDate.getTime());
+
+    if (calendarViewMode === 'month') {
+        const year = reference.getFullYear();
+        const month = reference.getMonth();
+        label.textContent = reference.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+        const firstOfMonth = new Date(year, month, 1);
+        const gridStart = new Date(year, month, 1 - firstOfMonth.getDay());
+        const totalCells = 42;
+
+        html += weekdays.map((day) => `<div class="calendar-day calendar-heading">${day}</div>`).join('');
+
+        let hasEventsInPeriod = false;
+
+        for (let i = 0; i < totalCells; i += 1) {
+            const cellDate = new Date(gridStart);
+            cellDate.setDate(gridStart.getDate() + i);
+            const iso = cellDate.toISOString().split('T')[0];
+            const events = grouped[iso] || [];
+            const isCurrentMonth = cellDate.getMonth() === month;
+            const isToday = cellDate.toDateString() === today.toDateString();
+            const classes = ['calendar-day'];
+            if (!isCurrentMonth) classes.push('outside-month');
+            if (events.length > 0) {
+                classes.push('has-events');
+                hasEventsInPeriod = true;
+            }
+            if (isToday) classes.push('today');
+
+            const firstActivityId = events.length > 0 ? events[0].id : '';
+
+            html += `
+                <div class="${classes.join(' ')}" data-date="${iso}" ${firstActivityId ? `onclick="viewActivityDetail('${firstActivityId}')"` : ''}>
+                    <div class="date-label">${cellDate.getDate()}</div>
+                    <div class="events">
+                        ${events.map((event) => `
+                            <button type="button" class="calendar-event ${event.category}" onclick="event.stopPropagation(); viewActivityDetail('${event.id}')">
+                                ${event.title}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        emptyState.style.display = hasEventsInPeriod ? 'none' : 'block';
+    } else {
+        const startOfWeek = new Date(reference);
+        startOfWeek.setHours(0, 0, 0, 0);
+        startOfWeek.setDate(reference.getDate() - reference.getDay());
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        label.textContent = formatWeekRange(startOfWeek, endOfWeek);
+
+        let hasEventsInPeriod = false;
+
+        for (let i = 0; i < 7; i += 1) {
+            const cellDate = new Date(startOfWeek);
+            cellDate.setDate(startOfWeek.getDate() + i);
+            const iso = cellDate.toISOString().split('T')[0];
+            const events = grouped[iso] || [];
+            if (events.length > 0) {
+                hasEventsInPeriod = true;
+            }
+            const isToday = cellDate.toDateString() === today.toDateString();
+            const classes = ['calendar-day'];
+            if (events.length > 0) classes.push('has-events');
+            if (isToday) classes.push('today');
+
+            const firstActivityId = events.length > 0 ? events[0].id : '';
+
+            html += `
+                <div class="${classes.join(' ')}" data-date="${iso}" ${firstActivityId ? `onclick="viewActivityDetail('${firstActivityId}')"` : ''}>
+                    <div class="date-label">${weekdays[i]} ${cellDate.getDate()}</div>
+                    <div class="events">
+                        ${events.map((event) => `
+                            <button type="button" class="calendar-event ${event.category}" onclick="event.stopPropagation(); viewActivityDetail('${event.id}')">
+                                ${event.title}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        emptyState.style.display = hasEventsInPeriod ? 'none' : 'block';
+    }
+
+    container.innerHTML = html;
+    renderCalendarHeatmap(grouped);
+}
+
+function changeCalendarPeriod(direction) {
+    if (calendarViewMode === 'month') {
+        calendarReferenceDate.setMonth(calendarReferenceDate.getMonth() + direction);
+    } else {
+        calendarReferenceDate.setDate(calendarReferenceDate.getDate() + (direction * 7));
+    }
+    renderCalendar();
+}
+
+function setCalendarViewMode(mode) {
+    calendarViewMode = mode === 'week' ? 'week' : 'month';
+    const monthButton = document.getElementById('calendar-view-month');
+    const weekButton = document.getElementById('calendar-view-week');
+    if (monthButton) monthButton.classList.toggle('active', calendarViewMode === 'month');
+    if (weekButton) weekButton.classList.toggle('active', calendarViewMode === 'week');
+    renderCalendar();
+}
+
+function renderCalendarHeatmap(groupedActivities = getActivitiesGroupedByDate()) {
+    const heatmap = document.getElementById('calendar-heatmap');
+    if (!heatmap) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const totalDays = 7 * 20; // 20 weeks
+    const start = new Date(today);
+    start.setDate(start.getDate() - totalDays + 1);
+
+    const fragments = [];
+
+    for (let i = 0; i < totalDays; i += 1) {
+        const cellDate = new Date(start);
+        cellDate.setDate(start.getDate() + i);
+        const iso = cellDate.toISOString().split('T')[0];
+        const events = groupedActivities[iso] || [];
+        const totalHours = events.reduce((sum, event) => sum + (event.totalHours || 0), 0);
+
+        let level = 0;
+        if (totalHours >= 8) {
+            level = 4;
+        } else if (totalHours >= 4) {
+            level = 3;
+        } else if (totalHours >= 2) {
+            level = 2;
+        } else if (totalHours > 0) {
+            level = 1;
+        }
+
+        const categoryTotals = events.reduce((acc, event) => {
+            acc[event.category] = (acc[event.category] || 0) + (event.totalHours || 0);
+            return acc;
+        }, {});
+
+        const dominantCategory = Object.keys(categoryTotals).sort((a, b) => categoryTotals[b] - categoryTotals[a])[0];
+        const title = events.length === 0
+            ? `${iso}: No CAS activity logged`
+            : `${iso}: ${events.length} activit${events.length === 1 ? 'y' : 'ies'} (${totalHours}h)`;
+
+        fragments.push(`
+            <div class="heatmap-cell ${dominantCategory ? dominantCategory : ''} ${level ? `level-${level}` : ''}" title="${title}"></div>
+        `);
+    }
+
+    heatmap.innerHTML = fragments.join('');
 }
 
 // Filter functions
@@ -957,16 +1414,20 @@ function openAddActivityDialog(activityId = null) {
             form.elements['title'].value = activity.title || '';
             form.elements['category'].value = activity.category || '';
             form.elements['description'].value = activity.description || '';
-            form.elements['startDate'].value = activity.startDate || '';
-            form.elements['endDate'].value = activity.endDate || '';
-            form.elements['hours'].value = activity.hours || '';
+            if (form.elements['dateGeneral']) {
+                form.elements['dateGeneral'].value = activity.dateGeneral || '';
+            }
+            if (form.elements['totalHours']) {
+                form.elements['totalHours'].value = activity.totalHours || '';
+            }
+            if (form.elements['challengeDescription']) {
+                form.elements['challengeDescription'].value = activity.challengeDescription || '';
+            }
             form.elements['status'].value = activity.status || 'ongoing';
 
-            // Set learning outcomes for edit state
-            learningOutcomes = Array.isArray(activity.learningOutcomes)
-                ? [...activity.learningOutcomes]
-                : [];
-            renderLearningOutcomes();
+            setLearningOutcomeSelections(activity.learningOutcomes);
+            setRating(activity.rating || 0);
+            setDifficultyValue(activity.difficulty || 5);
 
             // Set image preview if exists
             const imagePreview = document.getElementById('image-preview');
@@ -986,8 +1447,9 @@ function openAddActivityDialog(activityId = null) {
         // New activity mode
         currentActivityId = null;
         form.reset();
-        learningOutcomes = [];
-        renderLearningOutcomes();
+        setLearningOutcomeSelections([]);
+        setRating(0);
+        setDifficultyValue(5);
         document.getElementById('image-preview').style.display = 'none';
         title.textContent = 'Add New Activity';
         submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Activity';
@@ -1245,6 +1707,9 @@ function closeAddReflectionDialog() {
 function clearActivityForm() {
     const form = document.getElementById('add-activity-form');
     form.reset();
+    setLearningOutcomeSelections([]);
+    setRating(0);
+    setDifficultyValue(5);
 }
 
 function clearReflectionForm() {
@@ -1260,43 +1725,128 @@ function populateActivitySelect() {
         ).join('');
 }
 
-// Learning outcomes management keeps the tag UI in sync with the underlying array
-function addLearningOutcome() {
-    const input = document.getElementById('learning-outcome-input');
-    const value = input.value.trim();
-    
-    if (value && !learningOutcomes.includes(value)) {
-        learningOutcomes.push(value);
-        input.value = '';
-        renderLearningOutcomes();
-    }
-}
-
-function removeLearningOutcome(index) {
-    learningOutcomes.splice(index, 1);
-    renderLearningOutcomes();
-}
-
 function renderLearningOutcomes() {
     const container = document.getElementById('learning-outcomes-list');
     if (!container) return;
 
-    container.innerHTML = learningOutcomes.map((outcome, index) => `
-        <span class="learning-outcome-tag" data-testid="badge-outcome-${index}">
-            ${outcome}
-            <span class="remove" onclick="removeLearningOutcome(${index})" data-testid="button-remove-outcome-${index}">×</span>
-        </span>
+    container.innerHTML = learningOutcomes.map((outcome, index) => {
+        const option = LEARNING_OUTCOME_OPTIONS.find((item) => item.value === outcome);
+        const label = option ? option.label : outcome;
+        return `
+            <span class="learning-outcome-tag" data-testid="badge-outcome-${index}">
+                ${label}
+            </span>
+        `;
+    }).join('');
+}
+
+function updateLearningOutcomeSelectionsFromForm() {
+    const options = document.querySelectorAll('#learning-outcomes-options input[type="checkbox"]');
+    learningOutcomes = Array.from(options)
+        .filter((input) => input.checked)
+        .map((input) => input.value);
+    renderLearningOutcomes();
+}
+
+function initializeLearningOutcomesForm() {
+    const container = document.getElementById('learning-outcomes-options');
+    if (!container) return;
+
+    container.innerHTML = LEARNING_OUTCOME_OPTIONS.map((option) => `
+        <label>
+            <input type="checkbox" value="${option.value}">
+            <span>${option.label}</span>
+        </label>
     `).join('');
+
+    container.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+        input.addEventListener('change', updateLearningOutcomeSelectionsFromForm);
+    });
+}
+
+function setLearningOutcomeSelections(values) {
+    learningOutcomes = Array.isArray(values) ? [...values] : [];
+    const container = document.getElementById('learning-outcomes-options');
+    if (container) {
+        container.querySelectorAll('input[type="checkbox"]').forEach((input) => {
+            input.checked = learningOutcomes.includes(input.value);
+        });
+    }
+    renderLearningOutcomes();
+}
+
+function updateRatingStarsDisplay(value) {
+    const stars = document.querySelectorAll('#rating-control .rating-star');
+    stars.forEach((star) => {
+        const starValue = Number(star.dataset.value);
+        star.classList.toggle('active', starValue <= value);
+    });
+}
+
+function setRating(value) {
+    const ratingInput = document.getElementById('rating-value');
+    const sanitized = Math.min(5, Math.max(0, Number(value) || 0));
+    if (ratingInput) {
+        ratingInput.value = sanitized;
+    }
+    updateRatingStarsDisplay(sanitized);
+}
+
+function initializeRatingControl() {
+    const ratingControl = document.getElementById('rating-control');
+    if (!ratingControl) return;
+
+    ratingControl.querySelectorAll('.rating-star').forEach((star) => {
+        const value = Number(star.dataset.value);
+        star.addEventListener('click', () => {
+            setRating(value);
+        });
+        star.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                setRating(value);
+            }
+        });
+    });
+
+    const currentValue = Number(document.getElementById('rating-value')?.value) || 0;
+    setRating(currentValue);
+}
+
+function setDifficultyValue(value) {
+    const input = document.getElementById('difficulty-input');
+    const label = document.getElementById('difficulty-value');
+    const sanitized = Math.min(10, Math.max(1, Number(value) || 1));
+    if (input) input.value = sanitized;
+    if (label) label.textContent = sanitized;
+}
+
+function initializeDifficultyControl() {
+    const input = document.getElementById('difficulty-input');
+    if (!input) return;
+    const update = () => setDifficultyValue(input.value);
+    input.addEventListener('input', update);
+    update();
 }
 
 // Activity detail view assembles a richer modal with reflections and metadata
 function viewActivityDetail(activityId) {
     const activity = currentActivities.find(a => a.id === activityId);
     if (!activity) return;
-    
+
     const reflections = currentReflections.filter(r => r.activityId === activityId);
     const modal = document.getElementById('activity-detail-modal');
     const content = document.getElementById('activity-detail-content');
+    const outcomeLabels = Array.isArray(activity.learningOutcomes)
+        ? activity.learningOutcomes.map((value) => {
+            const option = LEARNING_OUTCOME_OPTIONS.find((item) => item.value === value);
+            return option ? option.label : value;
+        })
+        : [];
+    const ratingMarkup = Number.isFinite(activity.rating) && activity.rating > 0
+        ? Array.from({ length: 5 }).map((_, index) => `<i class="fas fa-star${index < Math.round(activity.rating) ? '' : ' inactive'}"></i>`).join('')
+        : null;
+
     content.innerHTML = `
         <div class="activity-detail-grid">
             <div class="activity-detail-main">
@@ -1311,10 +1861,17 @@ function viewActivityDetail(activityId) {
                     <p class="activity-detail-description" data-testid="text-activity-description">${activity.description}</p>
                 </div>
 
+                ${activity.challengeDescription ? `
+                    <div class="challenge-section">
+                        <h3>Challenge Faced</h3>
+                        <p data-testid="text-challenge-description">${activity.challengeDescription}</p>
+                    </div>
+                ` : ''}
+
                 <div class="learning-outcomes-section">
                     <h3>Learning Outcomes</h3>
                     <div class="learning-outcomes-tags">
-                        ${activity.learningOutcomes.map((outcome, index) => `
+                        ${outcomeLabels.map((outcome, index) => `
                             <span class="badge" data-testid="badge-outcome-${index}">${outcome}</span>
                         `).join('')}
                     </div>
@@ -1346,24 +1903,15 @@ function viewActivityDetail(activityId) {
                     <div class="detail-item">
                         <i class="fas fa-calendar"></i>
                         <div class="detail-item-content">
-                            <p>Start Date</p>
-                            <span data-testid="text-start-date">${formatFullDate(activity.startDate)}</span>
+                            <p>Date</p>
+                            <span data-testid="text-start-date">${formatFullDate(activity.dateGeneral)}</span>
                         </div>
                     </div>
-                    ${activity.endDate ? `
-                        <div class="detail-item">
-                            <i class="fas fa-calendar"></i>
-                            <div class="detail-item-content">
-                                <p>End Date</p>
-                                <span data-testid="text-end-date">${formatFullDate(activity.endDate)}</span>
-                            </div>
-                        </div>
-                    ` : ''}
                     <div class="detail-item">
                         <i class="fas fa-clock"></i>
                         <div class="detail-item-content">
                             <p>Total Hours</p>
-                            <span data-testid="text-total-hours">${activity.hours} hours</span>
+                            <span data-testid="text-total-hours">${activity.totalHours} hours</span>
                         </div>
                     </div>
                     <div class="detail-item">
@@ -1371,6 +1919,20 @@ function viewActivityDetail(activityId) {
                         <div class="detail-item-content">
                             <p>Category</p>
                             <span data-testid="text-category">${activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}</span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-star"></i>
+                        <div class="detail-item-content">
+                            <p>Enjoyment</p>
+                            ${ratingMarkup ? `<div class="rating-display" data-testid="text-rating-detail">${ratingMarkup}</div>` : '<span data-testid="text-rating-detail">Not rated</span>'}
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-mountain"></i>
+                        <div class="detail-item-content">
+                            <p>Difficulty</p>
+                            <span data-testid="text-difficulty-detail">${Number.isFinite(activity.difficulty) ? `${activity.difficulty}/10` : 'Not recorded'}</span>
                         </div>
                     </div>
                     <div class="detail-actions">
@@ -1385,7 +1947,7 @@ function viewActivityDetail(activityId) {
             </div>
         </div>
     `;
-    
+
     modal.classList.add('show');
     lockBodyScroll();
 }
@@ -1448,10 +2010,12 @@ async function handleActivityFormSubmit(e) {
         title: (form.elements['title']?.value || '').trim(),
         category: form.elements['category']?.value || 'creativity',
         description: (form.elements['description']?.value || '').trim(),
-        startDate: form.elements['startDate']?.value || null,
-        endDate: form.elements['endDate']?.value || null,
-        hours: Number.parseInt(form.elements['hours']?.value, 10) || 0,
+        dateGeneral: form.elements['dateGeneral']?.value || null,
+        totalHours: Number.parseFloat(form.elements['totalHours']?.value) || 0,
         status: form.elements['status']?.value || 'draft',
+        challengeDescription: (form.elements['challengeDescription']?.value || '').trim(),
+        rating: Number.parseInt(form.elements['rating']?.value || form.querySelector('#rating-value')?.value || '0', 10) || 0,
+        difficulty: Number.parseInt(form.elements['difficulty']?.value || '5', 10) || 5,
         learningOutcomes: Array.isArray(learningOutcomes) ? [...learningOutcomes] : []
     };
 
@@ -1465,6 +2029,9 @@ async function handleActivityFormSubmit(e) {
 
         form.reset();
         resetHeaderImageInputs();
+        setLearningOutcomeSelections([]);
+        setRating(0);
+        setDifficultyValue(5);
         closeAddActivityDialog();
 
         rerenderActivityViews();
@@ -1493,10 +2060,12 @@ async function saveActivity(values, { isEditing }) {
         category: values.category,
         status: values.status,
         description: values.description || null,
-        startDate: values.startDate || null,
-        endDate: values.endDate || null,
-        hours: Number.isFinite(values.hours) ? values.hours : 0,
-        learningOutcomes: Array.isArray(values.learningOutcomes) ? values.learningOutcomes : []
+        date_general: values.dateGeneral || null,
+        total_hours: Number.isFinite(values.totalHours) ? values.totalHours : 0,
+        challenge_description: values.challengeDescription || null,
+        learning_outcomes: Array.isArray(values.learningOutcomes) ? values.learningOutcomes : [],
+        rating: Number.isFinite(values.rating) && values.rating > 0 ? values.rating : null,
+        difficulty: Number.isFinite(values.difficulty) ? values.difficulty : null
     };
 
     if (headerDescriptor) {
@@ -1700,15 +2269,12 @@ function initializeEventListeners() {
     // Form submissions
     document.getElementById('add-activity-form').addEventListener('submit', handleActivityFormSubmit);
     document.getElementById('add-reflection-form').addEventListener('submit', handleReflectionFormSubmit);
-    
-    // Learning outcome input
-    document.getElementById('learning-outcome-input').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            addLearningOutcome();
-        }
-    });
-    
+
+    initializeLearningOutcomesForm();
+    setLearningOutcomeSelections(learningOutcomes);
+    initializeRatingControl();
+    initializeDifficultyControl();
+
     // Close modals when clicking outside
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', function(e) {
@@ -1718,7 +2284,7 @@ function initializeEventListeners() {
             }
         });
     });
-    
+
     // Close modals with Escape key
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
@@ -1734,6 +2300,26 @@ function initializeEventListeners() {
     if (viewAllPhotosBtn) {
         viewAllPhotosBtn.addEventListener('click', openPhotosModal);
     }
+
+    const calendarPrev = document.getElementById('calendar-prev');
+    const calendarNext = document.getElementById('calendar-next');
+    const monthButton = document.getElementById('calendar-view-month');
+    const weekButton = document.getElementById('calendar-view-week');
+
+    if (calendarPrev) {
+        calendarPrev.addEventListener('click', () => changeCalendarPeriod(-1));
+    }
+    if (calendarNext) {
+        calendarNext.addEventListener('click', () => changeCalendarPeriod(1));
+    }
+    if (monthButton) {
+        monthButton.addEventListener('click', () => setCalendarViewMode('month'));
+    }
+    if (weekButton) {
+        weekButton.addEventListener('click', () => setCalendarViewMode('week'));
+    }
+
+    setCalendarViewMode(calendarViewMode);
 }
 
 function initializeSelectControls() {
@@ -1755,6 +2341,7 @@ async function initializeApp() {
         initializePortfolioPopUp();
         initializePortfolioQuestionnaire();
         initializeSelectControls();
+        initializeTheme();
     }
 }
 
@@ -1766,6 +2353,7 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeEventListeners();
         initializePortfolioQuestionnaire();
         initializeSelectControls();
+        initializeTheme();
     });
 });
 
