@@ -222,13 +222,10 @@ let themeInitialized = false;
 
 const HEATMAP_SETTINGS_KEY = 'casfolio_heatmap_settings';
 const HEATMAP_RANGE_OPTIONS = {
-    '12w': { label: 'Last 12 weeks', days: 12 * 7 },
-    '24w': { label: 'Last 24 weeks', days: 24 * 7 },
-    '52w': { label: 'Last 52 weeks', days: 52 * 7 },
-    ytd: { label: 'Year to date', days: null }
+    '52w': { label: 'Last 52 weeks', days: 52 * 7 }
 };
 const DEFAULT_HEATMAP_SETTINGS = {
-    range: '24w',
+    range: '52w',
     categories: { creativity: true, activity: true, service: true }
 };
 let heatmapSettings = loadHeatmapSettings();
@@ -1437,7 +1434,7 @@ function getHeatmapRangeBounds(rangeKey) {
     today.setHours(0, 0, 0, 0);
     const option = HEATMAP_RANGE_OPTIONS[rangeKey] || HEATMAP_RANGE_OPTIONS[DEFAULT_HEATMAP_SETTINGS.range];
     let start = new Date(today);
-    if (rangeKey === 'ytd' || option.days === null) {
+    if (!option || option.days === null) {
         start = new Date(today.getFullYear(), 0, 1);
     } else {
         start.setDate(today.getDate() - option.days + 1);
@@ -1585,7 +1582,7 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
         const cellTooltip = escapeHtml(tooltip);
         const tabIndex = totalCount > 0 ? '0' : '-1';
 
-        return `<div class="${classes.join(' ')}" data-date="${iso}" role="gridcell" aria-label="${cellTooltip}" title="${cellTooltip}" tabindex="${tabIndex}"></div>`;
+        return `<div class="${classes.join(' ')}" data-date="${iso}" data-tooltip="${cellTooltip}" role="gridcell" aria-label="${cellTooltip}" title="${cellTooltip}" tabindex="${tabIndex}"></div>`;
     });
 
     heatmap.innerHTML = fragments.join('');
