@@ -1504,7 +1504,6 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
 
     const dayData = [];
     let hasActivity = false;
-    let maxHours = 0;
 
     for (let index = 0; index < totalDays; index += 1) {
         const cellDate = new Date(start);
@@ -1528,20 +1527,22 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
         if (totalCount > 0) {
             hasActivity = true;
         }
-        if (totalHours > maxHours) {
-            maxHours = totalHours;
-        }
 
         dayData.push({ date: cellDate, iso, totalCount, totalHours, categoryHours, categoryCounts });
     }
+
+    const totalWeeks = Math.max(1, Math.ceil(totalDays / 7));
+    heatmap.style.setProperty('--heatmap-columns', totalWeeks.toString());
 
     const fragments = dayData.map((entry) => {
         const { date, iso, totalCount, totalHours, categoryHours, categoryCounts } = entry;
         let level = 0;
         if (totalCount > 0) {
-            if (maxHours > 0) {
-                level = Math.min(4, Math.max(1, Math.ceil((totalHours / maxHours) * 4)));
-            } else {
+            if (totalHours >= 3) {
+                level = 3;
+            } else if (totalHours > 1) {
+                level = 2;
+            } else if (totalHours > 0) {
                 level = 1;
             }
         }
@@ -1596,7 +1597,10 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
     const rangeLabel = HEATMAP_RANGE_OPTIONS[heatmapSettings.range]?.label
         || HEATMAP_RANGE_OPTIONS[DEFAULT_HEATMAP_SETTINGS.range].label;
     const categoryLabel = selectedCategories.map((category) => category.charAt(0).toUpperCase() + category.slice(1)).join(', ');
-    heatmap.setAttribute('aria-label', `CAS activity heatmap for ${rangeLabel} across ${categoryLabel || 'selected categories'}.`);
+    heatmap.setAttribute(
+        'aria-label',
+        `CAS activity heatmap for ${rangeLabel} across ${categoryLabel || 'selected categories'}. Color intensity indicates days with 1 hour, 2 hours, or 3 or more hours of logged activity.`
+    );
 }
 
 function setHeatmapRange(range) {
