@@ -9,7 +9,7 @@ const sampleData = {
             dateGeneral: "2024-09-14",
             totalHours: 4,
             challengeDescription: "Managing shifting tides while keeping volunteers motivated throughout the day.",
-            learningOutcomes: ["collaboration", "commitment"],
+            learningOutcomes: ["LO5", "LO6"],
             rating: 5,
             difficulty: 6,
             images: [],
@@ -24,7 +24,7 @@ const sampleData = {
             dateGeneral: "2024-10-03",
             totalHours: 3,
             challengeDescription: "Balancing theory explanations with hands-on practice so everyone felt confident improvising.",
-            learningOutcomes: ["initiative", "perseverance"],
+            learningOutcomes: ["LO1", "LO3"],
             rating: 4,
             difficulty: 5,
             images: [],
@@ -39,7 +39,7 @@ const sampleData = {
             dateGeneral: "2024-10-19",
             totalHours: 5,
             challengeDescription: "Supporting riders of different abilities while tracking everyone's safety across the route.",
-            learningOutcomes: ["challenge", "global_value"],
+            learningOutcomes: ["LO2", "LO4"],
             rating: 5,
             difficulty: 7,
             images: [],
@@ -54,7 +54,7 @@ const sampleData = {
             dateGeneral: "2024-11-07",
             totalHours: 2,
             challengeDescription: "Coordinating vendor donations while keeping our team organised before launch week.",
-            learningOutcomes: ["collaboration", "ethics"],
+            learningOutcomes: ["LO3", "LO7"],
             rating: 3,
             difficulty: 8,
             images: [],
@@ -98,14 +98,14 @@ const SAMPLE_PORTFOLIO_PROFILE = {
     coordinator_phone: "+31 71 123 4567"
 };
 
-const LEARNING_OUTCOME_OPTIONS = [
-    { value: "collaboration", label: "Collaboration & Teamwork" },
-    { value: "commitment", label: "Commitment & Perseverance" },
-    { value: "initiative", label: "Initiative & Planning" },
-    { value: "challenge", label: "Undertake New Challenges" },
-    { value: "global_value", label: "Global Value & Engagement" },
-    { value: "ethics", label: "Ethics & Integrity" },
-    { value: "perseverance", label: "Resilience & Perseverance" }
+const LEARNING_OUTCOME_PRESETS = [
+    { value: "LO1", code: "LO1", label: "Identify strengths and develop areas for growth" },
+    { value: "LO2", code: "LO2", label: "Demonstrate that challenges have been undertaken" },
+    { value: "LO3", code: "LO3", label: "Initiate and plan a CAS experience" },
+    { value: "LO4", code: "LO4", label: "Show commitment and perseverance" },
+    { value: "LO5", code: "LO5", label: "Demonstrate collaborative skills" },
+    { value: "LO6", code: "LO6", label: "Engage with issues of global significance" },
+    { value: "LO7", code: "LO7", label: "Recognise and consider the ethics of choices" }
 ];
 
 const TOTAL_REQUIRED_HOURS = 240;
@@ -202,9 +202,42 @@ try {
 let activitiesSyncPromise = null;
 let sessionExpiredNotified = false;
 let isPrinting = false;
-let currentTheme = 'light';
-let calendarViewMode = 'month';
-let calendarReferenceDate = new Date();
+const VALID_THEME_SETTINGS = new Set(['light', 'dark', 'system']);
+const THEME_ICON_MAP = {
+    light: 'fas fa-sun',
+    dark: 'fas fa-moon',
+    system: 'fas fa-circle-half-stroke'
+};
+const THEME_LABEL_MAP = {
+    light: 'Light',
+    dark: 'Dark',
+    system: 'System'
+};
+let themeSetting = 'system';
+let resolvedTheme = 'light';
+let themeControls = [];
+let themeMediaQuery = null;
+let themeMenuDismissBound = false;
+let themeInitialized = false;
+
+const HEATMAP_SETTINGS_KEY = 'casfolio_heatmap_settings';
+const HEATMAP_RANGE_OPTIONS = {
+    '12w': { label: 'Last 12 weeks', days: 12 * 7 },
+    '24w': { label: 'Last 24 weeks', days: 24 * 7 },
+    '52w': { label: 'Last 52 weeks', days: 52 * 7 },
+    ytd: { label: 'Year to date', days: null }
+};
+const DEFAULT_HEATMAP_SETTINGS = {
+    range: '24w',
+    categories: { creativity: true, activity: true, service: true }
+};
+let heatmapSettings = loadHeatmapSettings();
+
+const MAX_LEARNING_OUTCOMES = 24;
+const PRESET_LEARNING_OUTCOME_VALUES = new Set(LEARNING_OUTCOME_PRESETS.map((item) => item.value));
+
+let learningOutcomes = [];
+let customLearningOutcomes = [];
 
 function setPrintMode(enabled) {
     if (isPrinting === enabled) {
@@ -226,83 +259,201 @@ function setPrintMode(enabled) {
     }
 }
 
-function updateThemeToggleIcons() {
-    const iconClass = currentTheme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
-    const label = currentTheme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
-    const desktopToggle = document.getElementById('theme-toggle');
-    const mobileToggle = document.getElementById('theme-toggle-mobile');
+function resolveTheme(setting) {
+    if (setting === 'light' || setting === 'dark') {
+        return setting;
+    }
+    if (themeMediaQuery) {
+        return themeMediaQuery.matches ? 'dark' : 'light';
+    }
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'light';
+}
 
-    [desktopToggle, mobileToggle].forEach((button) => {
-        if (!button) return;
-        const icon = button.querySelector('i');
-        if (icon) {
-            icon.className = iconClass;
+function closeAllThemeMenus() {
+    themeControls.forEach(({ container, trigger }) => {
+        if (container) {
+            container.classList.remove('is-open');
         }
-        button.setAttribute('aria-label', label);
-        if (button.id === 'theme-toggle-mobile') {
-            const text = button.querySelector('span');
-            if (text) {
-                text.textContent = currentTheme === 'dark' ? 'Light Theme' : 'Dark Theme';
-            }
+        if (trigger) {
+            trigger.setAttribute('aria-expanded', 'false');
         }
     });
 }
 
-function applyTheme(theme) {
-    currentTheme = theme === 'dark' ? 'dark' : 'light';
-    if (typeof document !== 'undefined') {
-        document.documentElement.classList.toggle('dark', currentTheme === 'dark');
+function updateThemeControlsUI() {
+    if (themeControls.length === 0) {
+        return;
     }
-    try {
-        localStorage.setItem(THEME_STORAGE_KEY, currentTheme);
-    } catch (error) {
-        console.warn('Unable to persist theme preference', error);
-    }
-    updateThemeToggleIcons();
+    const iconClass = THEME_ICON_MAP[themeSetting] || THEME_ICON_MAP.system;
+    const labelText = THEME_LABEL_MAP[themeSetting] || THEME_LABEL_MAP.system;
+
+    themeControls.forEach(({ container, trigger, icon, label, options }) => {
+        if (icon) {
+            icon.className = iconClass;
+        }
+        if (label) {
+            label.textContent = `Theme: ${labelText}`;
+        }
+        if (trigger) {
+            trigger.setAttribute('aria-label', `Theme: ${labelText}`);
+            const expanded = container && container.classList.contains('is-open');
+            trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        }
+        options.forEach((option) => {
+            const value = option.dataset.themeValue || 'system';
+            const isActive = value === themeSetting;
+            option.setAttribute('aria-checked', isActive ? 'true' : 'false');
+        });
+    });
 }
 
-function toggleTheme() {
-    applyTheme(currentTheme === 'dark' ? 'light' : 'dark');
+function applyThemeSetting(setting, { persist = true } = {}) {
+    if (!VALID_THEME_SETTINGS.has(setting)) {
+        setting = 'system';
+    }
+    themeSetting = setting;
+    resolvedTheme = resolveTheme(setting);
+
+    if (typeof document !== 'undefined') {
+        const root = document.documentElement;
+        if (root) {
+            root.classList.toggle('dark', resolvedTheme === 'dark');
+            root.setAttribute('data-theme-setting', setting);
+        }
+    }
+
+    if (persist) {
+        try {
+            localStorage.setItem(THEME_STORAGE_KEY, setting);
+        } catch (error) {
+            console.warn('Unable to persist theme preference', error);
+        }
+    }
+
+    updateThemeControlsUI();
+}
+
+function initializeThemeControls() {
+    if (typeof document === 'undefined') {
+        return;
+    }
+
+    const containers = Array.from(document.querySelectorAll('[data-theme-control]'));
+    if (containers.length === 0) {
+        themeControls = [];
+        return;
+    }
+
+    themeControls = containers.map((container) => {
+        const trigger = container.querySelector('[data-theme-trigger]');
+        const icon = container.querySelector('[data-theme-icon]');
+        const label = container.querySelector('[data-theme-trigger-label]');
+        const options = Array.from(container.querySelectorAll('[data-theme-option]'));
+
+        if (trigger && !trigger.dataset.themeTriggerBound) {
+            trigger.dataset.themeTriggerBound = '1';
+            trigger.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                const isOpen = container.classList.contains('is-open');
+                closeAllThemeMenus();
+                if (!isOpen) {
+                    container.classList.add('is-open');
+                    trigger.setAttribute('aria-expanded', 'true');
+                }
+            });
+            trigger.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') {
+                    closeAllThemeMenus();
+                    trigger.blur();
+                }
+            });
+        }
+
+        options.forEach((option) => {
+            if (option.dataset.themeOptionBound === '1') {
+                return;
+            }
+            option.dataset.themeOptionBound = '1';
+
+            const handleSelection = () => {
+                const value = option.dataset.themeValue || 'system';
+                applyThemeSetting(value);
+                closeAllThemeMenus();
+                if (trigger) {
+                    trigger.focus();
+                }
+            };
+
+            option.addEventListener('click', (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                handleSelection();
+            });
+
+            option.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handleSelection();
+                }
+            });
+        });
+
+        return { container, trigger, icon, label, options };
+    });
+
+    if (!themeMenuDismissBound) {
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('[data-theme-control]')) {
+                closeAllThemeMenus();
+            }
+        });
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                closeAllThemeMenus();
+            }
+        });
+        themeMenuDismissBound = true;
+    }
+
+    updateThemeControlsUI();
 }
 
 function initializeTheme() {
-    let storedTheme = null;
+    if (themeInitialized) {
+        updateThemeControlsUI();
+        return;
+    }
+
+    let storedSetting = null;
     try {
-        storedTheme = localStorage.getItem(THEME_STORAGE_KEY);
+        storedSetting = localStorage.getItem(THEME_STORAGE_KEY);
     } catch (error) {
         console.warn('Unable to access stored theme preference', error);
     }
 
-    const prefersDark = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-    const startingTheme = storedTheme || (prefersDark ? 'dark' : 'light');
-    applyTheme(startingTheme);
+    const initialSetting = VALID_THEME_SETTINGS.has(storedSetting) ? storedSetting : 'system';
 
-    const toggles = [document.getElementById('theme-toggle'), document.getElementById('theme-toggle-mobile')]
-        .filter(Boolean);
-    toggles.forEach((button) => button.addEventListener('click', toggleTheme));
-
-    if (typeof window !== 'undefined' && window.matchMedia) {
-        const media = window.matchMedia('(prefers-color-scheme: dark)');
-        const handleChange = (event) => {
-            const persisted = (() => {
-                try {
-                    return localStorage.getItem(THEME_STORAGE_KEY);
-                } catch (error) {
-                    console.warn('Unable to read theme preference', error);
-                    return null;
-                }
-            })();
-            if (!persisted) {
-                applyTheme(event.matches ? 'dark' : 'light');
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+        themeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleSystemChange = () => {
+            if (themeSetting === 'system') {
+                applyThemeSetting('system', { persist: false });
             }
         };
-
-        if (typeof media.addEventListener === 'function') {
-            media.addEventListener('change', handleChange);
-        } else if (typeof media.addListener === 'function') {
-            media.addListener(handleChange);
+        if (typeof themeMediaQuery.addEventListener === 'function') {
+            themeMediaQuery.addEventListener('change', handleSystemChange);
+        } else if (typeof themeMediaQuery.addListener === 'function') {
+            themeMediaQuery.addListener(handleSystemChange);
         }
     }
+
+    initializeThemeControls();
+    themeInitialized = true;
+    applyThemeSetting(initialSetting, { persist: false });
 }
 
 function handleSessionExpired() {
@@ -408,7 +559,7 @@ function rerenderActivityViews() {
     renderCategoriesGrid();
     renderProgressDashboard();
     renderGallery();
-    renderCalendar();
+    renderActivityHeatmap();
 }
 
 // Persist the latest activities and reflections to localStorage, warning the user if the write fails
@@ -585,7 +736,6 @@ function applyPortfolioInformation(data) {
 
 // Global state
 let currentFilter = 'all';
-let learningOutcomes = [];
 let selectedHeaderImageUrl = null;
 
 function toEmbeddableImageUrl(url) {
@@ -649,6 +799,33 @@ function enhanceSelectControl(select) {
     updateSelectControlVisualState(select);
     select.addEventListener('change', () => updateSelectControlVisualState(select));
     select.addEventListener('input', () => updateSelectControlVisualState(select));
+}
+
+function escapeHtml(value) {
+    if (value === null || value === undefined) {
+        return '';
+    }
+    return String(value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function getLearningOutcomeDisplay(value) {
+    const trimmed = typeof value === 'string' ? value.trim() : '';
+    if (!trimmed) {
+        return { label: '', aria: '' };
+    }
+
+    const preset = LEARNING_OUTCOME_PRESETS.find((option) => option.value === trimmed);
+    if (preset) {
+        const label = `${preset.code} • ${preset.label}`;
+        return { label, aria: `${preset.code}: ${preset.label}` };
+    }
+
+    return { label: trimmed, aria: trimmed };
 }
 
 // Utility functions
@@ -1202,178 +1379,288 @@ function formatWeekRange(start, end) {
     return `${startLabel} – ${endLabel}, ${yearLabel}`;
 }
 
-function renderCalendar() {
-    const container = document.getElementById('calendar-grid');
-    const label = document.getElementById('calendar-label');
-    const emptyState = document.getElementById('calendar-empty');
-    if (!container || !label || !emptyState) {
+function loadHeatmapSettings() {
+    try {
+        const stored = localStorage.getItem(HEATMAP_SETTINGS_KEY);
+        if (!stored) {
+            return {
+                range: DEFAULT_HEATMAP_SETTINGS.range,
+                categories: { ...DEFAULT_HEATMAP_SETTINGS.categories }
+            };
+        }
+        const parsed = JSON.parse(stored);
+        const settings = {
+            range: HEATMAP_RANGE_OPTIONS[parsed?.range] ? parsed.range : DEFAULT_HEATMAP_SETTINGS.range,
+            categories: { ...DEFAULT_HEATMAP_SETTINGS.categories }
+        };
+        if (parsed && typeof parsed.categories === 'object') {
+            Object.keys(settings.categories).forEach((category) => {
+                if (typeof parsed.categories[category] === 'boolean') {
+                    settings.categories[category] = parsed.categories[category];
+                }
+            });
+        }
+        return settings;
+    } catch (error) {
+        console.warn('Unable to read heatmap settings', error);
+        return {
+            range: DEFAULT_HEATMAP_SETTINGS.range,
+            categories: { ...DEFAULT_HEATMAP_SETTINGS.categories }
+        };
+    }
+}
+
+function persistHeatmapSettings() {
+    try {
+        localStorage.setItem(HEATMAP_SETTINGS_KEY, JSON.stringify(heatmapSettings));
+    } catch (error) {
+        console.warn('Unable to persist heatmap settings', error);
+    }
+}
+
+function alignDateToWeekStart(date) {
+    const aligned = new Date(date);
+    aligned.setHours(0, 0, 0, 0);
+    aligned.setDate(aligned.getDate() - aligned.getDay());
+    return aligned;
+}
+
+function alignDateToWeekEnd(date) {
+    const aligned = new Date(date);
+    aligned.setHours(0, 0, 0, 0);
+    aligned.setDate(aligned.getDate() + (6 - aligned.getDay()));
+    return aligned;
+}
+
+function getHeatmapRangeBounds(rangeKey) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const option = HEATMAP_RANGE_OPTIONS[rangeKey] || HEATMAP_RANGE_OPTIONS[DEFAULT_HEATMAP_SETTINGS.range];
+    let start = new Date(today);
+    if (rangeKey === 'ytd' || option.days === null) {
+        start = new Date(today.getFullYear(), 0, 1);
+    } else {
+        start.setDate(today.getDate() - option.days + 1);
+    }
+    return {
+        start: alignDateToWeekStart(start),
+        end: alignDateToWeekEnd(today)
+    };
+}
+
+function formatHours(hours) {
+    const value = Number(hours) || 0;
+    if (value === 0) {
+        return '0 hours';
+    }
+    const rounded = Math.round(value * 10) / 10;
+    if (Math.abs(rounded - Math.round(rounded)) < 0.1) {
+        const whole = Math.round(rounded);
+        return `${whole} ${whole === 1 ? 'hour' : 'hours'}`;
+    }
+    return `${rounded} hours`;
+}
+
+function updateHeatmapControlsUI() {
+    const rangeSelect = document.getElementById('heatmap-range');
+    if (rangeSelect && HEATMAP_RANGE_OPTIONS[heatmapSettings.range]) {
+        rangeSelect.value = heatmapSettings.range;
+        updateSelectControlVisualState(rangeSelect);
+    }
+    document.querySelectorAll('[data-heatmap-category]').forEach((button) => {
+        const category = button.dataset.heatmapCategory;
+        const active = Boolean(heatmapSettings.categories[category]);
+        button.classList.toggle('active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+}
+
+function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate()) {
+    const heatmap = document.getElementById('activity-heatmap');
+    const emptyState = document.getElementById('activity-heatmap-empty');
+    if (!heatmap || !emptyState) {
         return;
     }
 
-    const grouped = getActivitiesGroupedByDate();
-    const today = new Date();
-    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    let html = '';
+    updateHeatmapControlsUI();
 
-    const reference = new Date(calendarReferenceDate.getTime());
+    const selectedCategories = Object.entries(heatmapSettings.categories)
+        .filter(([, enabled]) => enabled)
+        .map(([category]) => category);
 
-    if (calendarViewMode === 'month') {
-        const year = reference.getFullYear();
-        const month = reference.getMonth();
-        label.textContent = reference.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    const emptyMessage = emptyState.querySelector('p');
 
-        const firstOfMonth = new Date(year, month, 1);
-        const gridStart = new Date(year, month, 1 - firstOfMonth.getDay());
-        const totalCells = 42;
-
-        html += weekdays.map((day) => `<div class="calendar-day calendar-heading">${day}</div>`).join('');
-
-        let hasEventsInPeriod = false;
-
-        for (let i = 0; i < totalCells; i += 1) {
-            const cellDate = new Date(gridStart);
-            cellDate.setDate(gridStart.getDate() + i);
-            const iso = cellDate.toISOString().split('T')[0];
-            const events = grouped[iso] || [];
-            const isCurrentMonth = cellDate.getMonth() === month;
-            const isToday = cellDate.toDateString() === today.toDateString();
-            const classes = ['calendar-day'];
-            if (!isCurrentMonth) classes.push('outside-month');
-            if (events.length > 0) {
-                classes.push('has-events');
-                hasEventsInPeriod = true;
-            }
-            if (isToday) classes.push('today');
-
-            const firstActivityId = events.length > 0 ? events[0].id : '';
-
-            html += `
-                <div class="${classes.join(' ')}" data-date="${iso}" ${firstActivityId ? `onclick="viewActivityDetail('${firstActivityId}')"` : ''}>
-                    <div class="date-label">${cellDate.getDate()}</div>
-                    <div class="events">
-                        ${events.map((event) => `
-                            <button type="button" class="calendar-event ${event.category}" onclick="event.stopPropagation(); viewActivityDetail('${event.id}')">
-                                ${event.title}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
+    if (selectedCategories.length === 0) {
+        heatmap.innerHTML = '';
+        emptyState.hidden = false;
+        if (emptyMessage) {
+            emptyMessage.textContent = 'Select at least one category to see the heatmap.';
         }
-
-        emptyState.style.display = hasEventsInPeriod ? 'none' : 'block';
-    } else {
-        const startOfWeek = new Date(reference);
-        startOfWeek.setHours(0, 0, 0, 0);
-        startOfWeek.setDate(reference.getDate() - reference.getDay());
-        const endOfWeek = new Date(startOfWeek);
-        endOfWeek.setDate(startOfWeek.getDate() + 6);
-        label.textContent = formatWeekRange(startOfWeek, endOfWeek);
-
-        let hasEventsInPeriod = false;
-
-        for (let i = 0; i < 7; i += 1) {
-            const cellDate = new Date(startOfWeek);
-            cellDate.setDate(startOfWeek.getDate() + i);
-            const iso = cellDate.toISOString().split('T')[0];
-            const events = grouped[iso] || [];
-            if (events.length > 0) {
-                hasEventsInPeriod = true;
-            }
-            const isToday = cellDate.toDateString() === today.toDateString();
-            const classes = ['calendar-day'];
-            if (events.length > 0) classes.push('has-events');
-            if (isToday) classes.push('today');
-
-            const firstActivityId = events.length > 0 ? events[0].id : '';
-
-            html += `
-                <div class="${classes.join(' ')}" data-date="${iso}" ${firstActivityId ? `onclick="viewActivityDetail('${firstActivityId}')"` : ''}>
-                    <div class="date-label">${weekdays[i]} ${cellDate.getDate()}</div>
-                    <div class="events">
-                        ${events.map((event) => `
-                            <button type="button" class="calendar-event ${event.category}" onclick="event.stopPropagation(); viewActivityDetail('${event.id}')">
-                                ${event.title}
-                            </button>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
-        }
-
-        emptyState.style.display = hasEventsInPeriod ? 'none' : 'block';
+        return;
     }
 
-    container.innerHTML = html;
-    renderCalendarHeatmap(grouped);
-}
+    const bounds = getHeatmapRangeBounds(heatmapSettings.range);
+    const start = bounds.start;
+    const end = bounds.end;
+    const MS_PER_DAY = 24 * 60 * 60 * 1000;
+    const totalDays = Math.round((end - start) / MS_PER_DAY) + 1;
 
-function changeCalendarPeriod(direction) {
-    if (calendarViewMode === 'month') {
-        calendarReferenceDate.setMonth(calendarReferenceDate.getMonth() + direction);
-    } else {
-        calendarReferenceDate.setDate(calendarReferenceDate.getDate() + (direction * 7));
-    }
-    renderCalendar();
-}
+    const dayData = [];
+    let hasActivity = false;
+    let maxHours = 0;
 
-function setCalendarViewMode(mode) {
-    calendarViewMode = mode === 'week' ? 'week' : 'month';
-    const monthButton = document.getElementById('calendar-view-month');
-    const weekButton = document.getElementById('calendar-view-week');
-    if (monthButton) monthButton.classList.toggle('active', calendarViewMode === 'month');
-    if (weekButton) weekButton.classList.toggle('active', calendarViewMode === 'week');
-    renderCalendar();
-}
-
-function renderCalendarHeatmap(groupedActivities = getActivitiesGroupedByDate()) {
-    const heatmap = document.getElementById('calendar-heatmap');
-    if (!heatmap) return;
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const totalDays = 7 * 20; // 20 weeks
-    const start = new Date(today);
-    start.setDate(start.getDate() - totalDays + 1);
-
-    const fragments = [];
-
-    for (let i = 0; i < totalDays; i += 1) {
+    for (let index = 0; index < totalDays; index += 1) {
         const cellDate = new Date(start);
-        cellDate.setDate(start.getDate() + i);
+        cellDate.setDate(start.getDate() + index);
         const iso = cellDate.toISOString().split('T')[0];
-        const events = groupedActivities[iso] || [];
-        const totalHours = events.reduce((sum, event) => sum + (event.totalHours || 0), 0);
+        const events = (groupedActivities[iso] || []).filter((event) => selectedCategories.includes(event.category));
+        const totalHours = events.reduce((sum, event) => sum + (Number(event.totalHours) || 0), 0);
+        const totalCount = events.length;
+        const categoryHours = { creativity: 0, activity: 0, service: 0 };
+        const categoryCounts = { creativity: 0, activity: 0, service: 0 };
 
-        let level = 0;
-        if (totalHours >= 8) {
-            level = 4;
-        } else if (totalHours >= 4) {
-            level = 3;
-        } else if (totalHours >= 2) {
-            level = 2;
-        } else if (totalHours > 0) {
-            level = 1;
+        events.forEach((event) => {
+            const category = event.category;
+            const hours = Number(event.totalHours) || 0;
+            if (categoryHours[category] !== undefined) {
+                categoryHours[category] += hours;
+                categoryCounts[category] += 1;
+            }
+        });
+
+        if (totalCount > 0) {
+            hasActivity = true;
+        }
+        if (totalHours > maxHours) {
+            maxHours = totalHours;
         }
 
-        const categoryTotals = events.reduce((acc, event) => {
-            acc[event.category] = (acc[event.category] || 0) + (event.totalHours || 0);
-            return acc;
-        }, {});
-
-        const dominantCategory = Object.keys(categoryTotals).sort((a, b) => categoryTotals[b] - categoryTotals[a])[0];
-        const title = events.length === 0
-            ? `${iso}: No CAS activity logged`
-            : `${iso}: ${events.length} activit${events.length === 1 ? 'y' : 'ies'} (${totalHours}h)`;
-
-        fragments.push(`
-            <div class="heatmap-cell ${dominantCategory ? dominantCategory : ''} ${level ? `level-${level}` : ''}" title="${title}"></div>
-        `);
+        dayData.push({ date: cellDate, iso, totalCount, totalHours, categoryHours, categoryCounts });
     }
+
+    const fragments = dayData.map((entry) => {
+        const { date, iso, totalCount, totalHours, categoryHours, categoryCounts } = entry;
+        let level = 0;
+        if (totalCount > 0) {
+            if (maxHours > 0) {
+                level = Math.min(4, Math.max(1, Math.ceil((totalHours / maxHours) * 4)));
+            } else {
+                level = 1;
+            }
+        }
+
+        const dominantCategory = totalCount > 0
+            ? Object.keys(categoryHours).sort((a, b) => categoryHours[b] - categoryHours[a])[0]
+            : '';
+
+        const dateLabel = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        let tooltip = `${dateLabel}: `;
+        if (totalCount === 0) {
+            tooltip += 'No CAS activity logged';
+        } else {
+            tooltip += `${totalCount} ${totalCount === 1 ? 'activity' : 'activities'}, ${formatHours(totalHours)}`;
+            const breakdownParts = Object.keys(categoryCounts)
+                .filter((category) => categoryCounts[category] > 0)
+                .map((category) => {
+                    const count = categoryCounts[category];
+                    const hours = categoryHours[category];
+                    const categoryLabel = category.charAt(0).toUpperCase() + category.slice(1);
+                    return `${categoryLabel}: ${count} ${count === 1 ? 'activity' : 'activities'}${hours > 0 ? `, ${formatHours(hours)}` : ''}`;
+                });
+            if (breakdownParts.length > 0) {
+                tooltip += ` (${breakdownParts.join('; ')})`;
+            }
+        }
+
+        const classes = ['heatmap-cell'];
+        if (level > 0) {
+            classes.push(`level-${level}`);
+        } else {
+            classes.push('level-0');
+        }
+        if (dominantCategory && totalCount > 0) {
+            classes.push(dominantCategory);
+        }
+
+        const cellTooltip = escapeHtml(tooltip);
+        const tabIndex = totalCount > 0 ? '0' : '-1';
+
+        return `<div class="${classes.join(' ')}" data-date="${iso}" role="gridcell" aria-label="${cellTooltip}" title="${cellTooltip}" tabindex="${tabIndex}"></div>`;
+    });
 
     heatmap.innerHTML = fragments.join('');
+    if (emptyMessage) {
+        emptyMessage.textContent = hasActivity
+            ? 'No CAS activity matches the selected filters yet.'
+            : 'Select at least one category to see the heatmap.';
+    }
+    emptyState.hidden = hasActivity;
+
+    const rangeLabel = HEATMAP_RANGE_OPTIONS[heatmapSettings.range]?.label
+        || HEATMAP_RANGE_OPTIONS[DEFAULT_HEATMAP_SETTINGS.range].label;
+    const categoryLabel = selectedCategories.map((category) => category.charAt(0).toUpperCase() + category.slice(1)).join(', ');
+    heatmap.setAttribute('aria-label', `CAS activity heatmap for ${rangeLabel} across ${categoryLabel || 'selected categories'}.`);
 }
 
+function setHeatmapRange(range) {
+    const nextRange = HEATMAP_RANGE_OPTIONS[range] ? range : DEFAULT_HEATMAP_SETTINGS.range;
+    if (heatmapSettings.range === nextRange) {
+        updateHeatmapControlsUI();
+        return;
+    }
+
+    heatmapSettings.range = nextRange;
+    persistHeatmapSettings();
+    updateHeatmapControlsUI();
+    renderActivityHeatmap();
+}
+
+function toggleHeatmapCategory(category) {
+    if (!Object.prototype.hasOwnProperty.call(heatmapSettings.categories, category)) {
+        return;
+    }
+    heatmapSettings.categories[category] = !Boolean(heatmapSettings.categories[category]);
+    persistHeatmapSettings();
+    updateHeatmapControlsUI();
+    renderActivityHeatmap();
+}
+
+function initializeHeatmapControls() {
+    const rangeSelect = document.getElementById('heatmap-range');
+    if (rangeSelect) {
+        const currentRange = HEATMAP_RANGE_OPTIONS[heatmapSettings.range] ? heatmapSettings.range : DEFAULT_HEATMAP_SETTINGS.range;
+        rangeSelect.value = currentRange;
+        updateSelectControlVisualState(rangeSelect);
+        if (rangeSelect.dataset.heatmapBound !== '1') {
+            rangeSelect.dataset.heatmapBound = '1';
+            rangeSelect.addEventListener('change', (event) => {
+                setHeatmapRange(event.target.value);
+            });
+        }
+    }
+
+    const categoryContainer = document.getElementById('heatmap-category-filters');
+    if (categoryContainer) {
+        categoryContainer.querySelectorAll('[data-heatmap-category]').forEach((button) => {
+            if (button.dataset.heatmapBound === '1') {
+                return;
+            }
+            button.dataset.heatmapBound = '1';
+            button.addEventListener('click', (event) => {
+                event.preventDefault();
+                const category = button.dataset.heatmapCategory;
+                if (!category) {
+                    return;
+                }
+                toggleHeatmapCategory(category);
+            });
+        });
+    }
+
+    updateHeatmapControlsUI();
+}
+
+// Filter functions
 // Filter functions
 function filterGallery(filter) {
     currentFilter = filter;
@@ -1729,49 +2016,214 @@ function renderLearningOutcomes() {
     const container = document.getElementById('learning-outcomes-list');
     if (!container) return;
 
-    container.innerHTML = learningOutcomes.map((outcome, index) => {
-        const option = LEARNING_OUTCOME_OPTIONS.find((item) => item.value === outcome);
-        const label = option ? option.label : outcome;
-        return `
-            <span class="learning-outcome-tag" data-testid="badge-outcome-${index}">
-                ${label}
-            </span>
-        `;
-    }).join('');
+    if (!learningOutcomes.length) {
+        container.innerHTML = '<p class="learning-outcomes-empty">No learning outcomes selected yet.</p>';
+        return;
+    }
+
+    const fragments = learningOutcomes.slice(0, MAX_LEARNING_OUTCOMES).map((value) => {
+        const normalized = typeof value === 'string' ? value.trim() : '';
+        if (!normalized) {
+            return '';
+        }
+
+        const display = getLearningOutcomeDisplay(normalized);
+        if (!display.label) {
+            return '';
+        }
+
+        const safeLabel = escapeHtml(display.label);
+        const safeAria = escapeHtml(display.aria || display.label);
+        const safeValue = escapeHtml(normalized);
+        return `<span class="learning-outcome-tag" role="listitem" data-outcome-value="${safeValue}">
+                <span>${safeLabel}</span>
+                <button type="button" aria-label="Remove ${safeAria}" data-remove-outcome="${safeValue}">&times;</button>
+            </span>`;
+    }).filter(Boolean);
+
+    container.innerHTML = fragments.join('');
 }
 
-function updateLearningOutcomeSelectionsFromForm() {
-    const options = document.querySelectorAll('#learning-outcomes-options input[type="checkbox"]');
-    learningOutcomes = Array.from(options)
+function toggleCustomOutcomeInput(visible) {
+    const wrapper = document.getElementById('custom-outcome-wrapper');
+    if (!wrapper) return;
+    wrapper.hidden = !visible;
+    if (!visible) {
+        const input = wrapper.querySelector('#custom-learning-outcome');
+        if (input) {
+            input.value = '';
+        }
+    }
+}
+
+function getSelectedPresetValues() {
+    const container = document.getElementById('learning-outcomes-options');
+    if (!container) return [];
+    return Array.from(container.querySelectorAll('input[type="checkbox"][data-learning-outcome-option]:not([data-custom-option])'))
         .filter((input) => input.checked)
         .map((input) => input.value);
+}
+
+function syncPresetCheckboxes() {
+    const container = document.getElementById('learning-outcomes-options');
+    if (!container) return;
+    const presetValues = new Set(learningOutcomes.filter((value) => PRESET_LEARNING_OUTCOME_VALUES.has(value)));
+    container.querySelectorAll('input[type="checkbox"][data-learning-outcome-option]').forEach((input) => {
+        if (input.dataset.customOption !== undefined) {
+            input.checked = customLearningOutcomes.length > 0;
+        } else {
+            input.checked = presetValues.has(input.value);
+        }
+    });
+    const customToggle = container.querySelector('input[data-custom-option]');
+    const shouldShow = customToggle ? customToggle.checked || customLearningOutcomes.length > 0 : customLearningOutcomes.length > 0;
+    toggleCustomOutcomeInput(shouldShow);
+}
+
+function updateLearningOutcomesFromControls() {
+    const selectedPresets = getSelectedPresetValues();
+    learningOutcomes = [...selectedPresets, ...customLearningOutcomes];
+    if (learningOutcomes.length > MAX_LEARNING_OUTCOMES) {
+        learningOutcomes = learningOutcomes.slice(0, MAX_LEARNING_OUTCOMES);
+        customLearningOutcomes = learningOutcomes.filter((value) => !PRESET_LEARNING_OUTCOME_VALUES.has(value));
+        syncPresetCheckboxes();
+    }
     renderLearningOutcomes();
+}
+
+function handleLearningOutcomeOptionChange(event) {
+    const target = event.target;
+    if (!target || target.type !== 'checkbox') {
+        return;
+    }
+
+    if (target.dataset.customOption !== undefined) {
+        if (!target.checked) {
+            customLearningOutcomes = [];
+        }
+        toggleCustomOutcomeInput(target.checked || customLearningOutcomes.length > 0);
+    }
+
+    updateLearningOutcomesFromControls();
+}
+
+function addCustomLearningOutcome(value) {
+    const trimmed = typeof value === 'string' ? value.trim() : '';
+    if (!trimmed) {
+        return;
+    }
+
+    const normalized = trimmed.replace(/\s+/g, ' ');
+    const exists = learningOutcomes.some((entry) => entry.toLowerCase() === normalized.toLowerCase());
+    if (exists) {
+        return;
+    }
+
+    customLearningOutcomes.push(normalized);
+    const selectedPresets = getSelectedPresetValues();
+    learningOutcomes = [...selectedPresets, ...customLearningOutcomes].slice(0, MAX_LEARNING_OUTCOMES);
+    customLearningOutcomes = learningOutcomes.filter((entry) => !PRESET_LEARNING_OUTCOME_VALUES.has(entry));
+
+    const container = document.getElementById('learning-outcomes-options');
+    const customToggle = container ? container.querySelector('input[data-custom-option]') : null;
+    if (customToggle) {
+        customToggle.checked = true;
+    }
+    syncPresetCheckboxes();
+    renderLearningOutcomes();
+}
+
+function handleAddCustomOutcome() {
+    const input = document.getElementById('custom-learning-outcome');
+    if (!input) return;
+    addCustomLearningOutcome(input.value);
+    input.value = '';
+    input.focus();
 }
 
 function initializeLearningOutcomesForm() {
     const container = document.getElementById('learning-outcomes-options');
     if (!container) return;
 
-    container.innerHTML = LEARNING_OUTCOME_OPTIONS.map((option) => `
-        <label>
-            <input type="checkbox" value="${option.value}">
-            <span>${option.label}</span>
+    const optionsMarkup = LEARNING_OUTCOME_PRESETS.map((option) => `
+        <label class="learning-outcome-option">
+            <input type="checkbox" value="${option.value}" data-learning-outcome-option>
+            <span class="learning-outcome-label">
+                <span class="learning-outcome-code">${option.code}</span>
+                <span class="learning-outcome-title">${option.label}</span>
+            </span>
         </label>
     `).join('');
 
-    container.querySelectorAll('input[type="checkbox"]').forEach((input) => {
-        input.addEventListener('change', updateLearningOutcomeSelectionsFromForm);
-    });
+    const customMarkup = `
+        <label class="learning-outcome-option learning-outcome-option--custom">
+            <input type="checkbox" value="__custom__" data-learning-outcome-option data-custom-option>
+            <span class="learning-outcome-label">
+                <span class="learning-outcome-code">Custom</span>
+                <span class="learning-outcome-title">Add personalised learning outcomes</span>
+            </span>
+        </label>
+    `;
+
+    container.innerHTML = optionsMarkup + customMarkup;
+    container.addEventListener('change', handleLearningOutcomeOptionChange);
+
+    const addButton = document.getElementById('add-custom-learning-outcome');
+    const customInput = document.getElementById('custom-learning-outcome');
+    const clearButton = document.getElementById('clear-learning-outcomes');
+    const list = document.getElementById('learning-outcomes-list');
+
+    if (addButton) {
+        addButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            handleAddCustomOutcome();
+        });
+    }
+
+    if (customInput) {
+        customInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handleAddCustomOutcome();
+            }
+        });
+    }
+
+    if (clearButton) {
+        clearButton.addEventListener('click', (event) => {
+            event.preventDefault();
+            setLearningOutcomeSelections([]);
+        });
+    }
+
+    if (list) {
+        list.addEventListener('click', (event) => {
+            const button = event.target.closest('button[data-remove-outcome]');
+            if (!button) return;
+            const value = button.dataset.removeOutcome;
+            if (!value) return;
+
+            const normalized = value.trim();
+            const nextPresets = learningOutcomes.filter((entry) => PRESET_LEARNING_OUTCOME_VALUES.has(entry) && entry !== normalized);
+            const nextCustoms = learningOutcomes.filter((entry) => !PRESET_LEARNING_OUTCOME_VALUES.has(entry) && entry !== normalized);
+            customLearningOutcomes = nextCustoms;
+            learningOutcomes = [...nextPresets, ...customLearningOutcomes];
+            syncPresetCheckboxes();
+            renderLearningOutcomes();
+        });
+    }
+
+    renderLearningOutcomes();
 }
 
 function setLearningOutcomeSelections(values) {
-    learningOutcomes = Array.isArray(values) ? [...values] : [];
-    const container = document.getElementById('learning-outcomes-options');
-    if (container) {
-        container.querySelectorAll('input[type="checkbox"]').forEach((input) => {
-            input.checked = learningOutcomes.includes(input.value);
-        });
-    }
+    const provided = Array.isArray(values) ? values.filter((value) => typeof value === 'string' && value.trim() !== '') : [];
+    const presets = provided.filter((value) => PRESET_LEARNING_OUTCOME_VALUES.has(value));
+    const customs = provided.filter((value) => !PRESET_LEARNING_OUTCOME_VALUES.has(value)).map((value) => value.trim());
+    const allowedCustomCount = Math.max(0, MAX_LEARNING_OUTCOMES - presets.length);
+    customLearningOutcomes = customs.slice(0, allowedCustomCount);
+    learningOutcomes = [...presets.slice(0, MAX_LEARNING_OUTCOMES), ...customLearningOutcomes].slice(0, MAX_LEARNING_OUTCOMES);
+    syncPresetCheckboxes();
     renderLearningOutcomes();
 }
 
@@ -1838,10 +2290,9 @@ function viewActivityDetail(activityId) {
     const modal = document.getElementById('activity-detail-modal');
     const content = document.getElementById('activity-detail-content');
     const outcomeLabels = Array.isArray(activity.learningOutcomes)
-        ? activity.learningOutcomes.map((value) => {
-            const option = LEARNING_OUTCOME_OPTIONS.find((item) => item.value === value);
-            return option ? option.label : value;
-        })
+        ? activity.learningOutcomes
+            .map((value) => getLearningOutcomeDisplay(value).label)
+            .filter((label) => typeof label === 'string' && label.trim() !== '')
         : [];
     const ratingMarkup = Number.isFinite(activity.rating) && activity.rating > 0
         ? Array.from({ length: 5 }).map((_, index) => `<i class="fas fa-star${index < Math.round(activity.rating) ? '' : ' inactive'}"></i>`).join('')
@@ -1872,7 +2323,7 @@ function viewActivityDetail(activityId) {
                     <h3>Learning Outcomes</h3>
                     <div class="learning-outcomes-tags">
                         ${outcomeLabels.map((outcome, index) => `
-                            <span class="badge" data-testid="badge-outcome-${index}">${outcome}</span>
+                            <span class="badge" data-testid="badge-outcome-${index}">${escapeHtml(outcome)}</span>
                         `).join('')}
                     </div>
                 </div>
@@ -2301,25 +2752,7 @@ function initializeEventListeners() {
         viewAllPhotosBtn.addEventListener('click', openPhotosModal);
     }
 
-    const calendarPrev = document.getElementById('calendar-prev');
-    const calendarNext = document.getElementById('calendar-next');
-    const monthButton = document.getElementById('calendar-view-month');
-    const weekButton = document.getElementById('calendar-view-week');
-
-    if (calendarPrev) {
-        calendarPrev.addEventListener('click', () => changeCalendarPeriod(-1));
-    }
-    if (calendarNext) {
-        calendarNext.addEventListener('click', () => changeCalendarPeriod(1));
-    }
-    if (monthButton) {
-        monthButton.addEventListener('click', () => setCalendarViewMode('month'));
-    }
-    if (weekButton) {
-        weekButton.addEventListener('click', () => setCalendarViewMode('week'));
-    }
-
-    setCalendarViewMode(calendarViewMode);
+    initializeHeatmapControls();
 }
 
 function initializeSelectControls() {
@@ -2327,6 +2760,7 @@ function initializeSelectControls() {
     enhanceSelectControl(document.querySelector('[data-testid="select-activity-category"]'));
     enhanceSelectControl(document.querySelector('[data-testid="select-activity-status"]'));
     enhanceSelectControl(document.querySelector('[data-testid="select-reflection-activity"]'));
+    enhanceSelectControl(document.getElementById('heatmap-range'));
 }
 
 // Kick off the initial render pipeline once the DOM is ready

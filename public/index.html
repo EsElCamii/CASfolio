@@ -43,6 +43,42 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     
     <!-- Styles -->
+    <script>
+        (function () {
+            if (typeof window === 'undefined') {
+                return;
+            }
+
+            const storageKey = 'casfolio_theme_preference';
+            const root = document.documentElement;
+            if (!root) {
+                return;
+            }
+
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let stored = null;
+
+            try {
+                stored = localStorage.getItem(storageKey);
+            } catch (error) {
+                stored = null;
+            }
+
+            let setting = typeof stored === 'string' ? stored : 'system';
+            if (setting !== 'light' && setting !== 'dark' && setting !== 'system') {
+                setting = 'system';
+            }
+
+            const shouldUseDark = setting === 'dark' || (setting === 'system' && prefersDark);
+            if (shouldUseDark) {
+                root.classList.add('dark');
+            } else {
+                root.classList.remove('dark');
+            }
+
+            root.setAttribute('data-theme-setting', setting);
+        })();
+    </script>
     <link rel="stylesheet" href="style.css">
     <script type="application/ld+json">
         {
@@ -123,9 +159,26 @@
                     </div>
 
                 <div class="nav-actions">
-                    <button id="theme-toggle" class="btn btn-icon" type="button" aria-label="Toggle theme" data-testid="button-theme-toggle">
-                        <i class="fas fa-moon"></i>
-                    </button>
+                    <div class="theme-switcher" data-theme-control>
+                        <button class="btn btn-icon" type="button" aria-haspopup="true" aria-expanded="false" data-theme-trigger data-testid="button-theme-toggle">
+                            <i class="fas fa-circle-half-stroke" data-theme-icon></i>
+                            <span class="sr-only" data-theme-trigger-label>Theme</span>
+                        </button>
+                        <div class="theme-menu" role="menu" aria-label="Select theme">
+                            <button type="button" class="theme-option" data-theme-option data-theme-value="light" role="menuitemradio" aria-checked="false">
+                                <i class="fas fa-sun"></i>
+                                <span>Light</span>
+                            </button>
+                            <button type="button" class="theme-option" data-theme-option data-theme-value="dark" role="menuitemradio" aria-checked="false">
+                                <i class="fas fa-moon"></i>
+                                <span>Dark</span>
+                            </button>
+                            <button type="button" class="theme-option" data-theme-option data-theme-value="system" role="menuitemradio" aria-checked="false">
+                                <i class="fas fa-circle-half-stroke"></i>
+                                <span>System</span>
+                            </button>
+                        </div>
+                    </div>
                     <button id="casfolio-logout" class="btn btn-primary" type="button" hidden>
                         <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                         <span>Logout</span>
@@ -145,10 +198,26 @@
                 <button onclick="scrollToSection('timeline')" data-testid="nav-mobile-timeline">Timeline</button>
                 <button onclick="scrollToSection('contact')" data-testid="nav-mobile-contact">Export</button>
                 <button onclick="openCustomizePanel()" data-testid="nav-mobile-customize">Customize</button>
-                <button id="theme-toggle-mobile" class="btn btn-outline" type="button" data-testid="button-theme-toggle-mobile">
-                    <i class="fas fa-moon"></i>
-                    <span>Theme</span>
-                </button>
+                <div class="theme-switcher theme-switcher--mobile" data-theme-control>
+                    <button class="btn btn-outline" type="button" aria-haspopup="true" aria-expanded="false" data-theme-trigger data-testid="button-theme-toggle-mobile">
+                        <i class="fas fa-circle-half-stroke" data-theme-icon></i>
+                        <span data-theme-trigger-label>Theme</span>
+                    </button>
+                    <div class="theme-menu" role="menu" aria-label="Select theme">
+                        <button type="button" class="theme-option" data-theme-option data-theme-value="light" role="menuitemradio" aria-checked="false">
+                            <i class="fas fa-sun"></i>
+                            <span>Light</span>
+                        </button>
+                        <button type="button" class="theme-option" data-theme-option data-theme-value="dark" role="menuitemradio" aria-checked="false">
+                            <i class="fas fa-moon"></i>
+                            <span>Dark</span>
+                        </button>
+                        <button type="button" class="theme-option" data-theme-option data-theme-value="system" role="menuitemradio" aria-checked="false">
+                            <i class="fas fa-circle-half-stroke"></i>
+                            <span>System</span>
+                        </button>
+                    </div>
+                </div>
                 <a href="/login" class="btn btn-primary mobile-login" id="casfolio-mobile-login">
                     <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
                     <span>Login</span>
@@ -283,64 +352,59 @@
         </div>
     </section>
 
-    <!-- Calendar Overview -->
-    <section id="calendar" class="calendar-section">
+    <!-- Activity Heatmap -->
+    <section id="heatmap" class="activity-heatmap" role="region" aria-label="Activity Heatmap">
         <div class="container">
             <div class="section-header">
-                <h2 data-testid="text-section-title">Calendar Overview</h2>
-                <p data-testid="text-section-description">Visualise CAS activity streaks and drill into daily contributions</p>
+                <h2 data-testid="text-section-title">Activity Heatmap</h2>
+                <p data-testid="text-section-description">Visualise streaks and strand intensity with a GitHub-style contribution view.</p>
             </div>
 
-            <div class="calendar-surface">
-                <div class="calendar-toolbar">
-                    <div class="calendar-navigation">
-                        <button class="btn btn-icon" id="calendar-prev" aria-label="Previous period" data-testid="button-calendar-prev">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <h3 id="calendar-label" data-testid="text-calendar-label">October 2024</h3>
-                        <button class="btn btn-icon" id="calendar-next" aria-label="Next period" data-testid="button-calendar-next">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+            <div class="card heatmap-card">
+                <div class="heatmap-toolbar">
+                    <div class="heatmap-filter">
+                        <label for="heatmap-range">Date range</label>
+                        <select id="heatmap-range" class="select-control heatmap-range" data-testid="select-heatmap-range">
+                            <option value="12w">Last 12 weeks</option>
+                            <option value="24w">Last 24 weeks</option>
+                            <option value="52w">Last 52 weeks</option>
+                            <option value="ytd">Year to date</option>
+                        </select>
                     </div>
-                    <div class="calendar-view-toggle" role="group" aria-label="Calendar view mode">
-                        <button class="toggle-btn active" id="calendar-view-month" type="button" data-view="month" data-testid="button-calendar-month">Month</button>
-                        <button class="toggle-btn" id="calendar-view-week" type="button" data-view="week" data-testid="button-calendar-week">Week</button>
+                    <div class="heatmap-filter">
+                        <span>Categories</span>
+                        <div class="heatmap-category-toggle" id="heatmap-category-filters" role="group" aria-label="Filter heatmap by category">
+                            <button type="button" class="heatmap-category-btn" data-heatmap-category="creativity">
+                                <span class="legend-dot creativity" aria-hidden="true"></span>
+                                <span>Creativity</span>
+                            </button>
+                            <button type="button" class="heatmap-category-btn" data-heatmap-category="activity">
+                                <span class="legend-dot activity" aria-hidden="true"></span>
+                                <span>Activity</span>
+                            </button>
+                            <button type="button" class="heatmap-category-btn" data-heatmap-category="service">
+                                <span class="legend-dot service" aria-hidden="true"></span>
+                                <span>Service</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div id="calendar-grid" class="calendar-grid" role="table" aria-label="CAS activity calendar"></div>
-                <div id="calendar-empty" class="empty-state" style="display: none;">
-                    <p data-testid="text-calendar-empty">No activities recorded for this period yet.</p>
-                </div>
-
-                <div class="calendar-legend" aria-hidden="true">
-                    <span class="legend-item">
-                        <span class="legend-dot creativity"></span> Creativity
-                    </span>
-                    <span class="legend-item">
-                        <span class="legend-dot activity"></span> Activity
-                    </span>
-                    <span class="legend-item">
-                        <span class="legend-dot service"></span> Service
-                    </span>
-                </div>
-            </div>
-
-            <div class="heatmap-card">
-                <div class="heatmap-header">
-                    <h3 data-testid="text-heatmap-title">Daily Contribution Heatmap</h3>
-                    <p data-testid="text-heatmap-description">See streak intensity and dominant CAS strand over the past 20 weeks.</p>
-                </div>
-                <div id="calendar-heatmap" class="calendar-heatmap" role="img" aria-label="CAS daily contribution heatmap"></div>
-                <div class="heatmap-legend" aria-hidden="true">
-                    <span>Low</span>
-                    <div class="heatmap-scale">
-                        <span class="heatmap-cell level-1"></span>
-                        <span class="heatmap-cell level-2"></span>
-                        <span class="heatmap-cell level-3"></span>
-                        <span class="heatmap-cell level-4"></span>
+                <div class="heatmap-body">
+                    <div id="activity-heatmap" class="calendar-heatmap" role="grid" aria-label="CAS activity heatmap"></div>
+                    <div id="activity-heatmap-empty" class="empty-state" hidden>
+                        <p data-testid="text-heatmap-empty">No CAS activity matches the selected filters yet.</p>
                     </div>
-                    <span>High</span>
+                    <div class="heatmap-legend" aria-hidden="true">
+                        <span>Low</span>
+                        <div class="heatmap-scale">
+                            <span class="heatmap-cell level-1"></span>
+                            <span class="heatmap-cell level-2"></span>
+                            <span class="heatmap-cell level-3"></span>
+                            <span class="heatmap-cell level-4"></span>
+                        </div>
+                        <span>High</span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -802,11 +866,32 @@
                     <textarea name="challengeDescription" placeholder="Describe a challenge you faced during this activity." data-testid="input-challenge-description"></textarea>
                 </div>
 
-                <div class="form-group">
-                    <label>Learning Outcomes</label>
-                    <p class="helper-text">Select the IB CAS learning outcomes demonstrated during this activity.</p>
-                    <div id="learning-outcomes-options" class="learning-outcomes-options" data-testid="learning-outcomes-options"></div>
-                    <div id="learning-outcomes-list" class="learning-outcomes-list"></div>
+                <div class="form-group form-group--card">
+                    <div class="card learning-outcomes-card" id="learning-outcomes-card">
+                        <div class="learning-outcomes-card-header">
+                            <div>
+                                <h3>Learning Outcomes</h3>
+                                <p class="helper-text">Select IB CAS outcomes (LO1–LO7) or add your own to highlight what you learned.</p>
+                            </div>
+                            <button type="button" class="btn btn-ghost btn-sm" id="clear-learning-outcomes" data-testid="button-clear-learning-outcomes">
+                                Clear
+                            </button>
+                        </div>
+                        <div class="learning-outcomes-card-body">
+                            <div id="learning-outcomes-options" class="learning-outcomes-options" role="group" aria-label="Learning outcomes" data-testid="learning-outcomes-options"></div>
+                            <div id="custom-outcome-wrapper" class="custom-outcome-wrapper" hidden>
+                                <label for="custom-learning-outcome" class="custom-outcome-label">Custom learning outcomes</label>
+                                <div class="custom-outcome-input">
+                                    <input id="custom-learning-outcome" type="text" placeholder="Describe a unique learning outcome" autocomplete="off">
+                                    <button type="button" class="btn btn-outline btn-sm" id="add-custom-learning-outcome" data-testid="button-add-custom-outcome">
+                                        Add
+                                    </button>
+                                </div>
+                                <p class="helper-text">Press Enter after each custom outcome to save it.</p>
+                            </div>
+                            <div id="learning-outcomes-list" class="learning-outcomes-list" role="list"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="form-grid form-grid--stacked">

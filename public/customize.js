@@ -12,6 +12,7 @@
     { id: 'overview', name: 'CAS Overview', builtin: true, visible: true },
     { id: 'recent', name: 'Recent Activities', builtin: true, visible: true },
     { id: 'timeline', name: 'Timeline', builtin: true, visible: true },
+    { id: 'heatmap', name: 'Activity Heatmap', builtin: true, visible: true },
     { id: 'reflection', name: 'Reflection Journal', builtin: true, visible: true },
     { id: 'progress', name: 'Progress Overview', builtin: true, visible: true },
     { id: 'gallery', name: 'Activity Gallery', builtin: true, visible: true },
@@ -45,6 +46,9 @@
     // Timeline
     { key: 'timeline_title', label: 'Timeline Title', selector: '#timeline .section-header h2', type: 'text', group: 'Timeline' },
     { key: 'timeline_description', label: 'Timeline Description', selector: '#timeline .section-header p', type: 'textarea', group: 'Timeline' },
+    // Heatmap
+    { key: 'heatmap_title', label: 'Heatmap Title', selector: '#heatmap .section-header h2', type: 'text', group: 'Heatmap' },
+    { key: 'heatmap_description', label: 'Heatmap Description', selector: '#heatmap .section-header p', type: 'textarea', group: 'Heatmap' },
     // Reflection
     { key: 'reflection_title', label: 'Reflection Title', selector: '#reflection .section-header h2', type: 'text', group: 'Reflection' },
     { key: 'reflection_description', label: 'Reflection Description', selector: '#reflection .section-header p', type: 'textarea', group: 'Reflection' },
@@ -134,7 +138,8 @@
   // Optional helper text displayed under standard content groups in the editor
   const CONTENT_GROUP_HELPERS = {
     Hero: 'Edit the headline, description, and metrics shown at the top of the portfolio.',
-    Brand: 'Control the navigation brand text, image, and fallback icon.'
+    Brand: 'Control the navigation brand text, image, and fallback icon.',
+    Heatmap: 'Adjust the title and helper copy for the activity contribution heatmap.'
   };
 
   // Remote persistence helpers
