@@ -57,10 +57,10 @@ a:focus-visible {
     --border: #d0d7de;
     --muted: #f8fafc;
     --muted-foreground: #64748b;
-    --primary: #238636;
-    --primary-rgb: 35, 134, 54;
-    --primary-hover: #2ea043;
-    --primary-foreground: #f6fff4;
+    --primary: #2563eb;
+    --primary-rgb: 37, 99, 235;
+    --primary-hover: #1d4ed8;
+    --primary-foreground: #ffffff;
     --secondary: #58a6ff;
     --secondary-foreground: #0d1117;
     --accent: #2ea043;
@@ -149,13 +149,13 @@ a:focus-visible {
     --surface-elevated: #1f242c;
     --card: #161b22;
     --card-foreground: #c9d1d9;
-    --muted: #1f242c;
+    --muted: rgb(19, 23, 31);
     --muted-foreground: #8b949e;
     --border: #30363d;
-    --primary: #238636;
-    --primary-rgb: 35, 134, 54;
-    --primary-hover: #2ea043;
-    --primary-foreground: #f6fff4;
+    --primary: #1f6feb;
+    --primary-rgb: 31, 111, 235;
+    --primary-hover: #388bfd;
+    --primary-foreground: #0d1117;
     --secondary: #58a6ff;
     --secondary-foreground: #0d1117;
     --accent: #2ea043;
@@ -1493,10 +1493,15 @@ section {
 }
 
 .supervisor-comment {
-    background: rgba(248, 250, 252, 0.5);
+    background: color-mix(in srgb, var(--surface, var(--card)) 88%, transparent);
     border-radius: var(--radius);
     padding: 1rem;
     margin-top: 1.5rem;
+}
+
+.dark .supervisor-comment {
+    background: color-mix(in srgb, var(--surface, #161b22) 92%, rgba(0, 0, 0, 0.45));
+    border: 1px solid rgba(48, 54, 61, 0.6);
 }
 
 .supervisor-comment p {
@@ -1505,6 +1510,10 @@ section {
     font-style: italic;
     margin-bottom: 0.5rem;
     line-height: 1.6;
+}
+
+.dark .supervisor-comment p {
+    color: color-mix(in srgb, var(--foreground) 85%, transparent);
 }
 
 .signature {
@@ -1524,8 +1533,8 @@ section {
 
 /* Footer */
 .footer {
-    background: var(--foreground);
-    color: var(--background);
+    background: var(--surface, var(--card));
+    color: var(--foreground);
     padding: 2rem 0;
 }
 
@@ -1570,14 +1579,15 @@ section {
 }
 
 .footer-links a {
-    color: inherit;
+    color: var(--muted-foreground);
     text-decoration: none;
     opacity: 0.7;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, color 0.2s;
 }
 
 .footer-links a:hover {
     opacity: 1;
+    color: var(--foreground);
 }
 
 /* Customize UI (panel, overlay replacement, and FAB) */
