@@ -331,13 +331,14 @@
                         <p data-testid="text-heatmap-empty">No CAS activity matches the selected filters yet.</p>
                     </div>
                     <div class="heatmap-legend" aria-hidden="true">
-                        <span>Low (≤1 hr)</span>
+                        <span>Less</span>
                         <div class="heatmap-scale">
-                            <span class="heatmap-cell level-1" title="1 hour or less"></span>
-                            <span class="heatmap-cell level-2" title="More than 1 hour but less than 3 hours"></span>
-                            <span class="heatmap-cell level-3" title="3 or more hours"></span>
+                            <span class="heatmap-cell level-0" aria-hidden="true"></span>
+                            <span class="heatmap-cell level-1" aria-hidden="true"></span>
+                            <span class="heatmap-cell level-2" aria-hidden="true"></span>
+                            <span class="heatmap-cell level-3" aria-hidden="true"></span>
                         </div>
-                        <span>High (≥3 hrs)</span>
+                        <span>More</span>
                     </div>
                 </div>
             </div>

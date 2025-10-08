@@ -148,8 +148,10 @@ try {
                     : Array.isArray(activity.learning_outcomes)
                         ? activity.learning_outcomes
                         : [];
-                normalized.rating = Number.isFinite(activity.rating) ? activity.rating : null;
-                normalized.difficulty = Number.isFinite(activity.difficulty) ? activity.difficulty : null;
+                const hydratedRating = Number(activity.rating ?? activity.rating_value);
+                normalized.rating = Number.isFinite(hydratedRating) && hydratedRating > 0 ? hydratedRating : null;
+                const hydratedDifficulty = Number(activity.difficulty ?? activity.difficulty_value);
+                normalized.difficulty = Number.isFinite(hydratedDifficulty) ? hydratedDifficulty : null;
                 return normalized;
             });
         }
@@ -176,8 +178,14 @@ try {
             dateGeneral: activity.dateGeneral,
             totalHours: activity.totalHours,
             learningOutcomes: Array.isArray(activity.learningOutcomes) ? [...activity.learningOutcomes] : [],
-            rating: Number.isFinite(activity.rating) ? activity.rating : null,
-            difficulty: Number.isFinite(activity.difficulty) ? activity.difficulty : null,
+            rating: (() => {
+                const value = Number(activity.rating);
+                return Number.isFinite(value) && value > 0 ? value : null;
+            })(),
+            difficulty: (() => {
+                const value = Number(activity.difficulty);
+                return Number.isFinite(value) ? value : null;
+            })(),
             headerImage: null,
             headerImagePath: null,
             assets: [],
@@ -235,6 +243,16 @@ const PRESET_LEARNING_OUTCOME_VALUES = new Set(LEARNING_OUTCOME_PRESETS.map((ite
 
 let learningOutcomes = [];
 let customLearningOutcomes = [];
+
+function toFiniteNumber(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+}
+
+function toOptionalPositiveNumber(value) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
 
 function setPrintMode(enabled) {
     if (isPrinting === enabled) {
@@ -475,6 +493,8 @@ function mapDtoToActivity(dto) {
                 : 0;
     const dateGeneral = dto.date_general || dto.dateGeneral || dto.startDate || null;
     const challengeDescription = dto.challenge_description || dto.challengeDescription || '';
+    const rating = toOptionalPositiveNumber(dto.rating ?? dto.enjoyment_rating);
+    const difficulty = toFiniteNumber(dto.difficulty ?? dto.difficulty_score);
 
     return {
         id: dto.id,
@@ -486,8 +506,8 @@ function mapDtoToActivity(dto) {
         totalHours,
         challengeDescription,
         learningOutcomes,
-        rating: Number.isFinite(dto.rating) ? dto.rating : null,
-        difficulty: Number.isFinite(dto.difficulty) ? dto.difficulty : null,
+        rating,
+        difficulty,
         headerImage: dto.headerImageUrl,
         headerImagePath: dto.headerImagePath,
         createdAt: dto.createdAt,
@@ -886,8 +906,12 @@ function calculateStats() {
         }
     };
 
-    const ratingValues = currentActivities.map((activity) => activity.rating).filter((value) => Number.isFinite(value));
-    const difficultyValues = currentActivities.map((activity) => activity.difficulty).filter((value) => Number.isFinite(value));
+    const ratingValues = currentActivities
+        .map((activity) => Number(activity.rating))
+        .filter((value) => Number.isFinite(value) && value > 0);
+    const difficultyValues = currentActivities
+        .map((activity) => Number(activity.difficulty))
+        .filter((value) => Number.isFinite(value));
 
     const averageRating = ratingValues.length > 0
         ? ratingValues.reduce((sum, value) => sum + value, 0) / ratingValues.length

@@ -37,6 +37,18 @@ body {
     --accent: #f59e0b;
     --accent-foreground: #92400e;
     --heatmap-accent: var(--accent);
+    --heatmap-level-0: #ebedf0;
+    --heatmap-level-1: #c6f6d7;
+    --heatmap-level-2: #7bc96f;
+    --heatmap-level-3: #239a3b;
+    --heatmap-border: #d0d7de;
+    --heatmap-grid-bg: #f6f8fa;
+    --heatmap-tooltip-bg: rgba(23, 26, 32, 0.92);
+    --heatmap-tooltip-border: rgba(208, 215, 222, 0.7);
+    --heatmap-tooltip-foreground: #f6f8fa;
+    --achievement-star-shadow: rgba(245, 158, 11, 0.28);
+    --achievement-users-shadow: rgba(16, 185, 129, 0.24);
+    --achievement-medal-shadow: rgba(59, 130, 246, 0.24);
     --muted: #f8fafc;
     --muted-foreground: #64748b;
     --border: #e2e8f0;
@@ -116,6 +128,18 @@ body {
     --accent: #3f414b;
     --accent-foreground: #f2f3f5;
     --heatmap-accent: var(--accent);
+    --heatmap-level-0: #161b22;
+    --heatmap-level-1: #0e4429;
+    --heatmap-level-2: #006d32;
+    --heatmap-level-3: #26a641;
+    --heatmap-border: #30363d;
+    --heatmap-grid-bg: rgba(13, 17, 23, 0.95);
+    --heatmap-tooltip-bg: rgba(13, 17, 23, 0.95);
+    --heatmap-tooltip-border: rgba(49, 54, 63, 0.9);
+    --heatmap-tooltip-foreground: #e6edf3;
+    --achievement-star-shadow: rgba(245, 158, 11, 0.35);
+    --achievement-users-shadow: rgba(16, 185, 129, 0.32);
+    --achievement-medal-shadow: rgba(59, 130, 246, 0.32);
     --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
     --shadow-lg: 0 20px 45px rgba(0, 0, 0, 0.45);
     color-scheme: dark;
@@ -1264,28 +1288,56 @@ section {
 }
 
 .achievement-icon {
-    width: 2rem;
-    height: 2rem;
-    border-radius: var(--radius);
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 18px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.875rem;
+    font-size: 1.15rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(250, 250, 250, 0.6));
+    box-shadow: 0 14px 30px rgba(15, 23, 42, 0.12);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.achievement-item:hover .achievement-icon {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 36px rgba(15, 23, 42, 0.18);
 }
 
 .achievement-icon.star {
-    background: rgba(245, 158, 11, 0.16);
+    background: linear-gradient(135deg, #fff7ed, #ffe4c6);
     color: #f59e0b;
+    box-shadow: 0 12px 24px var(--achievement-star-shadow);
 }
 
 .achievement-icon.users {
-    background: rgba(16, 185, 129, 0.16);
+    background: linear-gradient(135deg, #ecfdf5, #c9f7e4);
     color: #10b981;
+    box-shadow: 0 12px 24px var(--achievement-users-shadow);
 }
 
 .achievement-icon.medal {
-    background: rgba(59, 130, 246, 0.16);
+    background: linear-gradient(135deg, #eef2ff, #dbe5ff);
     color: #3b82f6;
+    box-shadow: 0 12px 24px var(--achievement-medal-shadow);
+}
+
+.dark .achievement-icon {
+    background: linear-gradient(135deg, rgba(32, 33, 39, 0.95), rgba(24, 25, 29, 0.7));
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.48);
+}
+
+.dark .achievement-icon.star {
+    background: linear-gradient(135deg, rgba(87, 60, 16, 0.95), rgba(128, 85, 22, 0.75));
+}
+
+.dark .achievement-icon.users {
+    background: linear-gradient(135deg, rgba(9, 61, 40, 0.92), rgba(14, 78, 51, 0.72));
+}
+
+.dark .achievement-icon.medal {
+    background: linear-gradient(135deg, rgba(38, 56, 105, 0.92), rgba(47, 72, 129, 0.72));
 }
 
 .achievement-text p {
@@ -2777,13 +2829,14 @@ body.print-mode .timeline-container {
 
 .heatmap-card {
     background: var(--card);
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
+    border-radius: 18px;
+    border: 1px solid var(--heatmap-border);
+    box-shadow: 0 22px 45px rgba(15, 23, 42, 0.08);
     padding: 1.75rem 2rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 
 .heatmap-toolbar {
@@ -2825,33 +2878,38 @@ body.print-mode .timeline-container {
     align-items: center;
     gap: 0.5rem;
     border-radius: 999px;
-    border: 1px solid var(--border);
-    padding: 0.45rem 0.85rem;
+    border: 1px solid var(--heatmap-border);
+    padding: 0.45rem 0.95rem;
     font-weight: 600;
     font-size: 0.85rem;
-    background: var(--muted);
+    background: color-mix(in srgb, var(--heatmap-grid-bg) 70%, transparent);
     color: var(--muted-foreground);
     cursor: pointer;
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .heatmap-category-btn .legend-dot {
     width: 10px;
     height: 10px;
     border-radius: 999px;
-    background: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 75%, transparent);
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 25%, transparent);
+    background: var(--heatmap-level-2);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--heatmap-border) 65%, transparent);
+}
+
+.heatmap-category-btn.active .legend-dot {
+    background: var(--heatmap-level-3);
 }
 
 .heatmap-category-btn:hover,
 .heatmap-category-btn:focus-visible {
-    border-color: rgba(var(--primary-rgb), 0.35);
+    border-color: color-mix(in srgb, var(--heatmap-border) 40%, transparent);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
 }
 
 .heatmap-category-btn.active {
-    background: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 16%, transparent);
+    background: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 18%, var(--heatmap-grid-bg) 82%);
     border-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 45%, transparent);
-    color: var(--heatmap-accent, var(--accent, var(--primary)));
+    color: var(--foreground);
 }
 
 .heatmap-body {
@@ -2880,7 +2938,11 @@ body.print-mode .timeline-container {
     justify-content: start;
     overflow: hidden;
     width: 100%;
-    padding-bottom: 0;
+    padding: 1.25rem 1.25rem 1rem 1.25rem;
+    border-radius: 16px;
+    background: var(--heatmap-grid-bg);
+    border: 1px solid var(--heatmap-border);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .calendar-heatmap .heatmap-cell {
@@ -2888,58 +2950,61 @@ body.print-mode .timeline-container {
     width: var(--heatmap-cell-size);
     height: var(--heatmap-cell-size);
     border-radius: 4px;
-    background: var(--heatmap-cell-color, color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 60%, transparent));
-    border: 1px solid color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 25%, transparent);
-    transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, opacity 0.2s ease;
+    background: var(--heatmap-cell-color, var(--heatmap-level-0));
+    border: 1px solid var(--heatmap-border);
+    transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .calendar-heatmap .heatmap-cell:hover,
 .calendar-heatmap .heatmap-cell:focus-visible {
-    transform: scale(1.12);
-    border-color: rgba(var(--primary-rgb), 0.45);
+    transform: scale(1.05);
+    border-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 50%, transparent);
+    box-shadow: 0 6px 12px rgba(15, 23, 42, 0.18);
     outline: none;
 }
 
 .calendar-heatmap .heatmap-cell[tabindex="0"]:focus-visible {
-    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.35);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 45%, transparent);
 }
 
-.heatmap-cell.level-0 { --heatmap-cell-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 18%, transparent); }
-.heatmap-cell.level-1 { --heatmap-cell-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 38%, transparent); }
-.heatmap-cell.level-2 { --heatmap-cell-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 62%, transparent); }
-.heatmap-cell.level-3 { --heatmap-cell-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 88%, transparent); }
-
-.heatmap-cell.creativity,
-.heatmap-cell.activity,
-.heatmap-cell.service {
-    --heatmap-cell-color: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 88%, transparent);
-}
+.heatmap-cell.level-0 { --heatmap-cell-color: var(--heatmap-level-0); }
+.heatmap-cell.level-1 { --heatmap-cell-color: var(--heatmap-level-1); }
+.heatmap-cell.level-2 { --heatmap-cell-color: var(--heatmap-level-2); }
+.heatmap-cell.level-3 { --heatmap-cell-color: var(--heatmap-level-3); }
 
 .heatmap-legend {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    gap: 0.75rem;
+    justify-content: center;
+    gap: 0.85rem;
     color: var(--muted-foreground);
     font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.heatmap-legend > span {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.75rem;
 }
 
 .heatmap-scale {
     display: inline-flex;
-    gap: 4px;
+    gap: 6px;
 }
 
 .heatmap-scale .heatmap-cell {
     width: 16px;
     height: 16px;
     border-radius: 4px;
-    border: none;
+    border: 1px solid var(--heatmap-border);
     opacity: 1;
 }
 
-.heatmap-scale .heatmap-cell.level-1 { background: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 38%, transparent); }
-.heatmap-scale .heatmap-cell.level-2 { background: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 62%, transparent); }
-.heatmap-scale .heatmap-cell.level-3 { background: color-mix(in srgb, var(--heatmap-accent, var(--accent, #10a37f)) 88%, transparent); }
+.heatmap-scale .heatmap-cell.level-0 { background: var(--heatmap-level-0); }
+.heatmap-scale .heatmap-cell.level-1 { background: var(--heatmap-level-1); }
+.heatmap-scale .heatmap-cell.level-2 { background: var(--heatmap-level-2); }
+.heatmap-scale .heatmap-cell.level-3 { background: var(--heatmap-level-3); }
 
 .heatmap-cell[data-tooltip]::after,
 .heatmap-cell[data-tooltip]::before {
@@ -2951,8 +3016,8 @@ body.print-mode .timeline-container {
 
 .heatmap-cell[data-tooltip]::after {
     content: attr(data-tooltip);
-    background: color-mix(in srgb, var(--card, #1c1d21) 92%, rgba(0, 0, 0, 0.08));
-    color: var(--foreground);
+    background: var(--heatmap-tooltip-bg);
+    color: var(--heatmap-tooltip-foreground);
     padding: 0.4rem 0.65rem;
     border-radius: 6px;
     font-size: 0.7rem;
@@ -2962,14 +3027,14 @@ body.print-mode .timeline-container {
     transform: translate(-50%, -100%);
     z-index: 4;
     box-shadow: 0 12px 30px rgba(15, 23, 42, 0.25);
-    border: 1px solid color-mix(in srgb, var(--border, #2f3036) 75%, transparent);
+    border: 1px solid var(--heatmap-tooltip-border);
 }
 
 .heatmap-cell[data-tooltip]::before {
     content: '';
     width: 8px;
     height: 8px;
-    background: color-mix(in srgb, var(--card, #1c1d21) 92%, rgba(0, 0, 0, 0.08));
+    background: var(--heatmap-tooltip-bg);
     transform: translate(-50%, -160%) rotate(45deg);
     top: -0.28rem;
     left: 50%;
@@ -3086,6 +3151,16 @@ body.print-mode .timeline-container {
     width: 100%;
     font-size: 1.5rem;
     color: var(--muted-foreground);
+}
+
+.dark .rating-box {
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    background: linear-gradient(135deg, rgba(32, 34, 40, 0.92), rgba(20, 22, 28, 0.72));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 12px 26px rgba(0, 0, 0, 0.45);
+}
+
+.dark .rating-box--stars {
+    color: #39d353;
 }
 
 .trend-card {
