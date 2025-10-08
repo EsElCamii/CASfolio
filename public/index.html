@@ -179,6 +179,10 @@
                             </button>
                         </div>
                     </div>
+                    <a href="/login" id="casfolio-login-link" class="btn btn-login" data-testid="link-login">
+                        <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
+                        <span>Login</span>
+                    </a>
                     <button id="casfolio-logout" class="btn btn-primary" type="button" hidden>
                         <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                         <span>Logout</span>
@@ -218,7 +222,7 @@
                         </button>
                     </div>
                 </div>
-                <a href="/login" class="btn btn-primary mobile-login" id="casfolio-mobile-login">
+                <a href="/login" class="btn btn-login mobile-login" id="casfolio-mobile-login">
                     <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
                     <span>Login</span>
                 </a>
@@ -326,7 +330,7 @@
                 </div>
 
                 <div class="heatmap-body">
-                    <div id="activity-heatmap" class="calendar-heatmap" role="grid" aria-label="CAS activity heatmap"></div>
+                    <div id="activity-heatmap" class="heatmap-grid"></div>
                     <div id="activity-heatmap-empty" class="empty-state" hidden>
                         <p data-testid="text-heatmap-empty">No CAS activity matches the selected filters yet.</p>
                     </div>
@@ -891,23 +895,37 @@
                     </div>
                 </div>
 
-                <div class="form-grid form-grid--stacked">
-                    <div class="form-group">
-                        <label>Enjoyment Rating</label>
-                        <div class="rating-input" id="rating-control" role="radiogroup" aria-label="Enjoyment rating" data-testid="rating-control">
-                            <button type="button" class="rating-star" data-value="1" aria-label="1 star"><i class="fas fa-star"></i></button>
-                            <button type="button" class="rating-star" data-value="2" aria-label="2 stars"><i class="fas fa-star"></i></button>
-                            <button type="button" class="rating-star" data-value="3" aria-label="3 stars"><i class="fas fa-star"></i></button>
-                            <button type="button" class="rating-star" data-value="4" aria-label="4 stars"><i class="fas fa-star"></i></button>
-                            <button type="button" class="rating-star" data-value="5" aria-label="5 stars"><i class="fas fa-star"></i></button>
+                <div class="experience-inputs">
+                    <section class="experience-input-card" aria-labelledby="rating-input-title">
+                        <header class="experience-input-header">
+                            <label id="rating-input-title" class="experience-input-title">Enjoyment Rating</label>
+                            <p class="experience-input-helper">Tap a star to capture how much enjoyment this activity brought you.</p>
+                        </header>
+                        <div class="experience-input-body">
+                            <div class="rating-input" id="rating-control" role="radiogroup" aria-label="Enjoyment rating" data-testid="rating-control">
+                                <button type="button" class="rating-star" data-value="1" aria-label="1 star"><i class="fas fa-star"></i></button>
+                                <button type="button" class="rating-star" data-value="2" aria-label="2 stars"><i class="fas fa-star"></i></button>
+                                <button type="button" class="rating-star" data-value="3" aria-label="3 stars"><i class="fas fa-star"></i></button>
+                                <button type="button" class="rating-star" data-value="4" aria-label="4 stars"><i class="fas fa-star"></i></button>
+                                <button type="button" class="rating-star" data-value="5" aria-label="5 stars"><i class="fas fa-star"></i></button>
+                            </div>
+                            <input type="hidden" name="rating" id="rating-value" value="0">
                         </div>
-                        <input type="hidden" name="rating" id="rating-value" value="0">
-                    </div>
-                    <div class="form-group difficulty-group">
-                        <label for="difficulty-input">Difficulty</label>
-                        <input type="range" name="difficulty" id="difficulty-input" min="1" max="10" value="5" data-testid="input-difficulty">
-                        <div class="difficulty-value"><span id="difficulty-value">5</span>/10</div>
-                    </div>
+                    </section>
+                    <section class="experience-input-card" aria-labelledby="difficulty-input-title">
+                        <header class="experience-input-header">
+                            <label id="difficulty-input-title" class="experience-input-title" for="difficulty-input">Difficulty</label>
+                            <p class="experience-input-helper">Slide to reflect how challenging this experience felt.</p>
+                        </header>
+                        <div class="experience-input-body">
+                            <input type="range" class="difficulty-slider" name="difficulty" id="difficulty-input" min="1" max="10" value="5" data-testid="input-difficulty" aria-valuemin="1" aria-valuemax="10" aria-valuenow="5">
+                            <div class="difficulty-meta">
+                                <span class="difficulty-scale-label">Ease</span>
+                                <span class="difficulty-value"><span id="difficulty-value">5</span>/10</span>
+                                <span class="difficulty-scale-label">Challenge</span>
+                            </div>
+                        </div>
+                    </section>
                 </div>
 
                 <div class="modal-actions">

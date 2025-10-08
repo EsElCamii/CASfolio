@@ -40,6 +40,11 @@ a:focus-visible {
     text-decoration: underline;
 }
 
+a:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+}
+
 /* CSS Variables for Light Theme */
 :root {
     --background: #ffffff;
@@ -453,6 +458,19 @@ a:focus-visible {
 
 .btn-primary:hover {
     background: var(--primary-hover, var(--primary));
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
+.btn-login {
+    background: var(--link-color, #1f6feb);
+    color: #ffffff;
+    border: 1px solid rgba(88, 166, 255, 0.35);
+}
+
+.btn-login:hover {
+    background: var(--link-hover-color, var(--link-color, #1f6feb));
+    color: #ffffff;
     transform: translateY(-1px);
     box-shadow: var(--shadow-lg);
 }
@@ -2955,31 +2973,70 @@ body.print-mode .timeline-container {
     gap: 1.25rem;
 }
 
-.calendar-heatmap {
+.heatmap-grid {
     --heatmap-gap: 4px;
     --heatmap-columns: 52;
-    --heatmap-cell-max: 18px;
-    --heatmap-cell-min: 8px;
-    --heatmap-cell-size: clamp(
-        var(--heatmap-cell-min),
-        calc((100% - (var(--heatmap-gap) * (var(--heatmap-columns) - 1))) / var(--heatmap-columns)),
-        var(--heatmap-cell-max)
-    );
+    --heatmap-cell-size: clamp(10px, calc((100% - (var(--heatmap-gap) * (var(--heatmap-columns) - 1))) / var(--heatmap-columns)), 14px);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-x: auto;
+    padding-bottom: 0.35rem;
+}
+
+.heatmap-month-labels {
+    display: grid;
+    grid-template-columns: repeat(var(--heatmap-columns), var(--heatmap-cell-size));
+    gap: var(--heatmap-gap);
+    padding-left: calc(var(--heatmap-weekday-width, 2.6rem));
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted-foreground);
+}
+
+.heatmap-month-labels span {
+    font-weight: 600;
+}
+
+.heatmap-body-grid {
+    --heatmap-weekday-width: 2.6rem;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+}
+
+.heatmap-weekdays {
+    display: grid;
+    grid-template-rows: repeat(7, var(--heatmap-cell-size));
+    gap: var(--heatmap-gap);
+    font-size: 0.7rem;
+    color: var(--muted-foreground);
+    padding-top: 0.4rem;
+    width: var(--heatmap-weekday-width);
+}
+
+.heatmap-weekdays span {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 0.35rem;
+}
+
+.calendar-heatmap {
     display: grid;
     grid-auto-flow: column;
     grid-auto-columns: var(--heatmap-cell-size);
     grid-template-columns: repeat(var(--heatmap-columns), var(--heatmap-cell-size));
     grid-template-rows: repeat(7, var(--heatmap-cell-size));
     gap: var(--heatmap-gap);
-    align-content: start;
-    justify-content: start;
-    overflow: hidden;
-    width: 100%;
-    padding: 1.25rem 1.25rem 1rem 1.25rem;
+    padding: 1.1rem;
     border-radius: 16px;
     background: var(--heatmap-grid-bg);
     border: 1px solid var(--heatmap-border);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    width: fit-content;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .calendar-heatmap .heatmap-cell {
@@ -3431,47 +3488,153 @@ body.print-mode .timeline-container {
     font-size: 0.9rem;
     color: var(--muted-foreground);
 }
-.form-grid--stacked {
+.experience-inputs {
     display: flex;
     flex-wrap: wrap;
     gap: 1.5rem;
+    margin: 1.5rem 0 0;
 }
 
-.form-grid--stacked .form-group {
-    flex: 1 1 220px;
+.experience-input-card {
+    flex: 1 1 240px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: max(var(--radius), 16px);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.dark .experience-input-card {
+    background: var(--surface);
+}
+
+.experience-input-header {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.experience-input-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin: 0;
+}
+
+.experience-input-helper {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+}
+
+.experience-input-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
 }
 
 .rating-input {
     display: inline-flex;
-    gap: 0.5rem;
+    gap: 0.6rem;
 }
 
 .rating-star {
-    background: transparent;
-    border: none;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface, var(--muted));
     color: var(--muted-foreground);
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
-    transition: color 0.2s ease, transform 0.2s ease;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+}
+
+.rating-star:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
 }
 
 .rating-star.active,
 .rating-star:hover,
-.rating-star:focus {
-    color: #fbbf24;
-    transform: scale(1.05);
+.rating-star:focus-visible {
+    color: #f4d03f;
+    background: rgba(244, 208, 63, 0.14);
+    border-color: rgba(244, 208, 63, 0.45);
+    transform: translateY(-1px);
 }
 
-.difficulty-group input[type="range"] {
+.difficulty-slider {
     width: 100%;
-    margin-top: 0.5rem;
+    height: 0.75rem;
+    border-radius: 9999px;
+    background: linear-gradient(to right, var(--accent) var(--progress-position, 50%), rgba(209, 217, 230, 0.6) var(--progress-position, 50%));
+    border: 1px solid var(--border);
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.dark .difficulty-slider {
+    background: linear-gradient(to right, var(--accent) var(--progress-position, 50%), rgba(255, 255, 255, 0.08) var(--progress-position, 50%));
+    border-color: rgba(48, 54, 61, 0.9);
+}
+
+.difficulty-slider:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--focus-ring);
+}
+
+.difficulty-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--background);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.difficulty-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--background);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+
+.dark .difficulty-slider::-webkit-slider-thumb,
+.dark .difficulty-slider::-moz-range-thumb {
+    border-color: #0d1117;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.difficulty-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+}
+
+.difficulty-scale-label {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
 .difficulty-value {
-    margin-top: 0.35rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--muted-foreground);
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--foreground);
 }
 
 .rating-display .fa-star.inactive { opacity: 0.25; }

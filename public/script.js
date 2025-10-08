@@ -1618,7 +1618,33 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
         return `<div class="${classes.join(' ')}" data-date="${iso}" data-tooltip="${cellTooltip}" role="gridcell" aria-label="${cellTooltip}" title="${cellTooltip}" tabindex="${tabIndex}"></div>`;
     });
 
-    heatmap.innerHTML = fragments.join('');
+    const monthEntries = [];
+    let trackedMonth = '';
+    for (let weekIndex = 0; weekIndex < totalWeeks; weekIndex += 1) {
+        const weekDate = new Date(start);
+        weekDate.setDate(start.getDate() + weekIndex * 7);
+        const monthLabel = weekDate.toLocaleString(undefined, { month: 'short' });
+        if (trackedMonth !== monthLabel) {
+            monthEntries.push({ label: monthLabel, column: weekIndex + 1 });
+            trackedMonth = monthLabel;
+        }
+    }
+
+    const monthMarkup = monthEntries.map(({ label, column }) => `<span style="grid-column:${column};">${label}</span>`).join('');
+    const weekdayLabels = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+    const weekdayMarkup = weekdayLabels.map((label) => `<span>${label}</span>`).join('');
+
+    const gridMarkup = `
+        <div class="heatmap-month-labels" aria-hidden="true">${monthMarkup}</div>
+        <div class="heatmap-body-grid">
+            <div class="heatmap-weekdays" aria-hidden="true">${weekdayMarkup}</div>
+            <div class="calendar-heatmap" role="grid">${fragments.join('')}</div>
+        </div>
+    `;
+
+    heatmap.innerHTML = gridMarkup;
+    heatmap.removeAttribute('aria-label');
+    const calendarGrid = heatmap.querySelector('.calendar-heatmap');
     const hasEntriesForSelection = dayData.some((entry) => entry.totalCount > 0);
     if (emptyMessage) {
         emptyMessage.textContent = hasEntriesForSelection
@@ -1630,10 +1656,12 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
     const rangeLabel = HEATMAP_RANGE_OPTIONS[heatmapSettings.range]?.label
         || HEATMAP_RANGE_OPTIONS[DEFAULT_HEATMAP_SETTINGS.range].label;
     const categoryLabel = selectedCategories.map((category) => category.charAt(0).toUpperCase() + category.slice(1)).join(', ');
-    heatmap.setAttribute(
-        'aria-label',
-        `CAS activity heatmap for ${rangeLabel} across ${categoryLabel || 'selected categories'}. Color intensity indicates days with 1 hour, 2 hours, or 3 or more hours of logged activity.`
-    );
+    if (calendarGrid) {
+        calendarGrid.setAttribute(
+            'aria-label',
+            `CAS activity heatmap for ${rangeLabel} across ${categoryLabel || 'selected categories'}. Color intensity indicates days with 1 hour, 2 hours, or 3 or more hours of logged activity.`
+        );
+    }
 }
 
 function setHeatmapRange(range) {
@@ -2274,9 +2302,19 @@ function setLearningOutcomeSelections(values) {
 
 function updateRatingStarsDisplay(value) {
     const stars = document.querySelectorAll('#rating-control .rating-star');
+    let hasChecked = false;
     stars.forEach((star) => {
         const starValue = Number(star.dataset.value);
-        star.classList.toggle('active', starValue <= value);
+        const isActive = starValue <= value;
+        const isChecked = starValue === value && value > 0;
+        star.classList.toggle('active', isActive);
+        star.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+        star.setAttribute('aria-checked', isChecked ? 'true' : 'false');
+        const shouldReceiveTab = isChecked || (!hasChecked && value === 0 && starValue === 1);
+        star.setAttribute('tabindex', shouldReceiveTab ? '0' : '-1');
+        if (isChecked || shouldReceiveTab) {
+            hasChecked = true;
+        }
     });
 }
 
@@ -2295,6 +2333,9 @@ function initializeRatingControl() {
 
     ratingControl.querySelectorAll('.rating-star').forEach((star) => {
         const value = Number(star.dataset.value);
+        star.setAttribute('role', 'radio');
+        star.setAttribute('aria-pressed', 'false');
+        star.setAttribute('aria-checked', 'false');
         star.addEventListener('click', () => {
             setRating(value);
         });
@@ -2302,6 +2343,18 @@ function initializeRatingControl() {
             if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
                 setRating(value);
+            } else if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
+                event.preventDefault();
+                const current = Number(document.getElementById('rating-value')?.value) || 0;
+                const nextValue = Math.min(5, (current || 0) + 1);
+                setRating(nextValue);
+                ratingControl.querySelector(`.rating-star[data-value="${nextValue}"]`)?.focus();
+            } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
+                event.preventDefault();
+                const current = Number(document.getElementById('rating-value')?.value) || 0;
+                const nextValue = Math.max(1, (current || 1) - 1);
+                setRating(nextValue);
+                ratingControl.querySelector(`.rating-star[data-value="${nextValue}"]`)?.focus();
             }
         });
     });
@@ -2314,7 +2367,14 @@ function setDifficultyValue(value) {
     const input = document.getElementById('difficulty-input');
     const label = document.getElementById('difficulty-value');
     const sanitized = Math.min(10, Math.max(1, Number(value) || 1));
-    if (input) input.value = sanitized;
+    if (input) {
+        input.value = sanitized;
+        const min = Number(input.min) || 0;
+        const max = Number(input.max) || 100;
+        const percent = ((sanitized - min) / (max - min)) * 100;
+        input.style.setProperty('--progress-position', `${percent}%`);
+        input.setAttribute('aria-valuenow', String(sanitized));
+    }
     if (label) label.textContent = sanitized;
 }
 
@@ -2564,6 +2624,8 @@ async function saveActivity(values, { isEditing }) {
         difficulty: Number.isFinite(values.difficulty) ? values.difficulty : null
     };
 
+    const headerImageForLocal = headerDescriptor?.url || previousHeaderImage || null;
+
     if (headerDescriptor) {
         payload.headerImagePath = headerDescriptor.path;
         payload.headerImageChecksum = headerDescriptor.checksum;
@@ -2596,11 +2658,41 @@ async function saveActivity(values, { isEditing }) {
     const body = await response.json();
     const activityId = body?.activity?.id;
 
+    const resolvedId = activityId || editingId;
+    if (resolvedId) {
+        const normalizedActivity = {
+            ...(previousActivity || {}),
+            id: resolvedId,
+            title: values.title,
+            category: values.category,
+            status: values.status,
+            description: values.description || '',
+            dateGeneral: values.dateGeneral || null,
+            totalHours: Number.isFinite(values.totalHours) ? values.totalHours : 0,
+            challengeDescription: values.challengeDescription || '',
+            learningOutcomes: Array.isArray(values.learningOutcomes) ? [...values.learningOutcomes] : [],
+            rating: Number.isFinite(values.rating) && values.rating > 0 ? values.rating : null,
+            difficulty: Number.isFinite(values.difficulty) ? values.difficulty : null,
+            headerImage: headerImageForLocal,
+            headerImagePath: headerDescriptor?.path || previousActivity?.headerImagePath || null,
+            updatedAt: new Date().toISOString()
+        };
+
+        const targetIndex = currentActivities.findIndex((activity) => activity.id === resolvedId);
+        if (targetIndex !== -1) {
+            currentActivities[targetIndex] = { ...currentActivities[targetIndex], ...normalizedActivity };
+        } else if (!isEditing) {
+            normalizedActivity.createdAt = new Date().toISOString();
+            currentActivities.push(normalizedActivity);
+        }
+        saveData();
+    }
+
     await hydrateActivitiesFromServer({ force: true, silent: true }).catch((error) => {
         console.error('Unable to refresh activities after save', error);
     });
 
-    const effectiveHeaderImage = headerDescriptor?.url || previousHeaderImage;
+    const effectiveHeaderImage = headerImageForLocal;
 
     if (effectiveHeaderImage && activityId) {
         const targetIndex = currentActivities.findIndex((activity) => activity.id === activityId);
