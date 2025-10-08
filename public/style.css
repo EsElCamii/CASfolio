@@ -86,6 +86,7 @@ a:focus-visible {
     --achievement-medal-shadow: rgba(59, 130, 246, 0.24);
     --badge-purple: #a371f7;
     --badge-pink: #ff7b72;
+    --section-background: var(--background);
     --section-separator-width: 70vw;
     --section-separator-thickness: 5px;
     --section-separator-color: rgba(148, 163, 184, 0.45);
@@ -184,6 +185,7 @@ a:focus-visible {
     --achievement-medal-shadow: rgba(59, 130, 246, 0.32);
     --badge-purple: #a371f7;
     --badge-pink: #ff7b72;
+    --section-background: var(--background);
     --section-separator-color: rgba(148, 163, 184, 0.35);
     --shadow: 0 22px 45px rgba(1, 4, 9, 0.6);
     --shadow-lg: 0 30px 65px rgba(1, 4, 9, 0.75);
@@ -827,22 +829,34 @@ a:focus-visible {
 }
 
 /* Section Styles */
-section {
+body > section {
     padding: 4rem 0;
+    position: relative;
+    background: var(--section-background);
 }
 
-.cas-overview, .reflection-journal, .activity-gallery {
-    background: var(--muted);
+body > section + section {
+    padding-top: calc(4rem + 3rem);
 }
 
-.section-separator {
-    display: block;
+body > section + section::before {
+    content: '';
+    position: absolute;
+    top: 3rem;
+    left: 50%;
+    transform: translateX(-50%);
     width: min(var(--section-separator-width), 100%);
     height: var(--section-separator-thickness);
-    margin: 3rem auto;
-    border: 0;
     border-radius: 999px;
     background-color: var(--section-separator-color);
+    opacity: 0.7;
+}
+
+.hero,
+.cas-overview,
+.reflection-journal,
+.activity-gallery {
+    background: var(--section-background);
 }
 
 .section-header {
