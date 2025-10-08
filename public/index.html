@@ -179,10 +179,6 @@
                             </button>
                         </div>
                     </div>
-                    <a href="/login" id="casfolio-login-link" class="btn btn-login" data-testid="link-login">
-                        <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
-                        <span>Login</span>
-                    </a>
                     <button id="casfolio-logout" class="btn btn-primary" type="button" hidden>
                         <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                         <span>Logout</span>
@@ -222,10 +218,6 @@
                         </button>
                     </div>
                 </div>
-                <a href="/login" class="btn btn-login mobile-login" id="casfolio-mobile-login">
-                    <i class="fas fa-sign-in-alt" aria-hidden="true"></i>
-                    <span>Login</span>
-                </a>
                 <button id="casfolio-logout-mobile" class="btn btn-outline mobile-logout" type="button" hidden>
                     <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                     <span>Logout</span>
@@ -1155,12 +1147,9 @@
                 document.getElementById('casfolio-logout-mobile')
             ].filter(Boolean);
 
-            const loginLinks = [
-                document.getElementById('casfolio-login-link'),
-                document.getElementById('casfolio-mobile-login')
-            ].filter(Boolean);
+            const loginLinks = [];
 
-            if (logoutButtons.length === 0 && loginLinks.length === 0) {
+            if (logoutButtons.length === 0) {
                 return;
             }
 

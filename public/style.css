@@ -2976,7 +2976,7 @@ body.print-mode .timeline-container {
 .heatmap-grid {
     --heatmap-gap: 4px;
     --heatmap-columns: 52;
-    --heatmap-cell-size: clamp(10px, calc((100% - (var(--heatmap-gap) * (var(--heatmap-columns) - 1))) / var(--heatmap-columns)), 14px);
+    --heatmap-cell-size: 12px;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
@@ -3043,7 +3043,7 @@ body.print-mode .timeline-container {
     position: relative;
     width: var(--heatmap-cell-size);
     height: var(--heatmap-cell-size);
-    border-radius: 4px;
+    border-radius: 3px;
     background: var(--heatmap-cell-color, var(--heatmap-level-0));
     border: 1px solid var(--heatmap-border);
     transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
