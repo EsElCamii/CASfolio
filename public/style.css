@@ -3329,6 +3329,7 @@ body.print-mode .timeline-container {
     align-items: stretch;
 }
 
+
 .learning-outcome-option {
     position: relative;
     display: flex;
@@ -3336,7 +3337,7 @@ body.print-mode .timeline-container {
     gap: 0.85rem;
     padding: 0.9rem 1rem;
     width: 100%;
-    background: var(--muted);
+    background: color-mix(in srgb, var(--muted) 65%, transparent);
     border-radius: var(--radius);
     border: 1px solid var(--border);
     cursor: pointer;
@@ -3355,26 +3356,6 @@ body.print-mode .timeline-container {
     pointer-events: none;
     width: 1rem;
     height: 1rem;
-}
-
-.learning-outcome-indicator {
-    width: 1.1rem;
-    height: 1.1rem;
-    border-radius: 0.5rem;
-    border: 2px solid var(--border);
-    flex-shrink: 0;
-    transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.learning-outcome-option input[type="checkbox"]:focus-visible + .learning-outcome-indicator {
-    border-color: rgba(var(--primary-rgb), 0.7);
-    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.25);
-}
-
-.learning-outcome-option input[type="checkbox"]:checked + .learning-outcome-indicator {
-    border-color: var(--primary);
-    background-color: rgba(var(--primary-rgb), 0.7);
-    box-shadow: 0 0 0 2px rgba(var(--primary-rgb), 0.15);
 }
 
 .learning-outcome-option:has(input[type="checkbox"]:checked) {
@@ -3666,4 +3647,14 @@ body.print-mode .timeline-container {
 .challenge-section p {
     color: var(--muted-foreground);
     line-height: 1.6;
+}
+.section-separator {
+    height: 1px;
+    margin: 0;
+    border: none;
+    background: rgba(48, 54, 61, 0.3);
+}
+
+.dark .section-separator {
+    background: rgba(48, 54, 61, 0.55);
 }

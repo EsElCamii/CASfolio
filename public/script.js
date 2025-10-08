@@ -2215,7 +2215,6 @@ function initializeLearningOutcomesForm() {
                 data-learning-outcome-option
                 aria-label="${option.code}: ${option.label}"
             >
-            <span class="learning-outcome-indicator" aria-hidden="true"></span>
             <span class="learning-outcome-label">
                 <span class="learning-outcome-title">${option.label}</span>
             </span>
@@ -2231,7 +2230,6 @@ function initializeLearningOutcomesForm() {
                 data-custom-option
                 aria-label="Custom learning outcomes"
             >
-            <span class="learning-outcome-indicator" aria-hidden="true"></span>
             <span class="learning-outcome-label">
                 <span class="learning-outcome-title">Add personalised learning outcomes</span>
             </span>
