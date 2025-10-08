@@ -1563,10 +1563,17 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
         dayData.push({ date: cellDate, iso, totalCount, totalHours, categoryHours, categoryCounts });
     }
 
-    const totalWeeks = Math.max(1, Math.ceil(totalDays / 7));
+    const totalWeeks = 52;
     heatmap.style.setProperty('--heatmap-columns', totalWeeks.toString());
 
-    const fragments = dayData.map((entry) => {
+    const maxCells = totalWeeks * 7;
+    const effectiveDayData = maxCells < dayData.length ? dayData.slice(-maxCells) : dayData;
+    const trimmedStart = new Date(start);
+    if (dayData.length > effectiveDayData.length) {
+        trimmedStart.setDate(start.getDate() + (dayData.length - effectiveDayData.length));
+    }
+
+    const fragments = effectiveDayData.map((entry) => {
         const { date, iso, totalCount, totalHours, categoryHours, categoryCounts } = entry;
         let level = 0;
         if (totalCount > 0) {
@@ -1621,8 +1628,8 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
     const monthEntries = [];
     let trackedMonth = '';
     for (let weekIndex = 0; weekIndex < totalWeeks; weekIndex += 1) {
-        const weekDate = new Date(start);
-        weekDate.setDate(start.getDate() + weekIndex * 7);
+        const weekDate = new Date(trimmedStart);
+        weekDate.setDate(trimmedStart.getDate() + weekIndex * 7);
         const monthLabel = weekDate.toLocaleString(undefined, { month: 'short' });
         if (trackedMonth !== monthLabel) {
             monthEntries.push({ label: monthLabel, column: weekIndex + 1 });
@@ -1645,7 +1652,7 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
     heatmap.innerHTML = gridMarkup;
     heatmap.removeAttribute('aria-label');
     const calendarGrid = heatmap.querySelector('.calendar-heatmap');
-    const hasEntriesForSelection = dayData.some((entry) => entry.totalCount > 0);
+    const hasEntriesForSelection = effectiveDayData.some((entry) => entry.totalCount > 0);
     if (emptyMessage) {
         emptyMessage.textContent = hasEntriesForSelection
             ? 'No CAS activity matches the selected filters yet.'
