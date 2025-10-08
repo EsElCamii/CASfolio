@@ -829,23 +829,31 @@ a:focus-visible {
 }
 
 /* Section Styles */
-body > section {
+.page-section {
+    position: relative;
     padding: 4rem 0;
     background: var(--section-background);
 }
 
-.section-separator {
-    display: block;
+.page-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%, -50%);
     width: min(var(--section-separator-width), 100%);
     height: var(--section-separator-thickness);
-    margin: 4rem auto;
-    border: 0;
     border-radius: 999px;
     background-color: var(--section-separator-color);
+    pointer-events: none;
 }
 
-.section-separator:first-of-type {
-    display: none;
+.page-section:first-of-type::before {
+    content: none;
+}
+
+.page-section.hero {
+    padding: 4rem 0 6rem;
 }
 
 .section-header {
