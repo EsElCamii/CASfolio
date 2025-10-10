@@ -1542,6 +1542,10 @@ a:focus-visible {
     grid-column: 1 / -1;
 }
 
+.export-description{
+    margin-bottom: 2em;
+}
+
 .export-buttons {
     display: flex;
     gap: 0.75rem;
@@ -3010,7 +3014,7 @@ body.print-mode .timeline-container {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    overflow-x: auto;
+    overflow-x: overlay;
     padding-bottom: 0.35rem;
     align-self: center;
 }
