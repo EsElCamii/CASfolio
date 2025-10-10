@@ -7,6 +7,7 @@ const sampleData = {
             description: "Coordinated a weekend clean-up along the Noordwijk beach with fellow students and local volunteers.",
             category: "service",
             dateGeneral: "2024-09-14",
+            endDate: "2024-09-14",
             totalHours: 4,
             challengeDescription: "Managing shifting tides while keeping volunteers motivated throughout the day.",
             learningOutcomes: ["LO5", "LO6"],
@@ -22,6 +23,7 @@ const sampleData = {
             description: "Led a jazz improvisation workshop for underclassmen interested in joining the school ensemble.",
             category: "creativity",
             dateGeneral: "2024-10-03",
+            endDate: "2024-10-03",
             totalHours: 3,
             challengeDescription: "Balancing theory explanations with hands-on practice so everyone felt confident improvising.",
             learningOutcomes: ["LO1", "LO3"],
@@ -37,6 +39,7 @@ const sampleData = {
             description: "Organised a coastal cycling challenge to promote healthy lifestyles for first-year students.",
             category: "activity",
             dateGeneral: "2024-10-19",
+            endDate: "2024-10-20",
             totalHours: 5,
             challengeDescription: "Supporting riders of different abilities while tracking everyone's safety across the route.",
             learningOutcomes: ["LO2", "LO4"],
@@ -52,6 +55,7 @@ const sampleData = {
             description: "Planned logistics for the annual CAS holiday food drive supporting Noordwijk community partners.",
             category: "service",
             dateGeneral: "2024-11-07",
+            endDate: null,
             totalHours: 2,
             challengeDescription: "Coordinating vendor donations while keeping our team organised before launch week.",
             learningOutcomes: ["LO3", "LO7"],
@@ -81,21 +85,21 @@ const sampleData = {
 };
 
 const SAMPLE_PORTFOLIO_PROFILE = {
-    student_name: "Isabella van Dijk",
+    student_name: "Juan Fernandez Herrera",
     student_role: "IB Diploma Candidate",
     student_school: "Noordwijk International College",
-    graduation_class: "Class of 2025",
-    student_email: "isabella.vandijk@noordwijk-ic.nl",
-    cas_period: "Aug 2023 – May 2025",
+    graduation_class: "Class of 2027",
+    student_email: "juan.fherrera@noordwijk-ic.nl",
+    cas_period: "Mar 2025 – Aug 2027",
     cas_summary: "Focused on coastal stewardship, creative leadership, and active wellbeing for the Noordwijk community.",
     portfolio_status: "in-progress",
-    last_reviewed: "2024-10-28",
+    last_reviewed: "2025-08-09",
     verification_notes: "Demonstrates consistent initiative across CAS strands.",
     include_coordinator: true,
-    coordinator_name: "Mr. Ruben Janssen",
+    coordinator_name: "Ms. Miriam Fragoso Rodriguez",
     coordinator_role: "CAS Coordinator",
-    coordinator_email: "r.janssen@noordwijk-ic.nl",
-    coordinator_phone: "+31 71 123 4567"
+    coordinator_email: "m.fragoso@noordwijk-ic.nl",
+    coordinator_phone: "+52 229 123 4567"
 };
 
 const LEARNING_OUTCOME_PRESETS = [
@@ -135,6 +139,8 @@ try {
             currentActivities = parsed.map((activity) => {
                 const normalized = { ...activity };
                 normalized.dateGeneral = activity.dateGeneral || activity.date_general || activity.startDate || null;
+                normalized.startDate = normalized.dateGeneral;
+                normalized.endDate = activity.endDate || activity.end_date || null;
                 normalized.totalHours = Number.isFinite(activity.totalHours)
                     ? activity.totalHours
                     : Number.isFinite(activity.total_hours)
@@ -176,6 +182,8 @@ try {
         currentActivities = sampleData.activities.map((activity) => ({
             ...activity,
             dateGeneral: activity.dateGeneral,
+            startDate: activity.dateGeneral,
+            endDate: activity.endDate || null,
             totalHours: activity.totalHours,
             learningOutcomes: Array.isArray(activity.learningOutcomes) ? [...activity.learningOutcomes] : [],
             rating: (() => {
@@ -491,7 +499,9 @@ function mapDtoToActivity(dto) {
             : Number.isFinite(dto.hours)
                 ? dto.hours
                 : 0;
-    const dateGeneral = dto.date_general || dto.dateGeneral || dto.startDate || null;
+    const startDate = dto.startDate || dto.start_date || dto.date_general || dto.dateGeneral || null;
+    const dateGeneral = startDate || null;
+    const endDate = dto.endDate || dto.end_date || null;
     const challengeDescription = dto.challenge_description || dto.challengeDescription || '';
     const rating = toOptionalPositiveNumber(dto.rating ?? dto.enjoyment_rating);
     const difficulty = toFiniteNumber(dto.difficulty ?? dto.difficulty_score);
@@ -503,6 +513,8 @@ function mapDtoToActivity(dto) {
         category: dto.category,
         status: dto.status,
         dateGeneral,
+        startDate,
+        endDate,
         totalHours,
         challengeDescription,
         learningOutcomes,
@@ -846,21 +858,108 @@ function getLearningOutcomeDisplay(value) {
 }
 
 // Utility functions
+const DATE_FALLBACK_LABEL = 'Date TBD';
+const SHORT_DATE_OPTIONS = { year: 'numeric', month: 'short' };
+const FULL_DATE_OPTIONS = { year: 'numeric', month: 'long', day: 'numeric' };
+
+function parseDateString(value) {
+    if (!value) {
+        return null;
+    }
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function formatShortDate(date) {
+    return date.toLocaleDateString('en-US', SHORT_DATE_OPTIONS);
+}
+
+function formatLongDate(date) {
+    return date.toLocaleDateString('en-US', FULL_DATE_OPTIONS);
+}
+
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short'
-    });
+    const date = parseDateString(dateString);
+    if (!date) {
+        return DATE_FALLBACK_LABEL;
+    }
+    return formatShortDate(date);
 }
 
 function formatFullDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
+    const date = parseDateString(dateString);
+    if (!date) {
+        return DATE_FALLBACK_LABEL;
+    }
+    return formatLongDate(date);
+}
+
+function formatDateRange(start, end) {
+    const startDate = parseDateString(start);
+    const endDate = parseDateString(end);
+
+    if (startDate && endDate) {
+        const sameDay = startDate.toISOString().slice(0, 10) === endDate.toISOString().slice(0, 10);
+        if (sameDay) {
+            return formatShortDate(startDate);
+        }
+        return `${formatShortDate(startDate)} – ${formatShortDate(endDate)}`;
+    }
+
+    if (startDate) {
+        return formatShortDate(startDate);
+    }
+
+    if (endDate) {
+        return `Ends ${formatShortDate(endDate)}`;
+    }
+
+    return DATE_FALLBACK_LABEL;
+}
+
+function formatFullDateRange(start, end) {
+    const startDate = parseDateString(start);
+    const endDate = parseDateString(end);
+
+    if (startDate && endDate) {
+        const sameDay = startDate.toISOString().slice(0, 10) === endDate.toISOString().slice(0, 10);
+        if (sameDay) {
+            return formatLongDate(startDate);
+        }
+        return `${formatLongDate(startDate)} – ${formatLongDate(endDate)}`;
+    }
+
+    if (startDate) {
+        return formatLongDate(startDate);
+    }
+
+    if (endDate) {
+        return `Ends ${formatLongDate(endDate)}`;
+    }
+
+    return DATE_FALLBACK_LABEL;
+}
+
+function getActivityStartDate(activity) {
+    if (!activity) {
+        return null;
+    }
+    return activity.dateGeneral || activity.startDate || null;
+}
+
+function getActivityEndDate(activity) {
+    if (!activity) {
+        return null;
+    }
+    return activity.endDate || null;
+}
+
+function formatActivityDateSummary(activity) {
+    return formatDateRange(getActivityStartDate(activity), getActivityEndDate(activity));
+}
+
+function formatActivityDateDetail(activity) {
+    return formatFullDateRange(getActivityStartDate(activity), getActivityEndDate(activity));
 }
 
 function getCategoryColor(category) {
@@ -1123,7 +1222,7 @@ function renderActivityCard(activity) {
                     <span class="badge ${getCategoryColor(activity.category)}" data-testid="badge-${activity.category}-${activity.id}">
                         ${activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
                     </span>
-                    <span class="activity-date" data-testid="text-date-${activity.id}">${formatDate(activity.dateGeneral)}</span>
+                    <span class="activity-date" data-testid="text-date-${activity.id}">${formatActivityDateSummary(activity)}</span>
                 </div>
                 <p class="activity-description" data-testid="text-description-${activity.id}">${activity.description}</p>
                 <div class="activity-footer">
@@ -1160,7 +1259,7 @@ function renderTimeline() {
             <div class="timeline-content">
                 <div class="timeline-header">
                     <h3 class="timeline-title" data-testid="text-timeline-title-${activity.id}">${activity.title}</h3>
-                    <span class="activity-date" data-testid="text-timeline-date-${activity.id}">${formatDate(activity.dateGeneral)}</span>
+                    <span class="activity-date" data-testid="text-timeline-date-${activity.id}">${formatActivityDateSummary(activity)}</span>
                 </div>
                 <div class="timeline-meta">
                     <span class="badge ${getCategoryColor(activity.category)}" data-testid="badge-timeline-${activity.category}-${activity.id}">
@@ -1369,7 +1468,7 @@ function renderGallery() {
                         <span class="badge ${getCategoryColor(activity.category)}" data-testid="badge-gallery-${activity.category}-${activity.id}">
                             ${activity.category.charAt(0).toUpperCase() + activity.category.slice(1)}
                         </span>
-                        <span class="gallery-date" data-testid="text-gallery-date-${activity.id}">${formatDate(activity.dateGeneral)}</span>
+                        <span class="gallery-date" data-testid="text-gallery-date-${activity.id}">${formatActivityDateSummary(activity)}</span>
                     </div>
                     <h4 class="gallery-title" data-testid="text-gallery-title-${activity.id}">${activity.title}</h4>
                     <p class="gallery-description" data-testid="text-gallery-desc-${activity.id}">${activity.description.substring(0, 80)}${activity.description.length > 80 ? '...' : ''}</p>
@@ -1773,6 +1872,9 @@ function openAddActivityDialog(activityId = null) {
             if (form.elements['dateGeneral']) {
                 form.elements['dateGeneral'].value = activity.dateGeneral || '';
             }
+            if (form.elements['endDate']) {
+                form.elements['endDate'].value = activity.endDate || '';
+            }
             if (form.elements['totalHours']) {
                 form.elements['totalHours'].value = activity.totalHours || '';
             }
@@ -1803,6 +1905,9 @@ function openAddActivityDialog(activityId = null) {
         // New activity mode
         currentActivityId = null;
         form.reset();
+        if (form.elements['endDate']) {
+            form.elements['endDate'].value = '';
+        }
         setLearningOutcomeSelections([]);
         setRating(0);
         setDifficultyValue(5);
@@ -2464,8 +2569,8 @@ function viewActivityDetail(activityId) {
                     <div class="detail-item">
                         <i class="fas fa-calendar"></i>
                         <div class="detail-item-content">
-                            <p>Date</p>
-                            <span data-testid="text-start-date">${formatFullDate(activity.dateGeneral)}</span>
+                            <p>${activity.endDate ? 'Dates' : 'Date'}</p>
+                            <span data-testid="text-start-date">${formatActivityDateDetail(activity)}</span>
                         </div>
                     </div>
                     <div class="detail-item">
@@ -2567,11 +2672,26 @@ async function handleActivityFormSubmit(e) {
     const form = e.target;
     const isEditing = currentActivityId !== null;
 
+    const startDateRaw = form.elements['dateGeneral']?.value || '';
+    const endDateRaw = form.elements['endDate']?.value || '';
+    const normalizedStartDate = startDateRaw || null;
+    const normalizedEndDate = endDateRaw || null;
+
+    if (normalizedStartDate && normalizedEndDate) {
+        const startDate = new Date(normalizedStartDate);
+        const endDate = new Date(normalizedEndDate);
+        if (endDate < startDate) {
+            alert('End date cannot be before the start date.');
+            return;
+        }
+    }
+
     const formValues = {
         title: (form.elements['title']?.value || '').trim(),
         category: form.elements['category']?.value || 'creativity',
         description: (form.elements['description']?.value || '').trim(),
-        dateGeneral: form.elements['dateGeneral']?.value || null,
+        dateGeneral: normalizedStartDate,
+        endDate: normalizedEndDate,
         totalHours: Number.parseFloat(form.elements['totalHours']?.value) || 0,
         status: form.elements['status']?.value || 'draft',
         challengeDescription: (form.elements['challengeDescription']?.value || '').trim(),
@@ -2589,6 +2709,9 @@ async function handleActivityFormSubmit(e) {
         await saveActivity(formValues, { isEditing });
 
         form.reset();
+        if (form.elements['endDate']) {
+            form.elements['endDate'].value = '';
+        }
         resetHeaderImageInputs();
         setLearningOutcomeSelections([]);
         setRating(0);
@@ -2621,6 +2744,9 @@ async function saveActivity(values, { isEditing }) {
         category: values.category,
         status: values.status,
         description: values.description || null,
+        startDate: values.dateGeneral || null,
+        endDate: values.endDate || null,
+        hours: Number.isFinite(values.totalHours) ? values.totalHours : 0,
         date_general: values.dateGeneral || null,
         total_hours: Number.isFinite(values.totalHours) ? values.totalHours : 0,
         challenge_description: values.challengeDescription || null,
@@ -2673,6 +2799,8 @@ async function saveActivity(values, { isEditing }) {
             status: values.status,
             description: values.description || '',
             dateGeneral: values.dateGeneral || null,
+            startDate: values.dateGeneral || null,
+            endDate: values.endDate || null,
             totalHours: Number.isFinite(values.totalHours) ? values.totalHours : 0,
             challengeDescription: values.challengeDescription || '',
             learningOutcomes: Array.isArray(values.learningOutcomes) ? [...values.learningOutcomes] : [],

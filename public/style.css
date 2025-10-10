@@ -1882,6 +1882,16 @@ margin-bottom: 1em;
     margin-bottom: 1.5rem;
 }
 
+.form-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.form-grid--dates {
+    align-items: end;
+}
+
 .form-group label {
     display: block;
     font-size: 0.875rem;
@@ -1920,6 +1930,13 @@ margin-bottom: 1em;
 .form-group--card .btn-ghost:hover,
 .form-group--card .btn-ghost:focus-visible {
     color: var(--foreground);
+}
+
+.label-optional {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--muted-foreground);
+    margin-left: 0.25rem;
 }
 
 .form-row > .form-group {
