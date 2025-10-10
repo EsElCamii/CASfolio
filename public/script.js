@@ -96,9 +96,9 @@ const SAMPLE_PORTFOLIO_PROFILE = {
     last_reviewed: "2025-08-09",
     verification_notes: "Demonstrates consistent initiative across CAS strands.",
     include_coordinator: true,
-    coordinator_name: "Ms. Miriam Fragoso Rodriguez",
+    coordinator_name: "Miss Miriam Fragoso Rodriguez",
     coordinator_role: "CAS Coordinator",
-    coordinator_email: "m.fragoso@noordwijk-ic.nl",
+    coordinator_email: "miriam.fragoso@noordwijk.edu.mx",
     coordinator_phone: "+52 229 123 4567"
 };
 
