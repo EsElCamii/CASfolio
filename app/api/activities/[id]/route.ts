@@ -52,6 +52,35 @@ function sanitizePayload(payload: ActivityMutationPayload, ownerId: string) {
     output.learning_outcomes = normalizeLearningOutcomes(payload.learningOutcomes);
   }
 
+  if (payload.challengeDescription !== undefined) {
+    output.challenge_description =
+      payload.challengeDescription === null || payload.challengeDescription === undefined
+        ? null
+        : String(payload.challengeDescription).slice(0, 2000);
+  }
+
+  if (payload.rating !== undefined) {
+    if (payload.rating === null || payload.rating === undefined) {
+      output.rating = null;
+    } else {
+      const ratingValue = Number(payload.rating);
+      output.rating =
+        Number.isFinite(ratingValue) && ratingValue > 0 && ratingValue <= 5 ? Math.round(ratingValue) : null;
+    }
+  }
+
+  if (payload.difficulty !== undefined) {
+    if (payload.difficulty === null || payload.difficulty === undefined) {
+      output.difficulty = null;
+    } else {
+      const difficultyValue = Number(payload.difficulty);
+      output.difficulty =
+        Number.isFinite(difficultyValue) && difficultyValue >= 1 && difficultyValue <= 10
+          ? Math.round(difficultyValue)
+          : null;
+    }
+  }
+
   if (payload.headerImagePath !== undefined) {
     if (payload.headerImagePath === null || payload.headerImagePath === '') {
       output.header_image_path = null;

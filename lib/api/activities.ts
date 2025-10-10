@@ -54,6 +54,9 @@ export interface ActivityRow {
   end_date: string | null;
   hours: number | null;
   learning_outcomes: string[] | null;
+  challenge_description: string | null;
+  rating: number | null;
+  difficulty: number | null;
   header_image_path: string | null;
   header_image_checksum: string | null;
   header_image_updated_at: string | null;
@@ -164,6 +167,9 @@ export function mapActivityRow(
     endDate: row.end_date,
     hours: row.hours ?? 0,
     learningOutcomes: row.learning_outcomes ?? [],
+    challengeDescription: row.challenge_description ?? null,
+    rating: row.rating ?? null,
+    difficulty: row.difficulty ?? null,
     headerImagePath: row.header_image_path,
     headerImageChecksum: row.header_image_checksum,
     headerImageUrl: resolvedHeaderUrl,
@@ -192,6 +198,9 @@ export async function fetchActivityById(
         'end_date',
         'hours',
         'learning_outcomes',
+        'challenge_description',
+        'rating',
+        'difficulty',
         'header_image_path',
         'header_image_checksum',
         'header_image_updated_at',

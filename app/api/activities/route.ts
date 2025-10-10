@@ -38,6 +38,9 @@ export async function GET() {
         'end_date',
         'hours',
         'learning_outcomes',
+        'challenge_description',
+        'rating',
+        'difficulty',
         'header_image_path',
         'header_image_checksum',
         'header_image_updated_at',
@@ -90,6 +93,28 @@ function sanitizePayload(payload: ActivityMutationPayload, ownerId: string) {
   const startDate = payload.startDate ?? null;
   const endDate = payload.endDate ?? null;
   const learningOutcomes = normalizeLearningOutcomes(payload.learningOutcomes);
+  const challengeDescription =
+    payload.challengeDescription !== undefined && payload.challengeDescription !== null
+      ? String(payload.challengeDescription).slice(0, 2000)
+      : null;
+  const normalizedRating =
+    payload.rating === null || payload.rating === undefined
+      ? null
+      : Number.isFinite(Number(payload.rating))
+        ? Number(payload.rating)
+        : null;
+  const rating =
+    normalizedRating !== null && normalizedRating > 0 && normalizedRating <= 5 ? Math.round(normalizedRating) : null;
+  const normalizedDifficulty =
+    payload.difficulty === null || payload.difficulty === undefined
+      ? null
+      : Number.isFinite(Number(payload.difficulty))
+        ? Number(payload.difficulty)
+        : null;
+  const difficulty =
+    normalizedDifficulty !== null && normalizedDifficulty >= 1 && normalizedDifficulty <= 10
+      ? Math.round(normalizedDifficulty)
+      : null;
 
   const sanitized: Record<string, unknown> = {
     title,
@@ -100,6 +125,9 @@ function sanitizePayload(payload: ActivityMutationPayload, ownerId: string) {
     start_date: startDate,
     end_date: endDate,
     learning_outcomes: learningOutcomes,
+    challenge_description: challengeDescription,
+    rating,
+    difficulty,
   };
 
   if (payload.headerImagePath !== undefined) {
@@ -203,6 +231,9 @@ export async function POST(request: NextRequest) {
         'end_date',
         'hours',
         'learning_outcomes',
+        'challenge_description',
+        'rating',
+        'difficulty',
         'header_image_path',
         'header_image_checksum',
         'header_image_updated_at',

@@ -75,6 +75,9 @@ export interface ActivityDTO {
   endDate: string | null;
   hours: number;
   learningOutcomes: string[];
+  challengeDescription: string | null;
+  rating: number | null;
+  difficulty: number | null;
   headerImageUrl: string | null;
   headerImagePath: string | null;
   headerImageChecksum: string | null;
@@ -93,6 +96,9 @@ export interface ActivityMutationPayload {
   endDate?: string | null;
   hours?: number;
   learningOutcomes?: string[];
+  challengeDescription?: string | null;
+  rating?: number | null;
+  difficulty?: number | null;
   headerImageUrl?: string | null;
   headerImagePath?: string | null;
   headerImageChecksum?: string | null;
