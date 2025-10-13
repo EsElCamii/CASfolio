@@ -1421,12 +1421,13 @@ function renderDifficultyTrendChart() {
     const minDifficulty = 1;
     const maxDifficulty = 10;
     const stepX = dataPoints.length > 1 ? width / (dataPoints.length - 1) : 0;
-    const LABEL_WIDTH = 48;
-    const LABEL_HEIGHT = 18;
+    const LABEL_MIN_WIDTH = 36;
+    const LABEL_PADDING = 12;
+    const LABEL_HEIGHT = 20;
     const LABEL_OFFSET = 12;
+    const CHAR_WIDTH_ESTIMATE = 6;
 
     chart.style.overflow = 'visible';
-    chart.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
     const points = dataPoints.map((activity, index) => {
         const x = dataPoints.length === 1 ? width / 2 : index * stepX;
@@ -1448,17 +1449,18 @@ function renderDifficultyTrendChart() {
         const normalized = (activity.difficulty - minDifficulty) / (maxDifficulty - minDifficulty);
         const y = height - (normalized * height);
         const label = `${Math.round(activity.difficulty)}/10`;
-        const rectX = -(LABEL_WIDTH / 2);
+        const labelWidth = Math.max(LABEL_MIN_WIDTH, label.length * CHAR_WIDTH_ESTIMATE + LABEL_PADDING);
+        const rectX = -(labelWidth / 2);
         const rectY = -LABEL_HEIGHT - LABEL_OFFSET;
         const textY = rectY + LABEL_HEIGHT / 2 + 0.5;
 
         return `
             <g class="trend-marker" transform="translate(${x.toFixed(2)}, ${y.toFixed(2)})" tabindex="0" aria-label="Difficulty ${label} recorded ${formattedDate}">
                 <circle r="4" style="fill: rgba(var(--primary-rgb), 0.9); stroke: rgba(var(--primary-rgb), 0.25); stroke-width: 1.5; vector-effect: non-scaling-stroke;"></circle>
-                <g class="trend-label">
-                    <rect x="${rectX.toFixed(2)}" y="${rectY.toFixed(2)}" width="${LABEL_WIDTH}" height="${LABEL_HEIGHT}" rx="5"></rect>
+                <g class="trend-label" aria-hidden="true">
+                    <rect x="${rectX.toFixed(2)}" y="${rectY.toFixed(2)}" width="${labelWidth.toFixed(2)}" height="${LABEL_HEIGHT}" rx="6"></rect>
                     <text x="0" y="${textY.toFixed(2)}" text-anchor="middle" dominant-baseline="middle"
-                        aria-hidden="true">${label}</text>
+                        role="presentation">${label}</text>
                 </g>
             </g>
         `;
