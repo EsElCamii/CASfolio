@@ -3318,12 +3318,18 @@ body.print-mode .timeline-container {
     padding: 1.25rem 1.5rem;
     background: var(--card);
     box-shadow: var(--shadow);
+    position: relative;
+    overflow: visible;
 }
 
 .trend-chart {
     width: 100%;
     height: 120px;
     margin-top: 1rem;
+    overflow: visible;
+    display: block;
+    position: relative;
+    z-index: 1;
 }
 
 .trend-timestamps {
@@ -3361,6 +3367,19 @@ body.print-mode .timeline-container {
 .trend-marker:focus-visible .trend-label {
     opacity: 1;
     transform: translateY(0);
+}
+
+.trend-marker .trend-label rect {
+    fill: rgba(var(--primary-rgb), 0.12);
+    stroke: rgba(var(--primary-rgb), 0.35);
+    stroke-width: 1;
+}
+
+.trend-marker .trend-label text {
+    font-size: 10px;
+    font-weight: 600;
+    fill: var(--muted-foreground);
+    letter-spacing: 0.01em;
 }
 
 .trend-caption {

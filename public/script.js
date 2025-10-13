@@ -1421,6 +1421,12 @@ function renderDifficultyTrendChart() {
     const minDifficulty = 1;
     const maxDifficulty = 10;
     const stepX = dataPoints.length > 1 ? width / (dataPoints.length - 1) : 0;
+    const LABEL_WIDTH = 48;
+    const LABEL_HEIGHT = 18;
+    const LABEL_OFFSET = 12;
+
+    chart.style.overflow = 'visible';
+    chart.setAttribute('preserveAspectRatio', 'xMidYMid meet');
 
     const points = dataPoints.map((activity, index) => {
         const x = dataPoints.length === 1 ? width / 2 : index * stepX;
@@ -1442,21 +1448,17 @@ function renderDifficultyTrendChart() {
         const normalized = (activity.difficulty - minDifficulty) / (maxDifficulty - minDifficulty);
         const y = height - (normalized * height);
         const label = `${Math.round(activity.difficulty)}/10`;
-        const labelPadding = 6;
-        const estimatedWidth = Math.max(28, label.length * 5.8 + labelPadding);
-        const labelHeight = 16;
-        const rectX = -(estimatedWidth / 2);
-        const rectY = -labelHeight - 10;
-        const textY = rectY + labelHeight / 2 + 0.5;
+        const rectX = -(LABEL_WIDTH / 2);
+        const rectY = -LABEL_HEIGHT - LABEL_OFFSET;
+        const textY = rectY + LABEL_HEIGHT / 2 + 0.5;
 
         return `
             <g class="trend-marker" transform="translate(${x.toFixed(2)}, ${y.toFixed(2)})" tabindex="0" aria-label="Difficulty ${label} recorded ${formattedDate}">
-                <circle r="4" style="fill: rgba(var(--primary-rgb), 0.85); stroke: var(--background); stroke-width: 1.5;"></circle>
+                <circle r="4" style="fill: rgba(var(--primary-rgb), 0.9); stroke: rgba(var(--primary-rgb), 0.25); stroke-width: 1.5; vector-effect: non-scaling-stroke;"></circle>
                 <g class="trend-label">
-                    <rect x="${rectX.toFixed(2)}" y="${rectY.toFixed(2)}" width="${estimatedWidth.toFixed(2)}" height="${labelHeight}" rx="4"
-                        style="fill: rgba(var(--primary-rgb), 0.12); stroke: rgba(var(--primary-rgb), 0.25);"></rect>
+                    <rect x="${rectX.toFixed(2)}" y="${rectY.toFixed(2)}" width="${LABEL_WIDTH}" height="${LABEL_HEIGHT}" rx="5"></rect>
                     <text x="0" y="${textY.toFixed(2)}" text-anchor="middle" dominant-baseline="middle"
-                        style="font-size: 10px; font-weight: 500; fill: var(--muted-foreground);">${label}</text>
+                        aria-hidden="true">${label}</text>
                 </g>
             </g>
         `;
@@ -1482,7 +1484,7 @@ function renderDifficultyTrendChart() {
 
     chart.innerHTML = `
         <polygon points="${areaPoints}" fill="rgba(var(--primary-rgb), 0.1)"></polygon>
-        <polyline points="${points.join(' ')}" fill="none" stroke="rgba(var(--primary-rgb), 0.85)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+        <polyline points="${points.join(' ')}" fill="none" stroke="rgba(var(--primary-rgb), 0.85)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" shape-rendering="geometricPrecision" vector-effect="non-scaling-stroke"></polyline>
         ${markerGroups.join('')}
     `;
 }
