@@ -1429,9 +1429,34 @@ function renderDifficultyTrendChart() {
     chart.setAttribute('role', 'img');
     chart.setAttribute('aria-label', 'Average difficulty trend');
     chart.setAttribute('aria-hidden', 'false');
+
+    const markerGroups = dataPoints.map((activity, index) => {
+        const x = dataPoints.length === 1 ? width / 2 : index * stepX;
+        const normalized = (activity.difficulty - minDifficulty) / (maxDifficulty - minDifficulty);
+        const y = height - (normalized * height);
+        const label = `${Math.round(activity.difficulty)}/10`;
+        const labelPadding = 6;
+        const estimatedWidth = Math.max(28, label.length * 5.8 + labelPadding);
+        const labelHeight = 16;
+        const rectX = -(estimatedWidth / 2);
+        const rectY = -labelHeight - 10;
+        const textY = rectY + labelHeight / 2 + 0.5;
+
+        return `
+            <g class="trend-marker" transform="translate(${x.toFixed(2)}, ${y.toFixed(2)})">
+                <circle r="4" style="fill: rgba(var(--primary-rgb), 0.85); stroke: var(--background); stroke-width: 1.5;"></circle>
+                <rect x="${rectX.toFixed(2)}" y="${rectY.toFixed(2)}" width="${estimatedWidth.toFixed(2)}" height="${labelHeight}" rx="4"
+                    style="fill: rgba(var(--primary-rgb), 0.12); stroke: rgba(var(--primary-rgb), 0.25);"></rect>
+                <text x="0" y="${textY.toFixed(2)}" text-anchor="middle" dominant-baseline="middle"
+                    style="font-size: 10px; font-weight: 500; fill: var(--muted-foreground);">${label}</text>
+            </g>
+        `;
+    });
+
     chart.innerHTML = `
         <polygon points="${areaPoints}" fill="rgba(var(--primary-rgb), 0.1)"></polygon>
         <polyline points="${points.join(' ')}" fill="none" stroke="rgba(var(--primary-rgb), 0.85)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+        ${markerGroups.join('')}
     `;
 }
 
