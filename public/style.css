@@ -3326,6 +3326,43 @@ body.print-mode .timeline-container {
     margin-top: 1rem;
 }
 
+.trend-timestamps {
+    margin-top: 0.75rem;
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    letter-spacing: 0.01em;
+}
+
+.trend-marker {
+    cursor: pointer;
+}
+
+.trend-marker circle {
+    transition: transform 0.2s ease, fill 0.2s ease;
+}
+
+.trend-marker:hover circle,
+.trend-marker:focus-visible circle {
+    transform: scale(1.1);
+    fill: rgba(var(--primary-rgb), 1);
+}
+
+.trend-marker .trend-label {
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    pointer-events: none;
+}
+
+.trend-marker:hover .trend-label,
+.trend-marker:focus-visible .trend-label {
+    opacity: 1;
+    transform: translateY(0);
+}
+
 .trend-caption {
     margin-top: 0.5rem;
     font-size: 0.85rem;

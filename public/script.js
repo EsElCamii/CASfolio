@@ -1399,6 +1399,7 @@ function renderExperienceMetrics(stats) {
 
 function renderDifficultyTrendChart() {
     const chart = document.getElementById('difficulty-trend-chart');
+    const timestampContainer = document.getElementById('difficulty-trend-timestamps');
     if (!chart) return;
 
     const dataPoints = currentActivities
@@ -1408,6 +1409,10 @@ function renderDifficultyTrendChart() {
     if (dataPoints.length === 0) {
         chart.innerHTML = '';
         chart.setAttribute('aria-hidden', 'true');
+        if (timestampContainer) {
+            timestampContainer.innerHTML = '';
+            timestampContainer.setAttribute('aria-hidden', 'true');
+        }
         return;
     }
 
@@ -1431,6 +1436,8 @@ function renderDifficultyTrendChart() {
     chart.setAttribute('aria-hidden', 'false');
 
     const markerGroups = dataPoints.map((activity, index) => {
+        const date = parseDateString(activity.dateGeneral);
+        const formattedDate = date ? formatShortDate(date) : DATE_FALLBACK_LABEL;
         const x = dataPoints.length === 1 ? width / 2 : index * stepX;
         const normalized = (activity.difficulty - minDifficulty) / (maxDifficulty - minDifficulty);
         const y = height - (normalized * height);
@@ -1443,15 +1450,35 @@ function renderDifficultyTrendChart() {
         const textY = rectY + labelHeight / 2 + 0.5;
 
         return `
-            <g class="trend-marker" transform="translate(${x.toFixed(2)}, ${y.toFixed(2)})">
+            <g class="trend-marker" transform="translate(${x.toFixed(2)}, ${y.toFixed(2)})" tabindex="0" aria-label="Difficulty ${label} recorded ${formattedDate}">
                 <circle r="4" style="fill: rgba(var(--primary-rgb), 0.85); stroke: var(--background); stroke-width: 1.5;"></circle>
-                <rect x="${rectX.toFixed(2)}" y="${rectY.toFixed(2)}" width="${estimatedWidth.toFixed(2)}" height="${labelHeight}" rx="4"
-                    style="fill: rgba(var(--primary-rgb), 0.12); stroke: rgba(var(--primary-rgb), 0.25);"></rect>
-                <text x="0" y="${textY.toFixed(2)}" text-anchor="middle" dominant-baseline="middle"
-                    style="font-size: 10px; font-weight: 500; fill: var(--muted-foreground);">${label}</text>
+                <g class="trend-label">
+                    <rect x="${rectX.toFixed(2)}" y="${rectY.toFixed(2)}" width="${estimatedWidth.toFixed(2)}" height="${labelHeight}" rx="4"
+                        style="fill: rgba(var(--primary-rgb), 0.12); stroke: rgba(var(--primary-rgb), 0.25);"></rect>
+                    <text x="0" y="${textY.toFixed(2)}" text-anchor="middle" dominant-baseline="middle"
+                        style="font-size: 10px; font-weight: 500; fill: var(--muted-foreground);">${label}</text>
+                </g>
             </g>
         `;
     });
+
+    if (timestampContainer) {
+        const lastIndex = dataPoints.length - 1;
+        const middleIndex = Math.round(lastIndex / 2);
+        const indices = Array.from(new Set([0, middleIndex, lastIndex])).sort((a, b) => a - b);
+
+        const timestampMarkup = indices
+            .map((idx) => {
+                const point = dataPoints[idx];
+                const date = parseDateString(point.dateGeneral);
+                const display = date ? formatShortDate(date) : DATE_FALLBACK_LABEL;
+                return `<span>${display}</span>`;
+            })
+            .join('');
+
+        timestampContainer.innerHTML = timestampMarkup;
+        timestampContainer.setAttribute('aria-hidden', 'false');
+    }
 
     chart.innerHTML = `
         <polygon points="${areaPoints}" fill="rgba(var(--primary-rgb), 0.1)"></polygon>
