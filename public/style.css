@@ -1558,8 +1558,8 @@ margin-bottom: 1em;
 
 /* Footer */
 .footer {
-    background: var(--foreground);
-    color: var(--background);
+    background: var(--surface);
+    color: var(--foreground);
     padding: 2rem 0;
 }
 
@@ -2254,6 +2254,7 @@ margin-top: 1rem;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 1.5rem;
     margin-top: 2rem;
+    margin-bottom: 2rem;
 }
 
 .gallery-card {
@@ -3323,7 +3324,7 @@ body.print-mode .timeline-container {
 }
 
 .trend-chart {
-    width: 100%;
+    width: 80%; 
     height: 120px;
     margin: 1rem auto 0;
     overflow: visible;
