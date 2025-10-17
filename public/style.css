@@ -3375,7 +3375,8 @@ body.print-mode .timeline-container {
 }
 
 .trend-marker .trend-label rect {
-    fill: rgba(var(--primary-rgb), 0.12);
+    z-index: 1000;
+    fill: rgb(231, 236, 252);
     stroke: rgba(var(--primary-rgb), 0.38);
     stroke-width: 1;
     filter: drop-shadow(0 4px 14px rgba(var(--primary-rgb), 0.18));
