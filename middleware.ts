@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import type { Session } from '@supabase/supabase-js';
-import { randomBytes, timingSafeEqual } from 'node:crypto';
 import { serverEnv } from './lib/env/server';
 
 const CSRF_COOKIE_NAME = 'casfolio.csrf-token';
@@ -51,16 +50,17 @@ function tokensMatch(expected: string, provided: string) {
   if (!expected || !provided) {
     return false;
   }
-  const expectedBuffer = Buffer.from(expected);
-  const providedBuffer = Buffer.from(provided);
-  if (expectedBuffer.length !== providedBuffer.length) {
+  const encoder = new TextEncoder();
+  const expectedBytes = encoder.encode(expected);
+  const providedBytes = encoder.encode(provided);
+  if (expectedBytes.length !== providedBytes.length) {
     return false;
   }
-  try {
-    return timingSafeEqual(expectedBuffer, providedBuffer);
-  } catch {
-    return false;
+  let result = 0;
+  for (let i = 0; i < expectedBytes.length; i += 1) {
+    result |= expectedBytes[i] ^ providedBytes[i];
   }
+  return result === 0;
 }
 
 function shouldCheckCsrf(request: NextRequest) {
@@ -116,7 +116,16 @@ function enforceRoleAccess(pathname: string, role: string | null, request: NextR
 }
 
 function rotateCsrfCookie(response: NextResponse) {
-  const token = randomBytes(32).toString('base64url');
+  const tokenBytes = globalThis.crypto.getRandomValues(new Uint8Array(32));
+  let binary = '';
+  for (let i = 0; i < tokenBytes.length; i += 1) {
+    binary += String.fromCharCode(tokenBytes[i]);
+  }
+  const token = globalThis
+    .btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
   response.cookies.set({
     name: CSRF_COOKIE_NAME,
     value: token,

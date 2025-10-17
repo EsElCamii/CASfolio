@@ -3,7 +3,7 @@
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import type { SignInWithPasswordCredentials, Session } from '@supabase/supabase-js';
-import { randomBytes, timingSafeEqual } from 'node:crypto';
+import { randomBytes, timingSafeEqual } from 'crypto';
 import { serverEnv } from '../../lib/env/server';
 
 const CSRF_COOKIE_NAME = 'casfolio.csrf-token';
