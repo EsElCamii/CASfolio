@@ -1071,31 +1071,6 @@ a:focus-visible {
     color: #2563eb;
 }
 
-.activity-card-badges {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.badge.review-status {
-    font-weight: 600;
-}
-
-.badge.status-pending {
-    background: #fef3c7;
-    color: #b45309;
-}
-
-.badge.status-approved {
-    background: #dcfce7;
-    color: #15803d;
-}
-
-.badge.status-rejected {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
 .activity-date {
     font-size: 0.875rem;
     color: var(--muted-foreground);
@@ -2614,24 +2589,6 @@ margin-top: 1rem;
     color: var(--muted-foreground);
 }
 
-.detail-item.review-status-panel {
-    align-items: flex-start;
-}
-
-.detail-item .detail-helper {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--muted-foreground);
-    margin-top: 0.35rem;
-}
-
-.detail-item .detail-notes {
-    font-size: 0.8125rem;
-    color: var(--foreground);
-    margin-top: 0.5rem;
-    line-height: 1.4;
-}
-
 /* Empty States */
 .empty-state {
     text-align: center;
@@ -2837,62 +2794,6 @@ margin-top: 1rem;
     .quick-actions {
         gap: 0.5rem;
     }
-}
-
-/* Toast notifications */
-.toast-stack {
-    position: fixed;
-    bottom: 1.5rem;
-    right: 1.5rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    z-index: 2000;
-}
-
-.toast {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-radius: 0.75rem;
-    background: var(--card);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow-lg);
-    color: var(--foreground);
-    min-width: 220px;
-}
-
-.toast.toast-success {
-    border-color: rgba(22, 163, 74, 0.35);
-    background: rgba(220, 252, 231, 0.85);
-    color: #166534;
-}
-
-.toast.toast-error {
-    border-color: rgba(220, 38, 38, 0.35);
-    background: rgba(254, 226, 226, 0.9);
-    color: #991b1b;
-}
-
-.toast.toast-info {
-    border-color: rgba(37, 99, 235, 0.35);
-    background: rgba(219, 234, 254, 0.9);
-    color: #1d4ed8;
-}
-
-.toast-dismiss {
-    background: none;
-    border: none;
-    font-size: 1rem;
-    cursor: pointer;
-    color: inherit;
-    margin-left: auto;
-    padding: 0.125rem 0.25rem;
-}
-
-.toast-dismiss:hover {
-    opacity: 0.8;
 }
 
 /* Print preparation styles */
