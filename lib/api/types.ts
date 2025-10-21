@@ -1,5 +1,6 @@
 export type ActivityCategory = 'creativity' | 'activity' | 'service';
 export type ActivityStatus = 'draft' | 'pending' | 'completed' | 'ongoing';
+export type ReviewRequestStatus = 'pending' | 'approved' | 'rejected';
 
 export interface CustomizeLayout {
   order: string[];
@@ -84,6 +85,16 @@ export interface ActivityDTO {
   createdAt: string;
   updatedAt: string;
   assets: ActivityAssetDTO[];
+}
+
+export interface ReviewRequestDTO {
+  id: string;
+  activityId: string;
+  studentId: string;
+  status: ReviewRequestStatus;
+  assessorNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ActivityMutationPayload {
