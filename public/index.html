@@ -1156,9 +1156,9 @@
                 document.getElementById('casfolio-logout-mobile')
             ].filter(Boolean);
 
-            const loginLinks = Array.from(document.querySelectorAll('[data-login-link]'));
+            const loginLinks = [];
 
-            if (logoutButtons.length === 0 && loginLinks.length === 0) {
+            if (logoutButtons.length === 0) {
                 return;
             }
 
@@ -1167,8 +1167,18 @@
                 element.hidden = shouldHide;
             };
 
-            const detectLegacySession = () => {
+            const hasSupabaseSession = () => {
                 try {
+                    const cookieEntries = (document.cookie || '').split(';');
+                    const hasCookieSession = cookieEntries.some((entry) => {
+                        const name = entry.trim().split('=')[0];
+                        return Boolean(name) && name.startsWith('sb-');
+                    });
+
+                    if (hasCookieSession) {
+                        return true;
+                    }
+
                     if (typeof window !== 'undefined' && window.localStorage) {
                         if (window.localStorage.getItem('supabase.auth.token')) {
                             return true;
@@ -1181,37 +1191,14 @@
                         }
                     }
                 } catch (error) {
-                    console.warn('Unable to inspect legacy auth state', error);
+                    console.warn('Unable to inspect Supabase session state', error);
                 }
 
                 return false;
             };
 
-            const fetchSessionState = async () => {
-                try {
-                    const response = await fetch('/api/auth/session', {
-                        method: 'GET',
-                        credentials: 'include',
-                        cache: 'no-store'
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`Status ${response.status}`);
-                    }
-
-                    const payload = await response.json();
-                    if (typeof payload?.authenticated === 'boolean') {
-                        return payload.authenticated;
-                    }
-                } catch (error) {
-                    console.warn('Unable to determine Supabase session state', error);
-                }
-
-                return detectLegacySession();
-            };
-
-            const updateAuthControls = async () => {
-                const authenticated = await fetchSessionState();
+            const updateAuthControls = () => {
+                const authenticated = hasSupabaseSession();
 
                 logoutButtons.forEach((button) => {
                     toggleHidden(button, !authenticated);
@@ -1231,20 +1218,6 @@
                 logoutButtons.forEach((button) => {
                     button.setAttribute('disabled', 'true');
                 });
-            };
-
-            const clearLegacyStorage = () => {
-                try {
-                    if (typeof window !== 'undefined' && window.localStorage) {
-                        Object.keys(window.localStorage).forEach((key) => {
-                            if (key.startsWith('sb-') || key === 'supabase.auth.token') {
-                                window.localStorage.removeItem(key);
-                            }
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error clearing Supabase tokens', error);
-                }
             };
 
             const handleLogout = async () => {
@@ -1275,9 +1248,20 @@
                     console.error('Error notifying auth callback on sign out', error);
                 }
 
-                clearLegacyStorage();
-                await updateAuthControls();
-                window.location.replace('/login');
+                try {
+                    if (typeof window !== 'undefined' && window.localStorage) {
+                        Object.keys(window.localStorage).forEach((key) => {
+                            if (key.startsWith('sb-') || key === 'supabase.auth.token') {
+                                window.localStorage.removeItem(key);
+                            }
+                        });
+                    }
+                } catch (err) {
+                    console.error('Error clearing Supabase tokens', err);
+                }
+
+                updateAuthControls();
+                window.location.replace('/');
             };
 
             logoutButtons.forEach((button) => {
@@ -1286,9 +1270,7 @@
             });
 
             updateAuthControls();
-            window.addEventListener('storage', () => {
-                updateAuthControls();
-            });
+            window.addEventListener('storage', updateAuthControls);
         })();
     </script>
 
