@@ -7,6 +7,8 @@ const CSRF_COOKIE_NAME = 'casfolio.csrf-token';
 const CSRF_HEADER_NAME = 'x-csrf-token';
 const RATE_LIMIT_MAX_ATTEMPTS = 5;
 const RATE_LIMIT_WINDOW_MS = 60_000;
+const SESSION_FETCH_TIMEOUT_MS = 3_000;
+const PROTECTED_PATH_PREFIXES = ['/dashboard', '/admin'];
 
 const loginAttempts = new Map<string, { count: number; expiresAt: number }>();
 
@@ -69,6 +71,36 @@ function shouldCheckCsrf(request: NextRequest) {
     return false;
   }
   return true;
+}
+
+function hasSupabaseAuthCookies(request: NextRequest) {
+  return request.cookies
+    .getAll()
+    .some(({ name }) => name.startsWith('sb-') && name.endsWith('-auth-token'));
+}
+
+function requiresProtectedSession(pathname: string) {
+  return PROTECTED_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
+}
+
+async function getSessionWithTimeout(client: ReturnType<typeof createSupabaseMiddlewareClient>) {
+  const sessionPromise = client.auth.getSession().catch(() => ({
+    data: { session: null as Session | null },
+    error: null,
+  }));
+
+  const timeoutPromise = new Promise<{ data: { session: Session | null }; error: null }>((resolve) => {
+    setTimeout(
+      () =>
+        resolve({
+          data: { session: null },
+          error: null,
+        }),
+      SESSION_FETCH_TIMEOUT_MS
+    );
+  });
+
+  return Promise.race([sessionPromise, timeoutPromise]);
 }
 
 function createSupabaseMiddlewareClient(request: NextRequest, response: NextResponse) {
@@ -157,14 +189,17 @@ export async function middleware(request: NextRequest) {
   }
 
   const response = NextResponse.next();
-  const supabase = createSupabaseMiddlewareClient(request, response);
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
   const pathname = request.nextUrl.pathname;
+  const shouldFetchSession = hasSupabaseAuthCookies(request) || requiresProtectedSession(pathname);
 
-  if (!session && (pathname.startsWith('/dashboard') || pathname.startsWith('/admin'))) {
+  let session: Session | null = null;
+  if (shouldFetchSession) {
+    const supabase = createSupabaseMiddlewareClient(request, response);
+    const { data } = await getSessionWithTimeout(supabase);
+    session = data.session;
+  }
+
+  if (!session && requiresProtectedSession(pathname)) {
     const redirectUrl = new URL('/login', request.url);
     redirectUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(redirectUrl);
