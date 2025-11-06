@@ -2,9 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import type { Session } from '@supabase/supabase-js';
 import { serverEnv } from './lib/env/server';
-
-const CSRF_COOKIE_NAME = 'casfolio.csrf-token';
-const CSRF_HEADER_NAME = 'x-csrf-token';
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME } from './lib/security/csrf';
 const RATE_LIMIT_MAX_ATTEMPTS = 5;
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const SESSION_FETCH_TIMEOUT_MS = 3_000;

@@ -3,14 +3,10 @@
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import type { SignInWithPasswordCredentials, Session } from '@supabase/supabase-js';
-import { randomBytes, timingSafeEqual } from 'crypto';
+import { timingSafeEqual } from 'crypto';
 import { serverEnv } from '../../lib/env/server';
-
-const CSRF_COOKIE_NAME = 'casfolio.csrf-token';
-const CSRF_HEADER_NAME = 'x-csrf-token';
-const CSRF_TOKEN_TTL_SECONDS = 60 * 60; // 1 hour
-
-const isProduction = process.env.NODE_ENV === 'production';
+import { CSRF_COOKIE_NAME, CSRF_HEADER_NAME } from '../../lib/security/csrf';
+import { ensureCsrfCookie as ensureCsrfCookieInternal, rotateCsrfCookie } from '../../lib/security/csrfServer';
 
 function sanitizeString(value: unknown, { maxLength = 1024, lowercase = false } = {}) {
   if (typeof value !== 'string') {
@@ -38,23 +34,6 @@ function sanitizePassword(value: unknown) {
 
 function sanitizeToken(value: unknown) {
   return sanitizeString(value, { maxLength: 128 });
-}
-
-function generateCsrfToken() {
-  return randomBytes(32).toString('base64url');
-}
-
-function setCsrfCookie(value: string) {
-  const cookieStore = cookies();
-  cookieStore.set({
-    name: CSRF_COOKIE_NAME,
-    value,
-    httpOnly: true,
-    sameSite: 'strict',
-    secure: isProduction,
-    path: '/',
-    maxAge: CSRF_TOKEN_TTL_SECONDS,
-  });
 }
 
 function createSupabaseServerActionClient() {
@@ -103,7 +82,7 @@ function ensureValidCsrfToken(incomingToken: string) {
 }
 
 function rotateCsrfToken() {
-  setCsrfCookie(generateCsrfToken());
+  rotateCsrfCookie();
 }
 
 export type SignInActionResult =
@@ -170,16 +149,7 @@ export async function signOutAction(payload: { csrfToken: unknown }): Promise<Si
   return { success: true };
 }
 
-export function ensureCsrfCookie() {
-  const cookieStore = cookies();
-  const existingToken = cookieStore.get(CSRF_COOKIE_NAME)?.value;
-
-  if (!existingToken) {
-    rotateCsrfToken();
-  }
-
-  return cookieStore.get(CSRF_COOKIE_NAME)?.value ?? '';
-}
+export const ensureCsrfCookie = ensureCsrfCookieInternal;
 
 export const csrfConfig = {
   cookieName: CSRF_COOKIE_NAME,

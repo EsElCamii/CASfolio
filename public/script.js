@@ -127,6 +127,99 @@ const PORTFOLIO_ONBOARDING_KEY = 'casfolio_portfolio_onboarding';
 const DEMO_SEEDED_KEY = 'casfolio_demo_seeded_noordwijk';
 const THEME_STORAGE_KEY = 'casfolio_theme_preference';
 
+const CSRF_ENDPOINT = '/api/security/csrf';
+const CSRF_HEADER_NAME = 'x-csrf-token';
+const CSRF_SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
+let cachedCsrfToken = null;
+let csrfTokenPromise = null;
+
+function createHeaders(headersInit) {
+    if (!headersInit) {
+        return new Headers();
+    }
+    if (headersInit instanceof Headers) {
+        return new Headers(headersInit);
+    }
+    if (Array.isArray(headersInit)) {
+        return new Headers(headersInit);
+    }
+    return new Headers(headersInit);
+}
+
+async function ensureCsrfToken(forceRefresh = false) {
+    if (!forceRefresh) {
+        if (cachedCsrfToken) {
+            return cachedCsrfToken;
+        }
+        if (csrfTokenPromise) {
+            return csrfTokenPromise;
+        }
+    } else {
+        cachedCsrfToken = null;
+    }
+
+    const request = (async () => {
+        const response = await fetch(CSRF_ENDPOINT, {
+            method: 'GET',
+            credentials: 'same-origin',
+            headers: { Accept: 'application/json' },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            throw new Error('Unable to fetch CSRF token');
+        }
+
+        const payload = await response.json().catch(() => ({}));
+        const token = typeof payload?.csrfToken === 'string' ? payload.csrfToken : '';
+        if (!token) {
+            throw new Error('Invalid CSRF token response');
+        }
+
+        cachedCsrfToken = token;
+        return token;
+    })();
+
+    csrfTokenPromise = request;
+
+    try {
+        return await request;
+    } catch (error) {
+        cachedCsrfToken = null;
+        throw error;
+    } finally {
+        if (csrfTokenPromise === request) {
+            csrfTokenPromise = null;
+        }
+    }
+}
+
+async function apiFetch(input, init = {}) {
+    const normalizedMethod = (init.method || 'GET').toUpperCase();
+    const needsCsrf = !CSRF_SAFE_METHODS.has(normalizedMethod);
+    const originalHeaders = init.headers;
+    const baseInit = { ...init, method: normalizedMethod };
+
+    const execute = async (forceRefresh) => {
+        const headers = createHeaders(originalHeaders);
+        if (needsCsrf) {
+            const token = await ensureCsrfToken(forceRefresh);
+            headers.set(CSRF_HEADER_NAME, token);
+        }
+        return fetch(input, {
+            ...baseInit,
+            credentials: baseInit.credentials ?? 'same-origin',
+            headers
+        });
+    };
+
+    let response = await execute(false);
+    if (needsCsrf && response.status === 403) {
+        response = await execute(true);
+    }
+    return response;
+}
+
 // Load data from localStorage or initialize with empty arrays so a new visitor starts fresh
 let currentActivities = [];
 let currentReflections = [];
@@ -547,7 +640,7 @@ async function hydrateActivitiesFromServer({ force = false, silent = false } = {
 
     activitiesSyncPromise = (async () => {
         try {
-            const response = await fetch('/api/activities', {
+            const response = await apiFetch('/api/activities', {
                 method: 'GET',
                 credentials: 'same-origin',
                 cache: 'no-store',
@@ -2680,7 +2773,7 @@ async function deleteActivity(activityId) {
     }
 
     try {
-        const response = await fetch(`/api/activities/${activityId}`, {
+        const response = await apiFetch(`/api/activities/${activityId}`, {
             method: 'DELETE',
             credentials: 'same-origin',
             headers: { Accept: 'application/json' }
@@ -2826,7 +2919,7 @@ async function saveActivity(values, { isEditing }) {
     const endpoint = isEditing ? `/api/activities/${currentActivityId}` : '/api/activities';
     const method = isEditing ? 'PATCH' : 'POST';
 
-    const response = await fetch(endpoint, {
+    const response = await apiFetch(endpoint, {
         method,
         credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
@@ -2902,7 +2995,7 @@ async function uploadHeaderImage(url) {
     let response;
 
     if (typeof url === 'string' && url.trim()) {
-        response = await fetch(endpoint, {
+        response = await apiFetch(endpoint, {
             method: 'POST',
             credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
