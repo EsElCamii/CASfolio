@@ -3,12 +3,14 @@ import { beforeAll, describe, expect, it } from 'vitest';
 let assertCategory: (value: unknown) => string;
 let assertStatus: (value: unknown) => string;
 let normalizeLearningOutcomes: (value: unknown) => string[];
+let normalizeHoursValue: (value: unknown) => number;
 
 beforeAll(async () => {
   const module = await import('../../lib/api/activities');
   assertCategory = module.assertCategory;
   assertStatus = module.assertStatus;
   normalizeLearningOutcomes = module.normalizeLearningOutcomes;
+  normalizeHoursValue = module.normalizeHoursValue;
 });
 
 describe('activity validation helpers', () => {
@@ -43,5 +45,12 @@ describe('activity validation helpers', () => {
     const result = normalizeLearningOutcomes(inputs);
     expect(result.length).toBe(24);
     expect(result[0]).toBe('Outcome 0');
+  });
+
+  it('normalizes hours from strings and clamps/rounds sensibly', () => {
+    expect(normalizeHoursValue('10.75')).toBe(10.75);
+    expect(normalizeHoursValue('10,73')).toBe(10.73);
+    expect(normalizeHoursValue(-2)).toBe(0);
+    expect(normalizeHoursValue('not-a-number')).toBe(0);
   });
 });

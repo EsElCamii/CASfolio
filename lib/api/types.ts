@@ -94,7 +94,7 @@ export interface ActivityMutationPayload {
   status: ActivityStatus;
   startDate?: string | null;
   endDate?: string | null;
-  hours?: number;
+  hours?: number | string;
   learningOutcomes?: string[];
   challengeDescription?: string | null;
   rating?: number | null;
