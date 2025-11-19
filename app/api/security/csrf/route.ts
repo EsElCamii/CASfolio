@@ -17,7 +17,7 @@ export async function GET() {
     token = generateToken();
   }
 
-  const response = NextResponse.json({ token });
+  const response = NextResponse.json({ csrfToken: token, token });
 
   response.cookies.set({
     name: CSRF_COOKIE_NAME,

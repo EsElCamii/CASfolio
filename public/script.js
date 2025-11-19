@@ -205,7 +205,12 @@ async function ensureCsrfToken(forceRefresh = false) {
         }
 
         const payload = await response.json().catch(() => ({}));
-        const token = typeof payload?.csrfToken === 'string' ? payload.csrfToken : '';
+        const token =
+            typeof payload?.csrfToken === 'string'
+                ? payload.csrfToken
+                : typeof payload?.token === 'string'
+                    ? payload.token
+                    : '';
         if (!token) {
             throw new Error('Invalid CSRF token response');
         }
@@ -268,13 +273,14 @@ try {
                 normalized.dateGeneral = activity.dateGeneral || activity.date_general || activity.startDate || null;
                 normalized.startDate = normalized.dateGeneral;
                 normalized.endDate = activity.endDate || activity.end_date || null;
-                normalized.totalHours = Number.isFinite(activity.totalHours)
+                const hoursSource = Number.isFinite(activity.totalHours)
                     ? activity.totalHours
                     : Number.isFinite(activity.total_hours)
                         ? activity.total_hours
                         : Number.isFinite(activity.hours)
                             ? activity.hours
                             : 0;
+                normalized.totalHours = normalizeHours(hoursSource);
                 normalized.challengeDescription = activity.challengeDescription || activity.challenge_description || '';
                 normalized.learningOutcomes = Array.isArray(activity.learningOutcomes)
                     ? activity.learningOutcomes
@@ -316,7 +322,7 @@ try {
             dateGeneral: activity.dateGeneral,
             startDate: activity.dateGeneral,
             endDate: activity.endDate || null,
-            totalHours: activity.totalHours,
+            totalHours: normalizeHours(activity.totalHours),
             learningOutcomes: Array.isArray(activity.learningOutcomes) ? [...activity.learningOutcomes] : [],
             rating: (() => {
                 const value = Number(activity.rating);
@@ -398,6 +404,29 @@ function toFiniteNumber(value) {
 function toOptionalPositiveNumber(value) {
     const parsed = Number(value);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+function normalizeHours(value) {
+    if (value === null || value === undefined) {
+        return 0;
+    }
+
+    let input = value;
+    if (typeof input === 'string') {
+        input = input.replace(',', '.');
+    }
+
+    const parsed = typeof input === 'number' ? input : Number.parseFloat(input);
+    if (!Number.isFinite(parsed)) {
+        return 0;
+    }
+
+    const clamped = Math.max(0, parsed);
+    return Math.round(clamped * 100) / 100;
+}
+
+function addHours(sum, value) {
+    return normalizeHours((Number(sum) || 0) + (Number(value) || 0));
 }
 
 function setPrintMode(enabled) {
@@ -630,13 +659,14 @@ function mapDtoToActivity(dto) {
         : Array.isArray(dto.learningOutcomes)
             ? dto.learningOutcomes
             : [];
-    const totalHours = Number.isFinite(dto.total_hours)
+    const totalHoursSource = Number.isFinite(dto.total_hours)
         ? dto.total_hours
         : Number.isFinite(dto.totalHours)
             ? dto.totalHours
             : Number.isFinite(dto.hours)
                 ? dto.hours
                 : 0;
+    const totalHours = normalizeHours(totalHoursSource);
     const startDate = dto.startDate || dto.start_date || dto.date_general || dto.dateGeneral || null;
     const dateGeneral = startDate || null;
     const endDate = dto.endDate || dto.end_date || null;
@@ -1413,21 +1443,27 @@ function generateId() {
 // Derived statistics shown in the hero counters and progress dashboard
 function calculateStats() {
     const totalActivities = currentActivities.length;
-    const totalHours = currentActivities.reduce((sum, activity) => sum + (activity.totalHours || 0), 0);
+    const totalHours = currentActivities.reduce((sum, activity) => addHours(sum, activity.totalHours), 0);
     const totalReflections = currentReflections.length;
 
     const categoryStats = {
         creativity: {
             count: currentActivities.filter(a => a.category === 'creativity').length,
-            hours: currentActivities.filter(a => a.category === 'creativity').reduce((sum, a) => sum + (a.totalHours || 0), 0)
+            hours: currentActivities
+                .filter((a) => a.category === 'creativity')
+                .reduce((sum, a) => addHours(sum, a.totalHours), 0)
         },
         activity: {
             count: currentActivities.filter(a => a.category === 'activity').length,
-            hours: currentActivities.filter(a => a.category === 'activity').reduce((sum, a) => sum + (a.totalHours || 0), 0)
+            hours: currentActivities
+                .filter((a) => a.category === 'activity')
+                .reduce((sum, a) => addHours(sum, a.totalHours), 0)
         },
         service: {
             count: currentActivities.filter(a => a.category === 'service').length,
-            hours: currentActivities.filter(a => a.category === 'service').reduce((sum, a) => sum + (a.totalHours || 0), 0)
+            hours: currentActivities
+                .filter((a) => a.category === 'service')
+                .reduce((sum, a) => addHours(sum, a.totalHours), 0)
         }
     };
 
@@ -1715,7 +1751,7 @@ function renderProgressDashboard() {
     if (stats.totalHours >= TOTAL_REQUIRED_HOURS) {
         progressMessage.textContent = "You've exceeded the minimum requirement! Great work!";
     } else {
-        const remaining = TOTAL_REQUIRED_HOURS - stats.totalHours;
+        const remaining = Math.max(0, normalizeHours(TOTAL_REQUIRED_HOURS - stats.totalHours));
         progressMessage.textContent = `${remaining} hours remaining to reach minimum requirement`;
     }
     
@@ -2066,16 +2102,15 @@ function getHeatmapRangeBounds(rangeKey) {
 }
 
 function formatHours(hours) {
-    const value = Number(hours) || 0;
-    if (value === 0) {
+    const normalized = normalizeHours(hours);
+    if (normalized === 0) {
         return '0 hours';
     }
-    const rounded = Math.round(value * 10) / 10;
-    if (Math.abs(rounded - Math.round(rounded)) < 0.1) {
-        const whole = Math.round(rounded);
-        return `${whole} ${whole === 1 ? 'hour' : 'hours'}`;
+    if (Number.isInteger(normalized)) {
+        return `${normalized} ${normalized === 1 ? 'hour' : 'hours'}`;
     }
-    return `${rounded} hours`;
+    const formatted = normalized.toFixed(2);
+    return `${formatted} hours`;
 }
 
 function updateHeatmapControlsUI() {
@@ -2129,16 +2164,15 @@ function renderActivityHeatmap(groupedActivities = getActivitiesGroupedByDate())
         cellDate.setDate(start.getDate() + index);
         const iso = cellDate.toISOString().split('T')[0];
         const events = (groupedActivities[iso] || []).filter((event) => selectedCategories.includes(event.category));
-        const totalHours = events.reduce((sum, event) => sum + (Number(event.totalHours) || 0), 0);
+        const totalHours = events.reduce((sum, event) => addHours(sum, event.totalHours), 0);
         const totalCount = events.length;
         const categoryHours = { creativity: 0, activity: 0, service: 0 };
         const categoryCounts = { creativity: 0, activity: 0, service: 0 };
 
         events.forEach((event) => {
             const category = event.category;
-            const hours = Number(event.totalHours) || 0;
             if (categoryHours[category] !== undefined) {
-                categoryHours[category] += hours;
+                categoryHours[category] = addHours(categoryHours[category], event.totalHours);
                 categoryCounts[category] += 1;
             }
         });
@@ -3196,7 +3230,7 @@ async function handleActivityFormSubmit(e) {
         description: (form.elements['description']?.value || '').trim(),
         dateGeneral: normalizedStartDate,
         endDate: normalizedEndDate,
-        totalHours: Number.parseFloat(form.elements['totalHours']?.value) || 0,
+        totalHours: normalizeHours(form.elements['totalHours']?.value),
         status: form.elements['status']?.value || 'draft',
         challengeDescription: (form.elements['challengeDescription']?.value || '').trim(),
         rating: Number.parseInt(form.elements['rating']?.value || form.querySelector('#rating-value')?.value || '0', 10) || 0,
@@ -3240,6 +3274,7 @@ async function saveActivity(values, { isEditing }) {
     const editingId = isEditing ? currentActivityId : null;
     const previousActivity = editingId ? currentActivities.find((activity) => activity.id === editingId) : null;
     const previousHeaderImage = previousActivity?.headerImage || null;
+    const normalizedHours = normalizeHours(values.totalHours);
 
     let headerDescriptor = null;
 
@@ -3256,9 +3291,9 @@ async function saveActivity(values, { isEditing }) {
         description: values.description || null,
         startDate: values.dateGeneral || null,
         endDate: values.endDate || null,
-        hours: Number.isFinite(values.totalHours) ? values.totalHours : 0,
+        hours: normalizedHours,
         date_general: values.dateGeneral || null,
-        total_hours: Number.isFinite(values.totalHours) ? values.totalHours : 0,
+        total_hours: normalizedHours,
         challenge_description: values.challengeDescription || null,
         learning_outcomes: Array.isArray(values.learningOutcomes) ? values.learningOutcomes : [],
         rating: Number.isFinite(values.rating) && values.rating > 0 ? values.rating : null,
@@ -3321,7 +3356,7 @@ async function saveActivity(values, { isEditing }) {
             dateGeneral: values.dateGeneral || null,
             startDate: values.dateGeneral || null,
             endDate: values.endDate || null,
-            totalHours: Number.isFinite(values.totalHours) ? values.totalHours : 0,
+            totalHours: normalizedHours,
             challengeDescription: values.challengeDescription || '',
             learningOutcomes: Array.isArray(values.learningOutcomes) ? [...values.learningOutcomes] : [],
             rating: Number.isFinite(values.rating) && values.rating > 0 ? values.rating : null,
