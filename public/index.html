@@ -1178,23 +1178,39 @@
             ].filter(Boolean);
 
             const loginLinks = [];
-            const CSRF_COOKIE_NAME = 'casfolio.csrf-token';
             const CSRF_HEADER_NAME = 'x-csrf-token';
 
-            const getCookieValue = (name) => {
-                const cookieString = document.cookie || '';
-                const cookies = cookieString.split(';');
-                for (const cookie of cookies) {
-                    const [cookieName, ...rest] = cookie.trim().split('=');
-                    if (cookieName === name) {
-                        return rest.length > 0 ? decodeURIComponent(rest.join('=')) : '';
+            let csrfTokenPromise = null;
+
+            const fetchCsrfToken = async () => {
+                try {
+                    const response = await fetch('/api/security/csrf', {
+                        method: 'GET',
+                        credentials: 'include',
+                        cache: 'no-store'
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`CSRF token request failed (${response.status})`);
                     }
+
+                    const payload = await response.json();
+                    return typeof payload?.token === 'string' ? payload.token : null;
+                } catch (error) {
+                    console.error('Unable to fetch CSRF token', error);
+                    return null;
                 }
-                return null;
             };
 
-            const withCsrfHeaders = (headers = {}) => {
-                const token = getCookieValue(CSRF_COOKIE_NAME);
+            const ensureCsrfToken = () => {
+                if (!csrfTokenPromise) {
+                    csrfTokenPromise = fetchCsrfToken();
+                }
+                return csrfTokenPromise;
+            };
+
+            const withCsrfHeaders = async (headers = {}) => {
+                const token = await ensureCsrfToken();
                 if (!token) {
                     return headers;
                 }
@@ -1265,13 +1281,15 @@
 
             const handleLogout = async () => {
                 disableLogoutButtons();
+                await ensureCsrfToken();
 
                 try {
+                    const signOutHeaders = await withCsrfHeaders();
                     const response = await fetch('/api/auth/signout', {
                         method: 'POST',
                         credentials: 'include',
                         cache: 'no-store',
-                        headers: withCsrfHeaders()
+                        headers: signOutHeaders
                     });
 
                     if (!response.ok) {
@@ -1282,9 +1300,10 @@
                 }
 
                 try {
+                    const callbackHeaders = await withCsrfHeaders({ 'Content-Type': 'application/json' });
                     await fetch('/api/auth/callback', {
                         method: 'POST',
-                        headers: withCsrfHeaders({ 'Content-Type': 'application/json' }),
+                        headers: callbackHeaders,
                         credentials: 'include',
                         body: JSON.stringify({ event: 'SIGNED_OUT', session: null })
                     });
@@ -1313,6 +1332,7 @@
                 button.addEventListener('click', handleLogout);
             });
 
+            ensureCsrfToken();
             updateAuthControls();
             window.addEventListener('storage', updateAuthControls);
         })();

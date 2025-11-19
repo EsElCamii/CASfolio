@@ -1,22 +1,33 @@
+import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
-import { ensureCsrfCookie } from '../../../../lib/security/csrfServer';
+import { randomBytes } from 'crypto';
 import { CSRF_COOKIE_NAME, CSRF_TOKEN_TTL_SECONDS } from '../../../../lib/security/csrf';
 
-export const runtime = 'nodejs';
+const isProduction = process.env.NODE_ENV === 'production';
+
+function generateToken() {
+  return randomBytes(32).toString('base64url');
+}
 
 export async function GET() {
-  const csrfToken = ensureCsrfCookie();
-  const response = NextResponse.json({ csrfToken });
+  const cookieStore = cookies();
+  let token = cookieStore.get(CSRF_COOKIE_NAME)?.value;
+
+  if (!token) {
+    token = generateToken();
+  }
+
+  const response = NextResponse.json({ token });
+
   response.cookies.set({
     name: CSRF_COOKIE_NAME,
-    value: csrfToken,
+    value: token,
     httpOnly: true,
     sameSite: 'strict',
-    secure: process.env.NODE_ENV === 'production',
+    secure: isProduction,
     path: '/',
     maxAge: CSRF_TOKEN_TTL_SECONDS,
   });
-  response.headers.set('cache-control', 'no-store');
-  response.headers.set('vary', 'cookie');
+
   return response;
 }
