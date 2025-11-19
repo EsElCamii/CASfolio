@@ -58,6 +58,9 @@
         if (error) {
             throw error;
         }
+        if (Array.isArray(data)) {
+            return Boolean(data[0]?.is_valid);
+        }
         return Boolean(data?.is_valid);
     }
 
