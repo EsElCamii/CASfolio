@@ -15,7 +15,12 @@ const sampleData = {
             difficulty: 6,
             images: [],
             status: "completed",
-            createdAt: "2024-09-14"
+            createdAt: "2024-09-14",
+            reviewFlag: 'pending_verification',
+            reviewDecision: 'approved',
+            reviewNotes: 'Documentation ready for coordinator sign-off.',
+            teacherNotes: 'Approved — excellent leadership and impact photos.',
+            reviewUpdatedAt: '2024-09-15T10:00:00Z'
         },
         {
             id: "2",
@@ -31,7 +36,12 @@ const sampleData = {
             difficulty: 5,
             images: [],
             status: "completed",
-            createdAt: "2024-10-03"
+            createdAt: "2024-10-03",
+            reviewFlag: 'pending_review',
+            reviewDecision: 'pending',
+            reviewNotes: 'Ready for first review.',
+            teacherNotes: '',
+            reviewUpdatedAt: '2024-10-04T09:00:00Z'
         },
         {
             id: "3",
@@ -47,7 +57,12 @@ const sampleData = {
             difficulty: 7,
             images: [],
             status: "completed",
-            createdAt: "2024-10-19"
+            createdAt: "2024-10-19",
+            reviewFlag: 'pending_review',
+            reviewDecision: 'rejected',
+            reviewNotes: 'Please double-check safety reflection.',
+            teacherNotes: 'Needs more detail on risk management before approval.',
+            reviewUpdatedAt: '2024-10-21T08:10:00Z'
         },
         {
             id: "4",
@@ -63,7 +78,12 @@ const sampleData = {
             difficulty: 8,
             images: [],
             status: "ongoing",
-            createdAt: "2024-11-07"
+            createdAt: "2024-11-07",
+            reviewFlag: 'none',
+            reviewDecision: 'pending',
+            reviewNotes: '',
+            teacherNotes: '',
+            reviewUpdatedAt: '2024-11-07T12:00:00Z'
         }
     ],
     reflections: [
@@ -100,6 +120,20 @@ const SAMPLE_PORTFOLIO_PROFILE = {
     coordinator_role: "CAS Coordinator",
     coordinator_email: "miriam.fragoso@noordwijk.edu.mx",
     coordinator_phone: "+52 229 123 4567"
+};
+
+const SUPABASE_URL = window.__SUPABASE_URL__ || 'https://YOUR_SUPABASE_PROJECT.supabase.co';
+const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || 'YOUR_SUPABASE_ANON_KEY';
+const REVIEW_SYNC_QUEUE_KEY = 'casfolio_review_sync_queue';
+const REVIEW_FLAG_LABELS = {
+    none: 'Not submitted',
+    pending_review: 'Pending Review',
+    pending_verification: 'Pending Verification'
+};
+const REVIEW_DECISION_LABELS = {
+    pending: 'Waiting for teacher',
+    approved: 'Approved',
+    rejected: 'Changes requested'
 };
 
 const LEARNING_OUTCOME_PRESETS = [
@@ -251,6 +285,11 @@ try {
                 normalized.rating = Number.isFinite(hydratedRating) && hydratedRating > 0 ? hydratedRating : null;
                 const hydratedDifficulty = Number(activity.difficulty ?? activity.difficulty_value);
                 normalized.difficulty = Number.isFinite(hydratedDifficulty) ? hydratedDifficulty : null;
+                normalized.reviewFlag = activity.reviewFlag || activity.review_flag || 'none';
+                normalized.reviewDecision = activity.reviewDecision || activity.review_decision || 'pending';
+                normalized.reviewNotes = activity.reviewNotes || activity.review_notes || '';
+                normalized.teacherNotes = activity.teacherNotes || activity.teacher_notes || '';
+                normalized.reviewUpdatedAt = activity.reviewUpdatedAt || activity.review_updated_at || activity.updatedAt || null;
                 return normalized;
             });
         }
@@ -290,7 +329,12 @@ try {
             headerImage: null,
             headerImagePath: null,
             assets: [],
-            updatedAt: activity.createdAt
+            updatedAt: activity.createdAt,
+            reviewFlag: activity.reviewFlag || 'none',
+            reviewDecision: activity.reviewDecision || 'pending',
+            reviewNotes: activity.reviewNotes || '',
+            teacherNotes: activity.teacherNotes || '',
+            reviewUpdatedAt: activity.reviewUpdatedAt || activity.createdAt || new Date().toISOString()
         }));
         currentReflections = sampleData.reflections.map((reflection) => ({ ...reflection }));
         localStorage.setItem(STORAGE_KEYS.ACTIVITIES, JSON.stringify(currentActivities));
@@ -311,6 +355,7 @@ try {
 let activitiesSyncPromise = null;
 let sessionExpiredNotified = false;
 let isPrinting = false;
+let supabaseClientInstance = null;
 const VALID_THEME_SETTINGS = new Set(['light', 'dark', 'system']);
 const THEME_ICON_MAP = {
     light: 'fas fa-sun',
@@ -617,7 +662,12 @@ function mapDtoToActivity(dto) {
         headerImagePath: dto.headerImagePath,
         createdAt: dto.createdAt,
         updatedAt: dto.updatedAt,
-        assets: Array.isArray(dto.assets) ? dto.assets : []
+        assets: Array.isArray(dto.assets) ? dto.assets : [],
+        reviewFlag: normalizeReviewFlag(dto.review_flag || dto.reviewFlag),
+        reviewDecision: normalizeReviewDecision(dto.teacher_decision || dto.reviewDecision),
+        reviewNotes: dto.review_notes || dto.reviewNotes || '',
+        teacherNotes: dto.teacher_notes || dto.teacherNotes || '',
+        reviewUpdatedAt: dto.review_updated_at || dto.reviewUpdatedAt || dto.updatedAt || null
     };
 }
 
@@ -692,6 +742,289 @@ function saveData() {
     } catch (error) {
         console.error('Error saving data to localStorage:', error);
         alert('There was an error saving your data. Please try again.');
+    }
+}
+
+function getSupabaseClient() {
+    if (supabaseClientInstance) {
+        return supabaseClientInstance;
+    }
+    if (typeof window === 'undefined' || !window.supabase) {
+        return null;
+    }
+    if (!SUPABASE_URL || SUPABASE_URL.includes('YOUR_SUPABASE_PROJECT')) {
+        return null;
+    }
+    if (!SUPABASE_ANON_KEY || SUPABASE_ANON_KEY.includes('YOUR_SUPABASE_ANON_KEY')) {
+        return null;
+    }
+    supabaseClientInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: false }
+    });
+    return supabaseClientInstance;
+}
+
+function getReviewSyncQueue() {
+    try {
+        const raw = localStorage.getItem(REVIEW_SYNC_QUEUE_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        console.warn('Unable to read review sync queue', error);
+        return [];
+    }
+}
+
+function queueReviewSync(activity) {
+    if (!activity?.id) return;
+    const queue = getReviewSyncQueue().filter((entry) => entry.id !== activity.id);
+    queue.push({
+        id: activity.id,
+        reviewFlag: normalizeReviewFlag(activity.reviewFlag),
+        reviewDecision: normalizeReviewDecision(activity.reviewDecision),
+        reviewNotes: activity.reviewNotes || '',
+        teacherNotes: activity.teacherNotes || '',
+        reviewUpdatedAt: activity.reviewUpdatedAt || new Date().toISOString()
+    });
+    try {
+        localStorage.setItem(REVIEW_SYNC_QUEUE_KEY, JSON.stringify(queue));
+    } catch (error) {
+        console.warn('Unable to persist review sync queue', error);
+    }
+}
+
+async function flushQueuedReviewSync() {
+    const client = getSupabaseClient();
+    if (!client) {
+        return;
+    }
+    const queue = getReviewSyncQueue();
+    if (queue.length === 0) {
+        return;
+    }
+    const payloads = queue.map((entry) => ({
+        activity_id: entry.id,
+        review_flag: normalizeReviewFlag(entry.reviewFlag),
+        review_notes: entry.reviewNotes || null,
+        teacher_decision: normalizeReviewDecision(entry.reviewDecision),
+        teacher_notes: entry.teacherNotes || null,
+        review_updated_at: entry.reviewUpdatedAt || new Date().toISOString()
+    }));
+    const { error } = await client
+        .from('cas_activity_reviews')
+        .upsert(payloads, { onConflict: 'activity_id' });
+    if (error) {
+        throw error;
+    }
+    localStorage.removeItem(REVIEW_SYNC_QUEUE_KEY);
+}
+
+async function persistActivityReview(activity) {
+    if (!activity?.id) {
+        return;
+    }
+    const client = getSupabaseClient();
+    if (!client) {
+        queueReviewSync(activity);
+        return;
+    }
+    const payload = {
+        activity_id: activity.id,
+        review_flag: normalizeReviewFlag(activity.reviewFlag),
+        review_notes: activity.reviewNotes || null,
+        teacher_decision: normalizeReviewDecision(activity.reviewDecision),
+        teacher_notes: activity.teacherNotes || null,
+        review_updated_at: activity.reviewUpdatedAt || new Date().toISOString()
+    };
+    const { error } = await client
+        .from('cas_activity_reviews')
+        .upsert(payload, { onConflict: 'activity_id' });
+    if (error) {
+        queueReviewSync(activity);
+        throw error;
+    }
+}
+
+async function refreshReviewStatusesFromSupabase() {
+    const client = getSupabaseClient();
+    if (!client) {
+        return;
+    }
+    const { data, error } = await client
+        .from('cas_activity_reviews')
+        .select('activity_id, review_flag, review_notes, teacher_decision, teacher_notes, review_updated_at')
+        .order('review_updated_at', { ascending: false });
+    if (error) {
+        console.warn('Unable to load review statuses from Supabase', error);
+        return;
+    }
+    if (!Array.isArray(data)) {
+        return;
+    }
+    let updated = false;
+    data.forEach((row) => {
+        const target = currentActivities.find((activity) => activity.id === row.activity_id);
+        if (target) {
+            target.reviewFlag = normalizeReviewFlag(row.review_flag || target.reviewFlag);
+            target.reviewDecision = normalizeReviewDecision(row.teacher_decision || target.reviewDecision);
+            target.reviewNotes = row.review_notes || target.reviewNotes || '';
+            target.teacherNotes = row.teacher_notes || target.teacherNotes || '';
+            target.reviewUpdatedAt = row.review_updated_at || target.reviewUpdatedAt || null;
+            updated = true;
+        }
+    });
+    if (updated) {
+        saveData();
+        rerenderActivityViews();
+    }
+}
+
+function normalizeReviewFlag(flag) {
+    if (flag === 'pending_review' || flag === 'pending_verification') {
+        return flag;
+    }
+    return 'none';
+}
+
+function normalizeReviewDecision(decision) {
+    if (decision === 'approved' || decision === 'rejected') {
+        return decision;
+    }
+    return 'pending';
+}
+
+function getReviewFlagLabel(flag) {
+    return REVIEW_FLAG_LABELS[flag] || REVIEW_FLAG_LABELS.none;
+}
+
+function getReviewDecisionLabel(decision) {
+    return REVIEW_DECISION_LABELS[decision] || REVIEW_DECISION_LABELS.pending;
+}
+
+function determineReviewDecision(previousActivity, nextFlag) {
+    const normalizedFlag = normalizeReviewFlag(nextFlag);
+    if (!previousActivity) {
+        return normalizedFlag === 'none' ? 'pending' : 'pending';
+    }
+    const previousFlag = normalizeReviewFlag(previousActivity.reviewFlag);
+    if (previousFlag !== normalizedFlag) {
+        return normalizedFlag === 'none' ? 'pending' : 'pending';
+    }
+    return normalizeReviewDecision(previousActivity.reviewDecision);
+}
+
+function getReviewDecisionClass(decision) {
+    const normalized = normalizeReviewDecision(decision);
+    if (normalized === 'approved') return 'approved';
+    if (normalized === 'rejected') return 'rejected';
+    return 'pending';
+}
+
+function renderReviewBadges(activity) {
+    if (!activity) {
+        return '';
+    }
+    const flagLabel = getReviewFlagLabel(normalizeReviewFlag(activity.reviewFlag));
+    const decisionLabel = getReviewDecisionLabel(activity.reviewDecision);
+    return `
+        <div class="activity-review-badges" aria-label="Review status">
+            <span class="review-pill flag">${flagLabel}</span>
+            <span class="review-pill ${getReviewDecisionClass(activity.reviewDecision)}">${decisionLabel}</span>
+        </div>
+    `;
+}
+
+function renderReviewSummaryBlock(activity) {
+    if (!activity) return '';
+    const flagLabel = getReviewFlagLabel(activity.reviewFlag);
+    const decisionLabel = getReviewDecisionLabel(activity.reviewDecision);
+    const updated = activity.reviewUpdatedAt ? `<p class="helper-text">Updated ${formatFullDate(activity.reviewUpdatedAt)}</p>` : '';
+    const teacherNote = activity.teacherNotes
+        ? `<div class="teacher-note">${escapeHtml(activity.teacherNotes)}</div>`
+        : '';
+    return `
+        <div class="review-summary-card">
+            <h3>Review Workflow</h3>
+            <p><strong>Flag:</strong> ${flagLabel}</p>
+            <p><strong>Teacher decision:</strong> ${decisionLabel}</p>
+            ${updated}
+            ${teacherNote}
+            <div class="review-actions">
+                <button class="btn btn-outline btn-sm" onclick="markActivityReviewFlag('${activity.id}', 'pending_review')">Submit for Review</button>
+                <button class="btn btn-outline btn-sm" onclick="markActivityReviewFlag('${activity.id}', 'pending_verification')">Submit for Verification</button>
+                <button class="btn btn-ghost btn-sm" onclick="markActivityReviewFlag('${activity.id}', 'none')">Clear Request</button>
+            </div>
+        </div>
+    `;
+}
+
+function updateReviewFormUI(activityOverride = null) {
+    const flagSelect = document.getElementById('review-flag');
+    const indicator = document.getElementById('review-decision-indicator');
+    const teacherFeedback = document.getElementById('teacher-feedback-display');
+    if (!flagSelect || !indicator) {
+        return;
+    }
+    const targetActivity = activityOverride || (currentActivityId ? currentActivities.find((a) => a.id === currentActivityId) : null);
+    const flagValue = normalizeReviewFlag(flagSelect.value);
+    if (flagValue === 'none') {
+        indicator.textContent = 'No submission has been sent yet.';
+    } else {
+        const decisionLabel = getReviewDecisionLabel(targetActivity?.reviewDecision || 'pending');
+        indicator.innerHTML = `<strong>${decisionLabel}</strong> for ${getReviewFlagLabel(flagValue)}`;
+    }
+    if (teacherFeedback) {
+        const note = flagValue === 'none' ? '' : targetActivity?.teacherNotes || '';
+        if (note) {
+            teacherFeedback.hidden = false;
+            teacherFeedback.textContent = `Teacher note: ${note}`;
+        } else {
+            teacherFeedback.hidden = true;
+            teacherFeedback.textContent = '';
+        }
+    }
+}
+
+function initializeReviewRequestControls() {
+    const flagSelect = document.getElementById('review-flag');
+    if (!flagSelect) return;
+    flagSelect.addEventListener('change', () => updateReviewFormUI());
+    document.getElementById('request-review-btn')?.addEventListener('click', () => {
+        flagSelect.value = 'pending_review';
+        updateReviewFormUI();
+    });
+    document.getElementById('request-verification-btn')?.addEventListener('click', () => {
+        flagSelect.value = 'pending_verification';
+        updateReviewFormUI();
+    });
+    document.getElementById('reset-review-btn')?.addEventListener('click', () => {
+        flagSelect.value = 'none';
+        const notes = document.getElementById('review-notes');
+        if (notes) {
+            notes.value = '';
+        }
+        updateReviewFormUI();
+    });
+}
+
+async function markActivityReviewFlag(activityId, flag) {
+    const activity = currentActivities.find((a) => a.id === activityId);
+    if (!activity) {
+        return;
+    }
+    const normalizedFlag = normalizeReviewFlag(flag);
+    activity.reviewFlag = normalizedFlag;
+    activity.reviewDecision = normalizedFlag === 'none' ? 'pending' : 'pending';
+    activity.reviewUpdatedAt = new Date().toISOString();
+    saveData();
+    rerenderActivityViews();
+    updateReviewFormUI(activity);
+    try {
+        await persistActivityReview(activity);
+        await flushQueuedReviewSync();
+    } catch (error) {
+        console.warn('Unable to sync review flag immediately', error);
+        queueReviewSync(activity);
     }
 }
 
@@ -1320,11 +1653,12 @@ function renderActivityCard(activity) {
                 <p class="activity-description" data-testid="text-description-${activity.id}">${activity.description}</p>
                 <div class="activity-footer">
                     <span class="activity-hours" data-testid="text-hours-${activity.id}">${activity.totalHours} hours</span>
-                    <button class="btn btn-ghost" onclick="event.stopPropagation();" data-testid="button-view-details-${activity.id}">
-                        View Details 
+                    <button class="btn btn-ghost" onclick="event.stopPropagation(); viewActivityDetail('${activity.id}')" data-testid="button-view-details-${activity.id}">
+                        View Details
                         <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
+                ${renderReviewBadges(activity)}
             </div>
         </div>
     `;
@@ -1361,6 +1695,7 @@ function renderTimeline() {
                     <span class="activity-hours" data-testid="text-timeline-hours-${activity.id}">${activity.totalHours} hours</span>
                 </div>
                 <p class="timeline-description" data-testid="text-timeline-description-${activity.id}">${activity.description}</p>
+                ${renderReviewBadges(activity)}
                 <button class="btn btn-ghost" onclick="viewActivityDetail('${activity.id}')" data-testid="button-timeline-view-${activity.id}">
                     View Details
                 </button>
@@ -2031,6 +2366,13 @@ function openAddActivityDialog(activityId = null) {
                 form.elements['challengeDescription'].value = activity.challengeDescription || '';
             }
             form.elements['status'].value = activity.status || 'ongoing';
+            if (form.elements['reviewFlag']) {
+                form.elements['reviewFlag'].value = activity.reviewFlag || 'none';
+            }
+            if (form.elements['reviewNotes']) {
+                form.elements['reviewNotes'].value = activity.reviewNotes || '';
+            }
+            updateReviewFormUI(activity);
 
             setLearningOutcomeSelections(activity.learningOutcomes);
             setRating(activity.rating || 0);
@@ -2057,12 +2399,19 @@ function openAddActivityDialog(activityId = null) {
         if (form.elements['endDate']) {
             form.elements['endDate'].value = '';
         }
+        if (form.elements['reviewFlag']) {
+            form.elements['reviewFlag'].value = 'none';
+        }
+        if (form.elements['reviewNotes']) {
+            form.elements['reviewNotes'].value = '';
+        }
         setLearningOutcomeSelections([]);
         setRating(0);
         setDifficultyValue(5);
         document.getElementById('image-preview').style.display = 'none';
         title.textContent = 'Add New Activity';
         submitBtn.innerHTML = '<i class="fas fa-save"></i> Save Activity';
+        updateReviewFormUI();
     }
 
     enhanceSelectControl(categorySelect);
@@ -2692,6 +3041,8 @@ function viewActivityDetail(activityId) {
                     </div>
                 </div>
 
+                ${renderReviewSummaryBlock(activity)}
+
                 <div class="reflections-section">
                     <h3>Reflections</h3>
                     ${reflections.length > 0 ? `
@@ -2820,6 +3171,7 @@ async function handleActivityFormSubmit(e) {
 
     const form = e.target;
     const isEditing = currentActivityId !== null;
+    const existingActivity = isEditing ? currentActivities.find((activity) => activity.id === currentActivityId) : null;
 
     const startDateRaw = form.elements['dateGeneral']?.value || '';
     const endDateRaw = form.elements['endDate']?.value || '';
@@ -2835,6 +3187,9 @@ async function handleActivityFormSubmit(e) {
         }
     }
 
+    const selectedReviewFlag = form.elements['reviewFlag']?.value || 'none';
+    const reviewNotes = (form.elements['reviewNotes']?.value || '').trim();
+
     const formValues = {
         title: (form.elements['title']?.value || '').trim(),
         category: form.elements['category']?.value || 'creativity',
@@ -2846,7 +3201,12 @@ async function handleActivityFormSubmit(e) {
         challengeDescription: (form.elements['challengeDescription']?.value || '').trim(),
         rating: Number.parseInt(form.elements['rating']?.value || form.querySelector('#rating-value')?.value || '0', 10) || 0,
         difficulty: Number.parseInt(form.elements['difficulty']?.value || '5', 10) || 5,
-        learningOutcomes: Array.isArray(learningOutcomes) ? [...learningOutcomes] : []
+        learningOutcomes: Array.isArray(learningOutcomes) ? [...learningOutcomes] : [],
+        reviewFlag: selectedReviewFlag,
+        reviewNotes,
+        reviewDecision: determineReviewDecision(existingActivity, selectedReviewFlag),
+        teacherNotes: existingActivity?.teacherNotes || '',
+        reviewUpdatedAt: existingActivity?.reviewUpdatedAt || new Date().toISOString()
     };
 
     if (!formValues.title) {
@@ -2865,6 +3225,7 @@ async function handleActivityFormSubmit(e) {
         setLearningOutcomeSelections([]);
         setRating(0);
         setDifficultyValue(5);
+        updateReviewFormUI();
         closeAddActivityDialog();
 
         rerenderActivityViews();
@@ -2901,7 +3262,17 @@ async function saveActivity(values, { isEditing }) {
         challenge_description: values.challengeDescription || null,
         learning_outcomes: Array.isArray(values.learningOutcomes) ? values.learningOutcomes : [],
         rating: Number.isFinite(values.rating) && values.rating > 0 ? values.rating : null,
-        difficulty: Number.isFinite(values.difficulty) ? values.difficulty : null
+        difficulty: Number.isFinite(values.difficulty) ? values.difficulty : null,
+        reviewFlag: normalizeReviewFlag(values.reviewFlag),
+        review_flag: normalizeReviewFlag(values.reviewFlag),
+        reviewNotes: values.reviewNotes || null,
+        review_notes: values.reviewNotes || null,
+        reviewDecision: normalizeReviewDecision(values.reviewDecision),
+        review_decision: normalizeReviewDecision(values.reviewDecision),
+        teacherNotes: values.teacherNotes || null,
+        teacher_notes: values.teacherNotes || null,
+        reviewUpdatedAt: values.reviewUpdatedAt || new Date().toISOString(),
+        review_updated_at: values.reviewUpdatedAt || new Date().toISOString()
     };
 
     const headerImageForLocal = headerDescriptor?.url || previousHeaderImage || null;
@@ -2957,7 +3328,12 @@ async function saveActivity(values, { isEditing }) {
             difficulty: Number.isFinite(values.difficulty) ? values.difficulty : null,
             headerImage: headerImageForLocal,
             headerImagePath: headerDescriptor?.path || previousActivity?.headerImagePath || null,
-            updatedAt: new Date().toISOString()
+            updatedAt: new Date().toISOString(),
+            reviewFlag: normalizeReviewFlag(values.reviewFlag),
+            reviewDecision: normalizeReviewDecision(values.reviewDecision),
+            reviewNotes: values.reviewNotes || '',
+            teacherNotes: values.teacherNotes || previousActivity?.teacherNotes || '',
+            reviewUpdatedAt: values.reviewUpdatedAt || new Date().toISOString()
         };
 
         const targetIndex = currentActivities.findIndex((activity) => activity.id === resolvedId);
@@ -2968,6 +3344,14 @@ async function saveActivity(values, { isEditing }) {
             currentActivities.push(normalizedActivity);
         }
         saveData();
+        const persistedActivity = targetIndex !== -1 ? currentActivities[targetIndex] : normalizedActivity;
+        try {
+            await persistActivityReview(persistedActivity);
+            await flushQueuedReviewSync();
+        } catch (error) {
+            console.warn('Review metadata will sync later', error);
+            queueReviewSync(persistedActivity);
+        }
     }
 
     await hydrateActivitiesFromServer({ force: true, silent: true }).catch((error) => {
@@ -3144,6 +3528,7 @@ function initializeEventListeners() {
     setLearningOutcomeSelections(learningOutcomes);
     initializeRatingControl();
     initializeDifficultyControl();
+    initializeReviewRequestControls();
 
     // Close modals when clicking outside
     document.querySelectorAll('.modal').forEach(modal => {
@@ -3189,6 +3574,16 @@ async function initializeApp() {
     } catch (error) {
         console.warn('Falling back to cached activities', error);
     } finally {
+        try {
+            await flushQueuedReviewSync();
+        } catch (syncError) {
+            console.warn('Pending review requests will sync when Supabase is reachable', syncError);
+        }
+        try {
+            await refreshReviewStatusesFromSupabase();
+        } catch (refreshError) {
+            console.warn('Unable to refresh review statuses from Supabase', refreshError);
+        }
         rerenderActivityViews();
         initializeEventListeners();
         initializePortfolioPopUp();

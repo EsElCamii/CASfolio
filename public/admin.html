@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CASfolio Admin Portal</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="admin.js" defer></script>
+</head>
+<body class="admin-shell">
+    <main class="admin-container">
+        <section class="admin-card" id="admin-login-panel">
+            <h1>CASfolio Admin Portal</h1>
+            <p class="helper-text">Use your coordinator credentials stored in Supabase to review student submissions.</p>
+            <form id="admin-login-form" class="form-grid" autocomplete="off">
+                <div class="form-group">
+                    <label for="admin-username">Username</label>
+                    <input id="admin-username" name="username" type="text" required placeholder="coordinator@school.edu">
+                </div>
+                <div class="form-group">
+                    <label for="admin-password">Password</label>
+                    <input id="admin-password" name="password" type="password" required placeholder="••••••••">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="admin-login-button">Log In</button>
+                </div>
+            </form>
+            <p class="helper-text">Passwords are verified via the <code>verify_admin_password</code> Supabase function so they are never hardcoded in the UI.</p>
+        </section>
+
+        <section class="admin-card" id="admin-dashboard" hidden>
+            <div class="admin-header">
+                <div>
+                    <h2>Review Queue</h2>
+                    <p class="helper-text">Approve or reject flagged activities. Updates sync back to student dashboards instantly.</p>
+                </div>
+                <div class="admin-header-actions">
+                    <button class="btn btn-outline btn-sm" id="admin-refresh">Refresh</button>
+                    <button class="btn btn-ghost btn-sm" id="admin-logout">Logout</button>
+                </div>
+            </div>
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Activity</th>
+                            <th>Flag</th>
+                            <th>Decision</th>
+                            <th>Teacher Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-activities-body"></tbody>
+                </table>
+                <p class="admin-empty" id="admin-empty-state" hidden>No flagged activities yet.</p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

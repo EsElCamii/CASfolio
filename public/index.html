@@ -84,6 +84,7 @@
         })();
     </script>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script type="application/ld+json">
         {
             "@context": "https://schema.org",
@@ -861,6 +862,26 @@
                         <option value="ongoing">Ongoing</option>
                         <option value="completed">Completed</option>
                     </select>
+                </div>
+
+                <div class="form-group review-request" aria-live="polite">
+                    <label for="review-flag">Review Request</label>
+                    <div class="review-controls">
+                        <select id="review-flag" name="reviewFlag" class="select-control select-control--status">
+                            <option value="none">Not submitted</option>
+                            <option value="pending_review">Pending Review</option>
+                            <option value="pending_verification">Pending Verification</option>
+                        </select>
+                        <div class="review-control-buttons">
+                            <button type="button" class="btn btn-outline btn-sm" id="request-review-btn">Submit for Review</button>
+                            <button type="button" class="btn btn-outline btn-sm" id="request-verification-btn">Submit for Verification</button>
+                            <button type="button" class="btn btn-ghost btn-sm" id="reset-review-btn">Clear Request</button>
+                        </div>
+                    </div>
+                    <textarea id="review-notes" name="reviewNotes" rows="2" placeholder="Optional note for your teacher (e.g., highlight what changed)."></textarea>
+                    <p class="helper-text">Flags sync to Supabase so coordinators know what needs attention.</p>
+                    <div class="review-feedback" id="review-decision-indicator" role="status">No submission has been sent yet.</div>
+                    <div class="review-feedback" id="teacher-feedback-display" hidden></div>
                 </div>
 
                 <div class="form-group">
