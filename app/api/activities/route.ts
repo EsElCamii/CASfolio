@@ -4,6 +4,7 @@ import { jsonCreated, jsonError, jsonOk, serverError, unauthorized } from '../..
 import {
   assertCategory,
   assertStatus,
+  normalizeHoursValue,
   normalizeLearningOutcomes,
   mapActivityRow,
   signStoragePaths,
@@ -88,7 +89,7 @@ function sanitizePayload(payload: ActivityMutationPayload, ownerId: string) {
   const title = payload.title.trim().slice(0, 256);
   const category = assertCategory(payload.category);
   const status = assertStatus(payload.status);
-  const hours = Number.isFinite(payload.hours) ? Number(payload.hours) : 0;
+  const hours = normalizeHoursValue(payload.hours);
   const description = payload.description ? String(payload.description).slice(0, 2000) : null;
   const startDate = payload.startDate ?? null;
   const endDate = payload.endDate ?? null;

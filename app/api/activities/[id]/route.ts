@@ -4,6 +4,7 @@ import { jsonError, jsonNoContent, jsonOk, serverError, unauthorized, notFound }
 import {
   assertCategory,
   assertStatus,
+  normalizeHoursValue,
   normalizeLearningOutcomes,
   fetchActivityById,
 } from '../../../../lib/api/activities';
@@ -36,8 +37,7 @@ function sanitizePayload(payload: ActivityMutationPayload, ownerId: string) {
   }
 
   if (payload.hours !== undefined) {
-    const hours = Number(payload.hours);
-    output.hours = Number.isFinite(hours) ? hours : 0;
+    output.hours = normalizeHoursValue(payload.hours);
   }
 
   if (payload.startDate !== undefined) {

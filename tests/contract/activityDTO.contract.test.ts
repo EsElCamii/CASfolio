@@ -61,4 +61,32 @@ describe('ActivityDTO contract mapping', () => {
       ],
     });
   });
+
+  it('normalizes string hours into numeric payloads', () => {
+    const row: ActivityRow = {
+      id: 'activity-2',
+      student_id: 'user-2',
+      title: 'Service Project',
+      description: null,
+      category: 'service',
+      status: 'ongoing',
+      start_date: null,
+      end_date: null,
+      hours: '20.09' as any,
+      learning_outcomes: [],
+      header_image_path: null,
+      header_image_checksum: null,
+      header_image_updated_at: null,
+      challenge_description: null,
+      rating: null,
+      difficulty: null,
+      created_at: '2024-03-01T00:00:00.000Z',
+      updated_at: '2024-03-02T00:00:00.000Z',
+      activity_assets: [],
+    };
+
+    const dto = mapActivityRow(row, new Map(), new Map());
+
+    expect(dto.hours).toBe(20.09);
+  });
 });

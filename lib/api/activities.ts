@@ -43,6 +43,22 @@ export function normalizeLearningOutcomes(value: unknown): string[] {
   return [];
 }
 
+export function normalizeHoursValue(value: unknown): number {
+  if (value === null || value === undefined) {
+    return 0;
+  }
+
+  const normalizedInput = typeof value === 'string' ? value.replace(',', '.').trim() : value;
+  const parsed = typeof normalizedInput === 'number' ? normalizedInput : Number.parseFloat(String(normalizedInput));
+
+  if (!Number.isFinite(parsed)) {
+    return 0;
+  }
+
+  const clamped = Math.max(0, parsed);
+  return Math.round(clamped * 100) / 100;
+}
+
 export interface ActivityRow {
   id: string;
   student_id: string;
@@ -52,7 +68,7 @@ export interface ActivityRow {
   status: ActivityStatus;
   start_date: string | null;
   end_date: string | null;
-  hours: number | null;
+  hours: number | string | null;
   learning_outcomes: string[] | null;
   challenge_description: string | null;
   rating: number | null;
@@ -165,7 +181,7 @@ export function mapActivityRow(
     status: row.status,
     startDate: row.start_date,
     endDate: row.end_date,
-    hours: row.hours ?? 0,
+    hours: normalizeHoursValue(row.hours),
     learningOutcomes: row.learning_outcomes ?? [],
     challengeDescription: row.challenge_description ?? null,
     rating: row.rating ?? null,
