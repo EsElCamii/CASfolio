@@ -48,7 +48,7 @@ values
     ('00000000-0000-0000-0000-000000000003', 'Noordwijk Cycle Tour', 'Juan Fernandez Herrera', 'pending_review', 'Please double-check safety reflection.', 'rejected', 'Needs more detail on risk management before approval.');
 
 insert into public.admin_credentials (username, password_hash)
-values ('coordinator@school.edu', crypt('Sup3rSecure!', gen_salt('bf')))
+values ('miriam.fragoso@noordwijk.edu.mx ', crypt('N00dw1k!', gen_salt('bf')))
 on conflict (username) do update set password_hash = excluded.password_hash;
 ```
 Replace the UUIDs above with the real activity IDs returned by your Supabase project.

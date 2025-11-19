@@ -1,6 +1,6 @@
 (function() {
-    const SUPABASE_URL = window.__SUPABASE_URL__ || 'https://YOUR_SUPABASE_PROJECT.supabase.co';
-    const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || 'YOUR_SUPABASE_ANON_KEY';
+    const SUPABASE_URL = window.__SUPABASE_URL__ || 'https://hhvdgmlddlfstdinctiy.supabase.co';
+    const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhodmRnbWxkZGxmc3RkaW5jdGl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MDk5NTMsImV4cCI6MjA3NDQ4NTk1M30.1_wOxUi9__CJkD_p0jDSrcqS5h0VP7_HfEVS6IdTPXA';
     const REVIEW_FLAG_LABELS = {
         none: 'Not submitted',
         pending_review: 'Pending Review',
