@@ -9,7 +9,7 @@ ALTER TABLE public.activities
   ADD COLUMN IF NOT EXISTS description text,
   ADD COLUMN IF NOT EXISTS start_date date,
   ADD COLUMN IF NOT EXISTS end_date date,
-  ADD COLUMN IF NOT EXISTS hours integer NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS hours numeric(10,2) NOT NULL DEFAULT 0,
   ADD COLUMN IF NOT EXISTS learning_outcomes text[] NOT NULL DEFAULT '{}',
   ADD COLUMN IF NOT EXISTS header_image_path text,
   ADD COLUMN IF NOT EXISTS header_image_checksum text,
