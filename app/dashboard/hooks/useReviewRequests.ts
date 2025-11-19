@@ -49,7 +49,7 @@ export function useReviewRequests({ supabase, studentId, notify }: UseReviewRequ
     async function loadInitial() {
       setLoading(true);
       const { data, error } = await supabase
-        .from<ReviewRequestRow>('review_requests')
+        .from('review_requests')
         .select('*')
         .eq('student_id', studentId);
 
@@ -64,7 +64,8 @@ export function useReviewRequests({ supabase, studentId, notify }: UseReviewRequ
         return;
       }
 
-      const mapped = (data ?? []).reduce<Record<string, ReviewRequestDTO>>((acc, row) => {
+      const rows = (data ?? []) as ReviewRequestRow[];
+      const mapped = rows.reduce<Record<string, ReviewRequestDTO>>((acc, row) => {
         const dto = mapRow(row);
         acc[dto.activityId] = dto;
         return acc;
@@ -182,23 +183,23 @@ export function useReviewRequests({ supabase, studentId, notify }: UseReviewRequ
 
         if (existing) {
           const result = await supabase
-            .from<ReviewRequestRow>('review_requests')
+            .from('review_requests')
             .update({ status: 'pending', assessor_notes: null })
             .eq('id', existing.id)
             .select()
             .single();
 
           error = result.error;
-          row = result.data ?? null;
+          row = (result.data ?? null) as ReviewRequestRow | null;
         } else {
           const result = await supabase
-            .from<ReviewRequestRow>('review_requests')
+            .from('review_requests')
             .insert({ activity_id: activityId, student_id: studentId })
             .select()
             .single();
 
           error = result.error;
-          row = result.data ?? null;
+          row = (result.data ?? null) as ReviewRequestRow | null;
         }
 
         if (error || !row) {

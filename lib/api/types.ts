@@ -115,3 +115,15 @@ export interface ApiErrorShape {
   details?: string;
   code?: string;
 }
+
+export type ReviewRequestStatus = 'pending' | 'approved' | 'rejected';
+
+export interface ReviewRequestDTO {
+  id: string;
+  activityId: string;
+  studentId: string;
+  status: ReviewRequestStatus;
+  assessorNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
