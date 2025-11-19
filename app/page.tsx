@@ -28,9 +28,11 @@ export default async function LandingPage({ searchParams }: LandingPageProps) {
       className="section"
       aria-labelledby="auth-title"
       style={{
-        minHeight: 'calc(100vh - 5rem)',
+        minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2.5rem 1.5rem',
         background: 'linear-gradient(135deg, rgba(59,130,246,0.12), rgba(37,99,235,0.04))',
       }}
     >

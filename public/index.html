@@ -1178,6 +1178,28 @@
             ].filter(Boolean);
 
             const loginLinks = [];
+            const CSRF_COOKIE_NAME = 'casfolio.csrf-token';
+            const CSRF_HEADER_NAME = 'x-csrf-token';
+
+            const getCookieValue = (name) => {
+                const cookieString = document.cookie || '';
+                const cookies = cookieString.split(';');
+                for (const cookie of cookies) {
+                    const [cookieName, ...rest] = cookie.trim().split('=');
+                    if (cookieName === name) {
+                        return rest.length > 0 ? decodeURIComponent(rest.join('=')) : '';
+                    }
+                }
+                return null;
+            };
+
+            const withCsrfHeaders = (headers = {}) => {
+                const token = getCookieValue(CSRF_COOKIE_NAME);
+                if (!token) {
+                    return headers;
+                }
+                return { ...headers, [CSRF_HEADER_NAME]: token };
+            };
 
             if (logoutButtons.length === 0) {
                 return;
@@ -1248,7 +1270,8 @@
                     const response = await fetch('/api/auth/signout', {
                         method: 'POST',
                         credentials: 'include',
-                        cache: 'no-store'
+                        cache: 'no-store',
+                        headers: withCsrfHeaders()
                     });
 
                     if (!response.ok) {
@@ -1261,7 +1284,7 @@
                 try {
                     await fetch('/api/auth/callback', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers: withCsrfHeaders({ 'Content-Type': 'application/json' }),
                         credentials: 'include',
                         body: JSON.stringify({ event: 'SIGNED_OUT', session: null })
                     });
