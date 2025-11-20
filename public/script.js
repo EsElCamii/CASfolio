@@ -807,9 +807,13 @@ function getReviewSyncQueue() {
 
 function queueReviewSync(activity) {
     if (!activity?.id) return;
+    const onboardingState = getPortfolioOnboardingState();
+    const studentName = onboardingState?.data?.student_name || 'Unknown student';
     const queue = getReviewSyncQueue().filter((entry) => entry.id !== activity.id);
     queue.push({
         id: activity.id,
+        title: activity.title || 'Untitled activity',
+        studentName,
         reviewFlag: normalizeReviewFlag(activity.reviewFlag),
         reviewDecision: normalizeReviewDecision(activity.reviewDecision),
         reviewNotes: activity.reviewNotes || '',
@@ -834,6 +838,8 @@ async function flushQueuedReviewSync() {
     }
     const payloads = queue.map((entry) => ({
         activity_id: entry.id,
+        activity_title: entry.title || 'Untitled activity',
+        student_name: entry.studentName || 'Unknown student',
         review_flag: normalizeReviewFlag(entry.reviewFlag),
         review_notes: entry.reviewNotes || null,
         teacher_decision: normalizeReviewDecision(entry.reviewDecision),
@@ -858,8 +864,12 @@ async function persistActivityReview(activity) {
         queueReviewSync(activity);
         return;
     }
+    const onboardingState = getPortfolioOnboardingState();
+    const studentName = onboardingState?.data?.student_name || 'Unknown student';
     const payload = {
         activity_id: activity.id,
+        activity_title: activity.title || 'Untitled activity',
+        student_name: studentName,
         review_flag: normalizeReviewFlag(activity.reviewFlag),
         review_notes: activity.reviewNotes || null,
         teacher_decision: normalizeReviewDecision(activity.reviewDecision),
