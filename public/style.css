@@ -1168,13 +1168,14 @@ a:focus-visible {
 
 .admin-hero {
     padding: 0.5rem 0 1.25rem;
+    text-align: center;
 }
 
 .admin-kicker {
     font-size: 0.9rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: rgba(var(--primary-rgb), 0.8);
+    color: rgba(var(--primary-rgb), 0.9);
     margin-bottom: 0.2rem;
 }
 
@@ -1191,6 +1192,7 @@ a:focus-visible {
     justify-content: space-between;
     align-items: flex-start;
     gap: 1rem;
+    flex-wrap: wrap;
 }
 
 .admin-login-status {
@@ -1344,6 +1346,22 @@ a:focus-visible {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+}
+
+.admin-hero-image {
+    width: 100%;
+    min-height: 140px;
+    border-radius: var(--radius);
+    background-size: cover;
+    background-position: center;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+}
+
+.archived-pill {
+    background: rgba(148, 163, 184, 0.15);
+    color: #475569;
+    border-color: rgba(148, 163, 184, 0.45);
 }
 
 .admin-empty {

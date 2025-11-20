@@ -691,6 +691,7 @@ function mapDtoToActivity(dto) {
         headerImagePath: dto.headerImagePath,
         createdAt: dto.createdAt,
         updatedAt: dto.updatedAt,
+        photoInfo: dto.photo_info || dto.photoInfo || '',
         assets: Array.isArray(dto.assets) ? dto.assets : [],
         reviewFlag: normalizeReviewFlag(dto.review_flag || dto.reviewFlag),
         reviewDecision: normalizeReviewDecision(dto.teacher_decision || dto.reviewDecision),
@@ -823,7 +824,8 @@ function buildActivitySnapshot(activity) {
         challengeDescription: activity.challengeDescription || '',
         reviewNotes: activity.reviewNotes || '',
         assets: Array.isArray(activity.assets) ? activity.assets : [],
-        headerImage: activity.headerImage || null
+        headerImage: activity.headerImage || null,
+        photoInfo: activity.photoInfo || ''
     };
 }
 
@@ -837,6 +839,7 @@ function queueReviewSync(activity) {
         title: activity.title || 'Untitled activity',
         studentName,
         snapshot: buildActivitySnapshot(activity),
+        archived: Boolean(activity.archived),
         reviewFlag: normalizeReviewFlag(activity.reviewFlag),
         reviewDecision: normalizeReviewDecision(activity.reviewDecision),
         reviewNotes: activity.reviewNotes || '',
@@ -864,6 +867,7 @@ async function flushQueuedReviewSync() {
         activity_title: entry.title || 'Untitled activity',
         student_name: entry.studentName || 'Unknown student',
         activity_snapshot: entry.snapshot || null,
+        archived: Boolean(entry.archived),
         review_flag: normalizeReviewFlag(entry.reviewFlag),
         review_notes: entry.reviewNotes || null,
         teacher_decision: normalizeReviewDecision(entry.reviewDecision),
@@ -892,8 +896,20 @@ async function upsertReviewPayload(payloads) {
               return rest;
           })();
     const retry = await client.from('cas_activity_reviews').upsert(fallbackPayloads, { onConflict: 'activity_id' });
-    if (retry.error) {
-        throw retry.error;
+    if (!retry.error) return;
+    // Fallback if archived also missing
+    const finalPayloads = Array.isArray(fallbackPayloads)
+        ? fallbackPayloads.map((p) => {
+              const { archived, ...rest } = p;
+              return rest;
+          })
+        : (() => {
+              const { archived, ...rest } = fallbackPayloads;
+              return rest;
+          })();
+    const finalAttempt = await client.from('cas_activity_reviews').upsert(finalPayloads, { onConflict: 'activity_id' });
+    if (finalAttempt.error) {
+        throw finalAttempt.error;
     }
 }
 
@@ -913,6 +929,7 @@ async function persistActivityReview(activity) {
         activity_title: activity.title || 'Untitled activity',
         student_name: studentName,
         activity_snapshot: buildActivitySnapshot(activity),
+        archived: Boolean(activity.archived),
         review_flag: normalizeReviewFlag(activity.reviewFlag),
         review_notes: activity.reviewNotes || null,
         teacher_decision: normalizeReviewDecision(activity.reviewDecision),
@@ -2453,6 +2470,9 @@ function openAddActivityDialog(activityId = null) {
             if (form.elements['reviewNotes']) {
                 form.elements['reviewNotes'].value = activity.reviewNotes || '';
             }
+            if (form.elements['photoInfo']) {
+                form.elements['photoInfo'].value = activity.photoInfo || '';
+            }
             updateReviewFormUI(activity);
 
             setLearningOutcomeSelections(activity.learningOutcomes);
@@ -2485,6 +2505,9 @@ function openAddActivityDialog(activityId = null) {
         }
         if (form.elements['reviewNotes']) {
             form.elements['reviewNotes'].value = '';
+        }
+        if (form.elements['photoInfo']) {
+            form.elements['photoInfo'].value = '';
         }
         setLearningOutcomeSelections([]);
         setRating(0);
@@ -3270,6 +3293,7 @@ async function handleActivityFormSubmit(e) {
 
     const selectedReviewFlag = form.elements['reviewFlag']?.value || 'none';
     const reviewNotes = (form.elements['reviewNotes']?.value || '').trim();
+    const photoInfo = (form.elements['photoInfo']?.value || '').trim();
 
     const formValues = {
         title: (form.elements['title']?.value || '').trim(),
@@ -3285,6 +3309,7 @@ async function handleActivityFormSubmit(e) {
         learningOutcomes: Array.isArray(learningOutcomes) ? [...learningOutcomes] : [],
         reviewFlag: selectedReviewFlag,
         reviewNotes,
+        photoInfo,
         reviewDecision: determineReviewDecision(existingActivity, selectedReviewFlag),
         teacherNotes: existingActivity?.teacherNotes || '',
         reviewUpdatedAt: existingActivity?.reviewUpdatedAt || new Date().toISOString()
@@ -3345,6 +3370,7 @@ async function saveActivity(values, { isEditing }) {
         learning_outcomes: Array.isArray(values.learningOutcomes) ? values.learningOutcomes : [],
         rating: Number.isFinite(values.rating) && values.rating > 0 ? values.rating : null,
         difficulty: Number.isFinite(values.difficulty) ? values.difficulty : null,
+        photo_info: values.photoInfo || null,
         reviewFlag: normalizeReviewFlag(values.reviewFlag),
         review_flag: normalizeReviewFlag(values.reviewFlag),
         reviewNotes: values.reviewNotes || null,
@@ -3408,6 +3434,7 @@ async function saveActivity(values, { isEditing }) {
             learningOutcomes: Array.isArray(values.learningOutcomes) ? [...values.learningOutcomes] : [],
             rating: Number.isFinite(values.rating) && values.rating > 0 ? values.rating : null,
             difficulty: Number.isFinite(values.difficulty) ? values.difficulty : null,
+            photoInfo: values.photoInfo || '',
             headerImage: headerImageForLocal,
             headerImagePath: headerDescriptor?.path || previousActivity?.headerImagePath || null,
             updatedAt: new Date().toISOString(),
@@ -3415,7 +3442,8 @@ async function saveActivity(values, { isEditing }) {
             reviewDecision: normalizeReviewDecision(values.reviewDecision),
             reviewNotes: values.reviewNotes || '',
             teacherNotes: values.teacherNotes || previousActivity?.teacherNotes || '',
-            reviewUpdatedAt: values.reviewUpdatedAt || new Date().toISOString()
+            reviewUpdatedAt: values.reviewUpdatedAt || new Date().toISOString(),
+            archived: previousActivity?.archived || false
         };
 
         const targetIndex = currentActivities.findIndex((activity) => activity.id === resolvedId);

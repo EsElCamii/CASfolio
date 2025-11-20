@@ -15,6 +15,7 @@
 
     let supabaseClient = null;
     let isAuthenticated = false;
+    let showArchived = false;
 
     function getSupabaseClient() {
         if (supabaseClient) {
@@ -112,11 +113,11 @@
         let { data, error } = await client
             .from('cas_activity_reviews')
             .select(
-                'activity_id, activity_title, student_name, review_flag, review_notes, teacher_decision, teacher_notes, review_updated_at, activity_snapshot'
+                'activity_id, activity_title, student_name, review_flag, review_notes, teacher_decision, teacher_notes, review_updated_at, activity_snapshot, archived'
             )
             .order('review_updated_at', { ascending: false });
         if (error) {
-            // Fallback for deployments without activity_snapshot column
+            // Fallback for deployments without activity_snapshot/archived columns
             ({ data, error } = await client
                 .from('cas_activity_reviews')
                 .select('activity_id, activity_title, student_name, review_flag, review_notes, teacher_decision, teacher_notes, review_updated_at')
@@ -148,17 +149,50 @@
         }
     }
 
+    async function updateArchiveState(activityId, archived) {
+        const client = getSupabaseClient();
+        if (!client) {
+            throw new Error('Supabase client is not configured.');
+        }
+        const payload = {
+            activity_id: activityId,
+            archived: Boolean(archived),
+            review_flag: 'none',
+            review_updated_at: new Date().toISOString()
+        };
+        const { error } = await client.from('cas_activity_reviews').upsert(payload, { onConflict: 'activity_id' });
+        if (error) {
+            // Fallback if archived column is missing
+            const retry = await client
+                .from('cas_activity_reviews')
+                .upsert({ activity_id: activityId, review_flag: 'none', review_updated_at: new Date().toISOString() }, { onConflict: 'activity_id' });
+            if (retry.error) {
+                throw retry.error;
+            }
+        }
+    }
+
     function renderActivities(rows) {
         const body = document.getElementById('admin-activities-body');
         const emptyState = document.getElementById('admin-empty-state');
         if (!body || !emptyState) return;
-        if (rows.length === 0) {
+        const filtered = (Array.isArray(rows) ? rows : []).filter((row) => {
+            const archived = Boolean(row.archived);
+            return showArchived ? archived : !archived;
+        });
+        if (!rows.length) {
             body.innerHTML = '';
             emptyState.hidden = false;
             return;
         }
+        if (!filtered.length) {
+            body.innerHTML = '';
+            emptyState.textContent = showArchived ? 'No archived reviews.' : 'No review requests yet.';
+            emptyState.hidden = false;
+            return;
+        }
         emptyState.hidden = true;
-        body.innerHTML = rows
+        body.innerHTML = filtered
             .map((row) => {
                 const snapshot = row.activity_snapshot || {};
                 const title = snapshot.title || row.activity_title || 'Untitled activity';
@@ -169,9 +203,12 @@
                 const startDate = formatDate(snapshot.dateGeneral || snapshot.startDate);
                 const endDate = formatDate(snapshot.endDate);
                 const totalHours = formatHours(snapshot.totalHours ?? snapshot.total_hours);
+                const challenge = snapshot.challengeDescription || '';
+                const photoInfo = snapshot.photoInfo || '';
                 const learningOutcomes = renderLearningOutcomes(snapshot.learningOutcomes || snapshot.learning_outcomes);
                 const teacherNote = row.teacher_notes || '';
                 const studentNote = row.review_notes || '';
+                const heroImage = snapshot.headerImage || (Array.isArray(snapshot.assets) ? snapshot.assets[0]?.url || snapshot.assets[0] : null);
                 const media = renderMedia(snapshot.assets || snapshot.photos);
                 const dates =
                     startDate || endDate
@@ -188,13 +225,20 @@
                 const studentNotesBlock = studentNote
                     ? `<div class="admin-detail-row"><span class="admin-detail-label">Student note</span><p class="admin-detail-value">${studentNote}</p></div>`
                     : '';
+                const challengeBlock = challenge
+                    ? `<div class="admin-detail-row"><span class="admin-detail-label">Challenge</span><p class="admin-detail-value">${challenge}</p></div>`
+                    : '';
+                const photoMetaBlock = photoInfo
+                    ? `<div class="admin-detail-row"><span class="admin-detail-label">Photo info</span><p class="admin-detail-value">${photoInfo}</p></div>`
+                    : '';
+                const archivedBadge = row.archived ? `<span class="pill archived-pill">Archived</span>` : '';
 
                 return `
                 <article class="review-card" data-activity-id="${row.activity_id}">
                     <header class="review-card__header">
                         <div>
                             <div class="review-card__title">${title}</div>
-                            <div class="review-card__meta">${student}</div>
+                            <div class="review-card__meta">${student} ${archivedBadge}</div>
                         </div>
                         <div class="review-pill-row">
                             <span class="review-pill flag">${getFlagLabel(flag)}</span>
@@ -202,12 +246,19 @@
                         </div>
                     </header>
                     <div class="review-card__body">
+                        ${
+                            heroImage
+                                ? `<div class="admin-hero-image" data-asset-url="${heroImage}" style="background-image: url('${heroImage}')"></div>`
+                                : ''
+                        }
                         ${description ? `<p class="admin-detail-description">${description}</p>` : ''}
                         ${cat}
                         ${dates}
                         ${hours}
+                        ${challengeBlock}
                         ${learningOutcomes}
                         ${media}
+                        ${photoMetaBlock}
                         ${studentNotesBlock}
                     </div>
                     <div class="review-card__actions">
@@ -215,6 +266,11 @@
                         <div class="admin-row-actions">
                             <button class="btn btn-outline btn-sm" data-action="approve" data-activity-id="${row.activity_id}">Approve</button>
                             <button class="btn btn-danger btn-sm" data-action="reject" data-activity-id="${row.activity_id}">Reject</button>
+                            ${
+                                row.archived
+                                    ? `<button class="btn btn-ghost btn-sm" data-action="restore" data-activity-id="${row.activity_id}">Restore</button>`
+                                    : `<button class="btn btn-ghost btn-sm" data-action="archive" data-activity-id="${row.activity_id}">Archive</button>`
+                            }
                         </div>
                     </div>
                 </article>
@@ -246,6 +302,7 @@
         const logoutBtn = document.getElementById('admin-logout');
         const table = document.getElementById('admin-activities-body');
         const loginStatus = document.getElementById('admin-login-status');
+        const toggleArchivedBtn = document.getElementById('admin-toggle-archived');
 
         if (loginForm) {
             loginForm.addEventListener('submit', async (event) => {
@@ -287,6 +344,13 @@
             await hydrateDashboard();
         });
 
+        toggleArchivedBtn?.addEventListener('click', async () => {
+            showArchived = !showArchived;
+            toggleArchivedBtn.textContent = showArchived ? 'Hide Archived' : 'Show Archived';
+            if (!isAuthenticated) return;
+            await hydrateDashboard();
+        });
+
         logoutBtn?.addEventListener('click', () => {
             isAuthenticated = false;
             toggleDashboard(false);
@@ -314,7 +378,13 @@
             const noteInput = document.querySelector(`textarea[data-note-for="${activityId}"]`);
             const note = noteInput ? noteInput.value.trim() : '';
             try {
-                await updateReviewDecision(activityId, action === 'approve' ? 'approved' : 'rejected', note);
+                if (action === 'archive') {
+                    await updateArchiveState(activityId, true);
+                } else if (action === 'restore') {
+                    await updateArchiveState(activityId, false);
+                } else {
+                    await updateReviewDecision(activityId, action === 'approve' ? 'approved' : 'rejected', note);
+                }
                 await hydrateDashboard();
             } catch (error) {
                 console.error('Failed to update decision', error);
