@@ -5,8 +5,7 @@
     const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhodmRnbWxkZGxmc3RkaW5jdGl5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MDk5NTMsImV4cCI6MjA3NDQ4NTk1M30.1_wOxUi9__CJkD_p0jDSrcqS5h0VP7_HfEVS6IdTPXA';
     const REVIEW_FLAG_LABELS = {
         none: 'Not submitted',
-        pending_review: 'Pending Review',
-        pending_verification: 'Pending Verification'
+        pending_review: 'Pending Review'
     };
     const REVIEW_DECISION_LABELS = {
         pending: 'Waiting',
@@ -47,6 +46,45 @@
         return 'pending';
     }
 
+    function formatDate(value) {
+        if (!value) return '';
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return '';
+        return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function formatHours(value) {
+        if (value === null || value === undefined) return '';
+        const num = Number(value);
+        return Number.isFinite(num) ? `${num} hour${num === 1 ? '' : 's'}` : '';
+    }
+
+    function renderLearningOutcomes(list) {
+        if (!Array.isArray(list) || list.length === 0) return '';
+        return `<div class="admin-detail-row"><span class="admin-detail-label">Learning outcomes</span><div class="admin-badge-row">${list
+            .map((lo) => `<span class="pill lo-pill">${lo}</span>`)
+            .join('')}</div></div>`;
+    }
+
+    function renderMedia(assets) {
+        if (!Array.isArray(assets) || assets.length === 0) return '';
+        const items = assets
+            .map((asset, idx) => {
+                const url = typeof asset === 'string' ? asset : asset?.url || asset?.path;
+                if (!url) return '';
+                return `<button class="thumb" data-asset-url="${url}" aria-label="Open attachment ${idx + 1}">
+                    <img src="${url}" alt="Attachment ${idx + 1}">
+                </button>`;
+            })
+            .filter(Boolean)
+            .join('');
+        if (!items) return '';
+        return `<div class="admin-detail-row">
+            <span class="admin-detail-label">Photos</span>
+            <div class="admin-media-row">${items}</div>
+        </div>`;
+    }
+
     async function verifyAdminCredentials(username, password) {
         const client = getSupabaseClient();
         if (!client) {
@@ -71,10 +109,19 @@
         if (!client) {
             throw new Error('Supabase client is not configured.');
         }
-        const { data, error } = await client
+        let { data, error } = await client
             .from('cas_activity_reviews')
-            .select('activity_id, activity_title, student_name, review_flag, review_notes, teacher_decision, teacher_notes, review_updated_at')
+            .select(
+                'activity_id, activity_title, student_name, review_flag, review_notes, teacher_decision, teacher_notes, review_updated_at, activity_snapshot'
+            )
             .order('review_updated_at', { ascending: false });
+        if (error) {
+            // Fallback for deployments without activity_snapshot column
+            ({ data, error } = await client
+                .from('cas_activity_reviews')
+                .select('activity_id, activity_title, student_name, review_flag, review_notes, teacher_decision, teacher_notes, review_updated_at')
+                .order('review_updated_at', { ascending: false }));
+        }
         if (error) {
             throw error;
         }
@@ -90,7 +137,7 @@
             activity_id: activityId,
             teacher_decision: decision,
             teacher_notes: note || null,
-            review_flag: decision === 'approved' ? 'pending_verification' : 'pending_review',
+            review_flag: 'pending_review',
             review_updated_at: new Date().toISOString()
         };
         const { error } = await client
@@ -111,29 +158,69 @@
             return;
         }
         emptyState.hidden = true;
-        body.innerHTML = rows.map((row) => `
-            <tr>
-                <td>
-                    <div class="admin-activity-title">${row.activity_title || 'Untitled activity'}</div>
-                    <div class="admin-activity-meta">${row.student_name || 'Unknown student'}</div>
-                </td>
-                <td>
-                    <span class="review-pill flag">${getFlagLabel(row.review_flag)}</span>
-                </td>
-                <td>
-                    <span class="review-pill ${getDecisionClass(row.teacher_decision)}">${getDecisionLabel(row.teacher_decision)}</span>
-                </td>
-                <td>
-                    <textarea class="admin-note" data-note-for="${row.activity_id}" placeholder="Add a note for the student">${row.teacher_notes || ''}</textarea>
-                </td>
-                <td>
-                    <div class="admin-row-actions">
-                        <button class="btn btn-outline btn-sm" data-action="approve" data-activity-id="${row.activity_id}">Approve</button>
-                        <button class="btn btn-danger btn-sm" data-action="reject" data-activity-id="${row.activity_id}">Reject</button>
+        body.innerHTML = rows
+            .map((row) => {
+                const snapshot = row.activity_snapshot || {};
+                const title = snapshot.title || row.activity_title || 'Untitled activity';
+                const student = snapshot.student_name || row.student_name || 'Unknown student';
+                const flag = row.review_flag === 'pending_verification' ? 'pending_review' : row.review_flag;
+                const description = snapshot.description || '';
+                const category = snapshot.category || '';
+                const startDate = formatDate(snapshot.dateGeneral || snapshot.startDate);
+                const endDate = formatDate(snapshot.endDate);
+                const totalHours = formatHours(snapshot.totalHours ?? snapshot.total_hours);
+                const learningOutcomes = renderLearningOutcomes(snapshot.learningOutcomes || snapshot.learning_outcomes);
+                const teacherNote = row.teacher_notes || '';
+                const studentNote = row.review_notes || '';
+                const media = renderMedia(snapshot.assets || snapshot.photos);
+                const dates =
+                    startDate || endDate
+                        ? `<div class="admin-detail-row"><span class="admin-detail-label">Dates</span><span class="admin-detail-value">${[startDate, endDate]
+                              .filter(Boolean)
+                              .join(' – ')}</span></div>`
+                        : '';
+                const hours = totalHours
+                    ? `<div class="admin-detail-row"><span class="admin-detail-label">Hours</span><span class="admin-detail-value">${totalHours}</span></div>`
+                    : '';
+                const cat = category
+                    ? `<div class="admin-detail-row"><span class="admin-detail-label">Category</span><span class="admin-detail-value">${category}</span></div>`
+                    : '';
+                const studentNotesBlock = studentNote
+                    ? `<div class="admin-detail-row"><span class="admin-detail-label">Student note</span><p class="admin-detail-value">${studentNote}</p></div>`
+                    : '';
+
+                return `
+                <article class="review-card" data-activity-id="${row.activity_id}">
+                    <header class="review-card__header">
+                        <div>
+                            <div class="review-card__title">${title}</div>
+                            <div class="review-card__meta">${student}</div>
+                        </div>
+                        <div class="review-pill-row">
+                            <span class="review-pill flag">${getFlagLabel(flag)}</span>
+                            <span class="review-pill ${getDecisionClass(row.teacher_decision)}">${getDecisionLabel(row.teacher_decision)}</span>
+                        </div>
+                    </header>
+                    <div class="review-card__body">
+                        ${description ? `<p class="admin-detail-description">${description}</p>` : ''}
+                        ${cat}
+                        ${dates}
+                        ${hours}
+                        ${learningOutcomes}
+                        ${media}
+                        ${studentNotesBlock}
                     </div>
-                </td>
-            </tr>
-        `).join('');
+                    <div class="review-card__actions">
+                        <textarea class="admin-note" data-note-for="${row.activity_id}" placeholder="Add a note for the student">${teacherNote}</textarea>
+                        <div class="admin-row-actions">
+                            <button class="btn btn-outline btn-sm" data-action="approve" data-activity-id="${row.activity_id}">Approve</button>
+                            <button class="btn btn-danger btn-sm" data-action="reject" data-activity-id="${row.activity_id}">Reject</button>
+                        </div>
+                    </div>
+                </article>
+            `;
+            })
+            .join('');
     }
 
     function toggleDashboard(show) {
@@ -158,6 +245,7 @@
         const refreshBtn = document.getElementById('admin-refresh');
         const logoutBtn = document.getElementById('admin-logout');
         const table = document.getElementById('admin-activities-body');
+        const loginStatus = document.getElementById('admin-login-status');
 
         if (loginForm) {
             loginForm.addEventListener('submit', async (event) => {
@@ -167,17 +255,21 @@
                 const submitBtn = document.getElementById('admin-login-button');
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Checking…';
+                if (loginStatus) loginStatus.textContent = 'Checking credentials…';
                 try {
                     const isValid = await verifyAdminCredentials(username, password);
                     if (!isValid) {
+                        if (loginStatus) loginStatus.textContent = 'Invalid credentials';
                         alert('Invalid credentials.');
                         return;
                     }
+                    if (loginStatus) loginStatus.textContent = 'Authenticated';
                     isAuthenticated = true;
                     toggleDashboard(true);
                     await hydrateDashboard();
                 } catch (error) {
                     console.error('Login failed', error);
+                    if (loginStatus) loginStatus.textContent = 'Unable to verify credentials';
                     alert(error.message || 'Unable to verify credentials.');
                 } finally {
                     submitBtn.disabled = false;
@@ -198,11 +290,17 @@
         logoutBtn?.addEventListener('click', () => {
             isAuthenticated = false;
             toggleDashboard(false);
+            if (loginStatus) loginStatus.textContent = '';
         });
 
         table?.addEventListener('click', async (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) {
+                return;
+            }
+            const mediaUrl = target.dataset.assetUrl;
+            if (mediaUrl) {
+                window.open(mediaUrl, '_blank', 'noopener,noreferrer');
                 return;
             }
             const action = target.dataset.action;

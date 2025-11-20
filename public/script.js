@@ -127,11 +127,10 @@ const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || 'YOUR_SUPABASE_ANON_KE
 const REVIEW_SYNC_QUEUE_KEY = 'casfolio_review_sync_queue';
 const REVIEW_FLAG_LABELS = {
     none: 'Not submitted',
-    pending_review: 'Pending Review',
-    pending_verification: 'Pending Verification'
+    pending_review: 'Pending Review'
 };
 const REVIEW_DECISION_LABELS = {
-    pending: 'Waiting for teacher',
+    pending: 'Waiting',
     approved: 'Approved',
     rejected: 'Changes requested'
 };
@@ -805,6 +804,29 @@ function getReviewSyncQueue() {
     }
 }
 
+function buildActivitySnapshot(activity) {
+    const onboardingState = getPortfolioOnboardingState();
+    const studentName = onboardingState?.data?.student_name || 'Unknown student';
+    if (!activity) {
+        return { student_name: studentName };
+    }
+    return {
+        title: activity.title || 'Untitled activity',
+        student_name: studentName,
+        description: activity.description || '',
+        category: activity.category || '',
+        status: activity.status || '',
+        dateGeneral: activity.dateGeneral || activity.startDate || null,
+        endDate: activity.endDate || null,
+        totalHours: Number.isFinite(activity.totalHours) ? activity.totalHours : null,
+        learningOutcomes: Array.isArray(activity.learningOutcomes) ? activity.learningOutcomes : [],
+        challengeDescription: activity.challengeDescription || '',
+        reviewNotes: activity.reviewNotes || '',
+        assets: Array.isArray(activity.assets) ? activity.assets : [],
+        headerImage: activity.headerImage || null
+    };
+}
+
 function queueReviewSync(activity) {
     if (!activity?.id) return;
     const onboardingState = getPortfolioOnboardingState();
@@ -814,6 +836,7 @@ function queueReviewSync(activity) {
         id: activity.id,
         title: activity.title || 'Untitled activity',
         studentName,
+        snapshot: buildActivitySnapshot(activity),
         reviewFlag: normalizeReviewFlag(activity.reviewFlag),
         reviewDecision: normalizeReviewDecision(activity.reviewDecision),
         reviewNotes: activity.reviewNotes || '',
@@ -840,19 +863,38 @@ async function flushQueuedReviewSync() {
         activity_id: entry.id,
         activity_title: entry.title || 'Untitled activity',
         student_name: entry.studentName || 'Unknown student',
+        activity_snapshot: entry.snapshot || null,
         review_flag: normalizeReviewFlag(entry.reviewFlag),
         review_notes: entry.reviewNotes || null,
         teacher_decision: normalizeReviewDecision(entry.reviewDecision),
         teacher_notes: entry.teacherNotes || null,
         review_updated_at: entry.reviewUpdatedAt || new Date().toISOString()
     }));
-    const { error } = await client
-        .from('cas_activity_reviews')
-        .upsert(payloads, { onConflict: 'activity_id' });
-    if (error) {
-        throw error;
-    }
+    await upsertReviewPayload(payloads);
     localStorage.removeItem(REVIEW_SYNC_QUEUE_KEY);
+}
+
+async function upsertReviewPayload(payloads) {
+    const client = getSupabaseClient();
+    if (!client) {
+        throw new Error('Supabase client is not configured.');
+    }
+    const attempt = await client.from('cas_activity_reviews').upsert(payloads, { onConflict: 'activity_id' });
+    if (!attempt.error) return;
+    // Fallback for deployments without activity_snapshot column
+    const fallbackPayloads = Array.isArray(payloads)
+        ? payloads.map((p) => {
+              const { activity_snapshot, ...rest } = p;
+              return rest;
+          })
+        : (() => {
+              const { activity_snapshot, ...rest } = payloads;
+              return rest;
+          })();
+    const retry = await client.from('cas_activity_reviews').upsert(fallbackPayloads, { onConflict: 'activity_id' });
+    if (retry.error) {
+        throw retry.error;
+    }
 }
 
 async function persistActivityReview(activity) {
@@ -870,16 +912,16 @@ async function persistActivityReview(activity) {
         activity_id: activity.id,
         activity_title: activity.title || 'Untitled activity',
         student_name: studentName,
+        activity_snapshot: buildActivitySnapshot(activity),
         review_flag: normalizeReviewFlag(activity.reviewFlag),
         review_notes: activity.reviewNotes || null,
         teacher_decision: normalizeReviewDecision(activity.reviewDecision),
         teacher_notes: activity.teacherNotes || null,
         review_updated_at: activity.reviewUpdatedAt || new Date().toISOString()
     };
-    const { error } = await client
-        .from('cas_activity_reviews')
-        .upsert(payload, { onConflict: 'activity_id' });
-    if (error) {
+    try {
+        await upsertReviewPayload(payload);
+    } catch (error) {
         queueReviewSync(activity);
         throw error;
     }
@@ -921,7 +963,7 @@ async function refreshReviewStatusesFromSupabase() {
 
 function normalizeReviewFlag(flag) {
     if (flag === 'pending_review' || flag === 'pending_verification') {
-        return flag;
+        return 'pending_review';
     }
     return 'none';
 }
@@ -985,13 +1027,12 @@ function renderReviewSummaryBlock(activity) {
     return `
         <div class="review-summary-card">
             <h3>Review Workflow</h3>
-            <p><strong>Flag:</strong> ${flagLabel}</p>
+            <p><strong>Status:</strong> ${flagLabel}</p>
             <p><strong>Teacher decision:</strong> ${decisionLabel}</p>
             ${updated}
             ${teacherNote}
             <div class="review-actions">
-                <button class="btn btn-outline btn-sm" onclick="markActivityReviewFlag('${activity.id}', 'pending_review')">Submit for Review</button>
-                <button class="btn btn-outline btn-sm" onclick="markActivityReviewFlag('${activity.id}', 'pending_verification')">Submit for Verification</button>
+                <button class="btn btn-outline btn-sm" onclick="markActivityReviewFlag('${activity.id}', 'pending_review')">Request Review</button>
                 <button class="btn btn-ghost btn-sm" onclick="markActivityReviewFlag('${activity.id}', 'none')">Clear Request</button>
             </div>
         </div>
@@ -1011,7 +1052,7 @@ function updateReviewFormUI(activityOverride = null) {
         indicator.textContent = 'No submission has been sent yet.';
     } else {
         const decisionLabel = getReviewDecisionLabel(targetActivity?.reviewDecision || 'pending');
-        indicator.innerHTML = `<strong>${decisionLabel}</strong> for ${getReviewFlagLabel(flagValue)}`;
+        indicator.innerHTML = `<strong>${decisionLabel}</strong> — review requested.`;
     }
     if (teacherFeedback) {
         const note = flagValue === 'none' ? '' : targetActivity?.teacherNotes || '';
@@ -1031,10 +1072,6 @@ function initializeReviewRequestControls() {
     flagSelect.addEventListener('change', () => updateReviewFormUI());
     document.getElementById('request-review-btn')?.addEventListener('click', () => {
         flagSelect.value = 'pending_review';
-        updateReviewFormUI();
-    });
-    document.getElementById('request-verification-btn')?.addEventListener('click', () => {
-        flagSelect.value = 'pending_verification';
         updateReviewFormUI();
     });
     document.getElementById('reset-review-btn')?.addEventListener('click', () => {
