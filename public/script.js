@@ -126,11 +126,11 @@ const SUPABASE_URL = window.__SUPABASE_URL__ || 'https://YOUR_SUPABASE_PROJECT.s
 const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || 'YOUR_SUPABASE_ANON_KEY';
 const REVIEW_SYNC_QUEUE_KEY = 'casfolio_review_sync_queue';
 const REVIEW_FLAG_LABELS = {
-    none: 'Not submitted',
-    pending_review: 'Pending Review'
+    none: 'Not requested',
+    pending_review: 'Submitted for review'
 };
 const REVIEW_DECISION_LABELS = {
-    pending: 'Waiting',
+    pending: 'Awaiting review',
     approved: 'Approved',
     rejected: 'Changes requested'
 };
@@ -839,7 +839,7 @@ function queueReviewSync(activity) {
         title: activity.title || 'Untitled activity',
         studentName,
         snapshot: buildActivitySnapshot(activity),
-        archived: Boolean(activity.archived),
+        archived: normalizedFlag !== 'none' ? false : Boolean(activity.archived),
         reviewFlag: normalizeReviewFlag(activity.reviewFlag),
         reviewDecision: normalizeReviewDecision(activity.reviewDecision),
         reviewNotes: activity.reviewNotes || '',
@@ -867,7 +867,7 @@ async function flushQueuedReviewSync() {
         activity_title: entry.title || 'Untitled activity',
         student_name: entry.studentName || 'Unknown student',
         activity_snapshot: entry.snapshot || null,
-        archived: Boolean(entry.archived),
+        archived: entry.reviewFlag === 'none' ? Boolean(entry.archived) : false,
         review_flag: normalizeReviewFlag(entry.reviewFlag),
         review_notes: entry.reviewNotes || null,
         teacher_decision: normalizeReviewDecision(entry.reviewDecision),
@@ -929,7 +929,7 @@ async function persistActivityReview(activity) {
         activity_title: activity.title || 'Untitled activity',
         student_name: studentName,
         activity_snapshot: buildActivitySnapshot(activity),
-        archived: Boolean(activity.archived),
+        archived: activity.reviewFlag === 'none' ? Boolean(activity.archived) : false,
         review_flag: normalizeReviewFlag(activity.reviewFlag),
         review_notes: activity.reviewNotes || null,
         teacher_decision: normalizeReviewDecision(activity.reviewDecision),
@@ -1110,6 +1110,7 @@ async function markActivityReviewFlag(activityId, flag) {
     activity.reviewFlag = normalizedFlag;
     activity.reviewDecision = normalizedFlag === 'none' ? 'pending' : 'pending';
     activity.reviewUpdatedAt = new Date().toISOString();
+    activity.archived = false;
     saveData();
     rerenderActivityViews();
     updateReviewFormUI(activity);

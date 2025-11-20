@@ -496,12 +496,14 @@ a:focus-visible {
 }
 
 .btn-danger {
-    background: var(--destructive);
-    color: var(--destructive-foreground);
+    background: color-mix(in srgb, var(--destructive) 12%, transparent);
+    color: var(--destructive);
+    border: 1px solid var(--destructive);
 }
 
 .btn-danger:hover {
-    background: color-mix(in srgb, var(--destructive) 85%, #ffffff 15%);
+    background: color-mix(in srgb, var(--destructive) 18%, transparent);
+    color: var(--destructive);
     transform: translateY(-1px);
     box-shadow: var(--shadow-lg);
 }
