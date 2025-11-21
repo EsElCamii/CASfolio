@@ -1127,11 +1127,12 @@ a:focus-visible {
 }
 
 .review-summary-card {
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 1rem;
-    background: var(--surface);
+    padding: 1.05rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.92));
+    box-shadow: var(--shadow-sm);
 }
 
 .review-summary-card h3 {
@@ -1143,7 +1144,7 @@ a:focus-visible {
 }
 
 .review-summary-card .review-actions {
-    margin-top: 1rem;
+    margin-top: 0.75rem;
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;

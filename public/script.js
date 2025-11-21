@@ -1008,12 +1008,17 @@ function getReviewDecisionLabel(decision) {
 
 function determineReviewDecision(previousActivity, nextFlag) {
     const normalizedFlag = normalizeReviewFlag(nextFlag);
-    if (!previousActivity) {
-        return normalizedFlag === 'none' ? 'pending' : 'pending';
-    }
+    if (!previousActivity) return normalizedFlag === 'none' ? 'pending' : 'pending';
     const previousFlag = normalizeReviewFlag(previousActivity.reviewFlag);
+    const wasApproved = previousActivity.reviewDecision === 'approved';
+    if (normalizedFlag === 'pending_review') {
+        return 'pending';
+    }
     if (previousFlag !== normalizedFlag) {
         return normalizedFlag === 'none' ? 'pending' : 'pending';
+    }
+    if (wasApproved) {
+        return normalizeReviewDecision(previousActivity.reviewDecision);
     }
     return normalizeReviewDecision(previousActivity.reviewDecision);
 }
@@ -3329,6 +3334,16 @@ async function saveActivity(values, { isEditing }) {
     const previousActivity = editingId ? currentActivities.find((activity) => activity.id === editingId) : null;
     const previousHeaderImage = previousActivity?.headerImage || null;
     const normalizedHours = normalizeHours(values.totalHours);
+    const wasApproved = previousActivity?.reviewDecision === 'approved';
+    const keyFieldsChanged =
+        wasApproved &&
+        (
+            normalizeHours(previousActivity.totalHours) !== normalizedHours ||
+            (previousActivity.photoInfoImage || '') !== (values.photoInfoImageUrl || '') ||
+            (previousActivity.category || '') !== (values.category || '') ||
+            (previousActivity.dateGeneral || '') !== (values.dateGeneral || '') ||
+            (previousActivity.endDate || '') !== (values.endDate || '')
+        );
 
     let headerDescriptor = null;
 
@@ -3429,6 +3444,16 @@ async function saveActivity(values, { isEditing }) {
             reviewUpdatedAt: values.reviewUpdatedAt || new Date().toISOString(),
             archived: previousActivity?.archived || false
         };
+
+        if (keyFieldsChanged) {
+            normalizedActivity.reviewFlag = 'pending_review';
+            normalizedActivity.reviewDecision = 'pending';
+            normalizedActivity.reviewUpdatedAt = new Date().toISOString();
+            payload.review_flag = 'pending_review';
+            payload.review_decision = 'pending';
+            payload.reviewUpdatedAt = normalizedActivity.reviewUpdatedAt;
+            payload.review_updated_at = normalizedActivity.reviewUpdatedAt;
+        }
 
         const targetIndex = currentActivities.findIndex((activity) => activity.id === resolvedId);
         if (targetIndex !== -1) {
