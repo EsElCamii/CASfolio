@@ -3307,6 +3307,12 @@ async function handleActivityFormSubmit(e) {
         formValues.photoInfoImageUrl = toEmbeddableImageUrl(formValues.photoInfoImageUrl);
     }
 
+    if (keyFieldsChanged) {
+        formValues.reviewFlag = 'pending_review';
+        formValues.reviewDecision = 'pending';
+        formValues.reviewUpdatedAt = new Date().toISOString();
+    }
+
     try {
         await saveActivity(formValues, { isEditing });
 

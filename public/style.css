@@ -518,6 +518,19 @@ a:focus-visible {
     color: var(--foreground);
 }
 
+.btn-success {
+    background: color-mix(in srgb, var(--heatmap-accent, #2ea043) 12%, transparent);
+    color: var(--heatmap-accent, #2ea043);
+    border: 1px solid var(--heatmap-accent, #2ea043);
+}
+
+.btn-success:hover {
+    background: color-mix(in srgb, var(--heatmap-accent, #2ea043) 18%, transparent);
+    color: var(--heatmap-accent, #2ea043);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+}
+
 .btn-full {
     width: 100%;
 }

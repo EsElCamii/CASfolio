@@ -253,10 +253,9 @@
                         </div>
                         <div class="review-pill-row">
                             <span class="review-pill ${getDecisionClass(row.teacher_decision)}">${getDecisionLabel(row.teacher_decision)}</span>
-                            <button class="btn btn-ghost btn-sm" data-toggle-detail="${row.activity_id}">Details</button>
                         </div>
                     </header>
-                    <div class="review-card__body review-card__details" data-detail-for="${row.activity_id}" hidden>
+                    <div class="review-card__body review-card__details" data-detail-for="${row.activity_id}">
                         ${
                             heroImage
                                 ? `<div class="admin-hero-image" data-asset-url="${heroImage}" style="background-image: url('${heroImage}')"></div>`
@@ -280,7 +279,8 @@
                     <div class="review-card__actions">
                         <textarea class="admin-note" data-note-for="${row.activity_id}" placeholder="Add a note for the student">${teacherNote}</textarea>
                         <div class="admin-row-actions">
-                            <button class="btn btn-outline btn-sm" data-action="approve" data-activity-id="${row.activity_id}">Approve</button>
+                            <button class="btn btn-success btn-sm" data-action="approve" data-activity-id="${row.activity_id}">Approve</button>
+                            <button class="btn btn-outline btn-sm" data-action="pending" data-activity-id="${row.activity_id}">Pending</button>
                             <button class="btn btn-danger btn-sm" data-action="reject" data-activity-id="${row.activity_id}">Reject</button>
                             ${
                                 row.archived
@@ -379,19 +379,6 @@
         table?.addEventListener('click', async (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) {
-                return;
-            }
-            const detailToggle = target.dataset.toggleDetail;
-            if (detailToggle) {
-                const detail = document.querySelector(`[data-detail-for="${detailToggle}"]`);
-                if (detail) {
-                    const isHidden = detail.hasAttribute('hidden');
-                    if (isHidden) {
-                        detail.removeAttribute('hidden');
-                    } else {
-                        detail.setAttribute('hidden', 'true');
-                    }
-                }
                 return;
             }
             const mediaUrl = target.dataset.assetUrl;
