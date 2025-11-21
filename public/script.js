@@ -3718,6 +3718,9 @@ document.addEventListener('DOMContentLoaded', () => {
         initializeSelectControls();
         initializeTheme();
     });
+    flushQueuedReviewSync().catch((error) => {
+        console.warn('Pending review sync could not be flushed yet', error);
+    });
 });
 
 // Photos modal
