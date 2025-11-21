@@ -221,6 +221,14 @@
                 const studentNote = row.review_notes || '';
                 const heroImage = snapshot.headerImage || (Array.isArray(snapshot.assets) ? snapshot.assets[0]?.url || snapshot.assets[0] : null);
                 const media = renderMedia(snapshot.assets || snapshot.photos);
+                const evidenceImage = snapshot.photoInfoImage || null;
+                const mediaHalves =
+                    heroImage || evidenceImage
+                        ? `<div class="admin-media-halves">
+                              ${heroImage ? `<div class="admin-media-half" data-asset-url="${heroImage}" style="background-image: url('${heroImage}')"></div>` : `<div class="admin-media-half placeholder">No header image.</div>`}
+                              ${evidenceImage ? `<div class="admin-media-half" data-asset-url="${evidenceImage}" style="background-image: url('${evidenceImage}')"></div>` : `<div class="admin-media-half placeholder">No photo evidence attached.</div>`}
+                           </div>`
+                        : '';
                 const dates =
                     startDate || endDate
                         ? `<div class="admin-detail-row"><span class="admin-detail-label">Dates</span><span class="admin-detail-value">${[startDate, endDate]
@@ -256,11 +264,7 @@
                         </div>
                     </header>
                     <div class="review-card__body review-card__details" data-detail-for="${row.activity_id}">
-                        ${
-                            heroImage
-                                ? `<div class="admin-hero-image" data-asset-url="${heroImage}" style="background-image: url('${heroImage}')"></div>`
-                                : ''
-                        }
+                        ${mediaHalves}
                         ${description ? `<p class="admin-detail-description">${description}</p>` : ''}
                         ${cat}
                         ${dates}
@@ -407,7 +411,13 @@
                     }
                     await deleteArchivedReview(activityId);
                 } else {
-                    await updateReviewDecision(activityId, action === 'approve' ? 'approved' : 'rejected', note);
+                    const decision =
+                        action === 'approve'
+                            ? 'approved'
+                            : action === 'pending'
+                                ? 'pending'
+                                : 'rejected';
+                    await updateReviewDecision(activityId, decision, note);
                 }
                 await hydrateDashboard();
             } catch (error) {

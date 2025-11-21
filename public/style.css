@@ -1336,6 +1336,31 @@ a:focus-visible {
     flex-wrap: wrap;
 }
 
+.admin-media-halves {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.admin-media-half {
+    min-height: 120px;
+    border-radius: var(--radius);
+    background-size: cover;
+    background-position: center;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+}
+
+.admin-media-half.placeholder {
+    background: var(--surface);
+    color: var(--muted-foreground);
+    display: grid;
+    place-items: center;
+    font-size: 0.9rem;
+}
+
 .admin-media-row .thumb {
     width: 72px;
     height: 72px;
