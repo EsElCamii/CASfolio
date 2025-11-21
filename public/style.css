@@ -1344,7 +1344,7 @@ a:focus-visible {
 }
 
 .admin-media-half {
-    min-height: 120px;
+    min-height: 170px;
     border-radius: var(--radius);
     background-size: cover;
     background-position: center;

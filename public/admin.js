@@ -273,11 +273,6 @@
                         ${learningOutcomes}
                         ${media}
                         ${photoMetaBlock}
-                        ${
-                            snapshot.photoInfoImage
-                                ? `<div class="admin-detail-row"><span class="admin-detail-label">Photo link</span><button class="thumb" data-asset-url="${snapshot.photoInfoImage}"><img src="${snapshot.photoInfoImage}" alt="Photo info image"></button></div>`
-                                : ''
-                        }
                         ${studentNotesBlock}
                     </div>
                     <div class="review-card__actions">
