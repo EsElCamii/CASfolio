@@ -253,7 +253,7 @@
                 const archivedBadge = row.archived ? `<span class="pill archived-pill">Archived</span>` : '';
 
                 return `
-                <article class="review-card" data-activity-id="${row.activity_id}">
+                <article class="review-card" data-activity-id="${row.activity_id}" data-archived="${Boolean(row.archived)}">
                     <header class="review-card__header">
                         <div class="review-card__summary">
                             <div class="review-card__title">${title}</div>
@@ -401,6 +401,11 @@
                 } else if (action === 'restore') {
                     await updateArchiveState(activityId, false);
                 } else if (action === 'delete') {
+                    const card = document.querySelector(`article[data-activity-id="${activityId}"]`);
+                    if (card && card.dataset.archived !== 'true') {
+                        alert('Delete is only available for archived items.');
+                        return;
+                    }
                     if (!confirm('Delete this archived review from the queue?')) {
                         return;
                     }

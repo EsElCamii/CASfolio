@@ -1150,6 +1150,9 @@ async function markActivityReviewFlag(activityId, flag) {
     const normalizedFlag = normalizeReviewFlag(flag);
     activity.reviewFlag = normalizedFlag;
     activity.reviewDecision = normalizedFlag === 'none' ? 'pending' : 'pending';
+    if (normalizedFlag === 'none') {
+        activity.reviewNotes = '';
+    }
     activity.reviewUpdatedAt = new Date().toISOString();
     activity.archived = false;
     saveData();
