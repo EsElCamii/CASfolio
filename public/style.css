@@ -1259,6 +1259,18 @@ a:focus-visible {
     gap: 0.5rem;
 }
 
+.review-card__summary {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.review-card__details {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+}
+
 .admin-detail-description {
     color: var(--foreground);
     line-height: 1.5;

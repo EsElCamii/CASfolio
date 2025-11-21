@@ -247,16 +247,16 @@
                 return `
                 <article class="review-card" data-activity-id="${row.activity_id}">
                     <header class="review-card__header">
-                        <div>
+                        <div class="review-card__summary">
                             <div class="review-card__title">${title}</div>
-                            <div class="review-card__meta">${student} ${archivedBadge}</div>
+                            <div class="review-card__meta">${student} · ${getFlagLabel(flag)} ${archivedBadge}</div>
                         </div>
                         <div class="review-pill-row">
-                            <span class="review-pill flag">${getFlagLabel(flag)}</span>
                             <span class="review-pill ${getDecisionClass(row.teacher_decision)}">${getDecisionLabel(row.teacher_decision)}</span>
+                            <button class="btn btn-ghost btn-sm" data-toggle-detail="${row.activity_id}">Details</button>
                         </div>
                     </header>
-                    <div class="review-card__body">
+                    <div class="review-card__body review-card__details" data-detail-for="${row.activity_id}" hidden>
                         ${
                             heroImage
                                 ? `<div class="admin-hero-image" data-asset-url="${heroImage}" style="background-image: url('${heroImage}')"></div>`
@@ -270,6 +270,11 @@
                         ${learningOutcomes}
                         ${media}
                         ${photoMetaBlock}
+                        ${
+                            snapshot.photoInfoImage
+                                ? `<div class="admin-detail-row"><span class="admin-detail-label">Photo link</span><button class="thumb" data-asset-url="${snapshot.photoInfoImage}"><img src="${snapshot.photoInfoImage}" alt="Photo info image"></button></div>`
+                                : ''
+                        }
                         ${studentNotesBlock}
                     </div>
                     <div class="review-card__actions">
@@ -374,6 +379,19 @@
         table?.addEventListener('click', async (event) => {
             const target = event.target;
             if (!(target instanceof HTMLElement)) {
+                return;
+            }
+            const detailToggle = target.dataset.toggleDetail;
+            if (detailToggle) {
+                const detail = document.querySelector(`[data-detail-for="${detailToggle}"]`);
+                if (detail) {
+                    const isHidden = detail.hasAttribute('hidden');
+                    if (isHidden) {
+                        detail.removeAttribute('hidden');
+                    } else {
+                        detail.setAttribute('hidden', 'true');
+                    }
+                }
                 return;
             }
             const mediaUrl = target.dataset.assetUrl;

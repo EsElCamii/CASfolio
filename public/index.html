@@ -828,8 +828,20 @@
                             </button>
                         </div>
                         <div class="form-group" style="margin-top: 12px;">
+                            <label for="photo-info-image">Photo evidence image or link</label>
+                            <p class="helper-text">Paste a photo link (Google Drive or image URL) and load it like the header image.</p>
+                            <input type="url" name="photoInfoImageUrl" id="photo-info-image" placeholder="https://drive.google.com/..." data-testid="input-photo-info-image">
+                            <button type="button" id="load-photo-info-image" class="btn btn-outline" style="margin-top: 8px;">Load Photo Info Image</button>
+                            <div id="photo-info-preview" class="image-preview" style="display: none; margin-top: 10px; text-align: center;">
+                                <img id="photo-info-preview-img" src="" alt="Preview" style="max-width: 100%; max-height: 160px; border-radius: 4px; margin: 0 auto; display: block;">
+                                <button type="button" id="remove-photo-info-image" class="btn-text" style="margin-top: 8px; color: var(--destructive);">
+                                    <i class="fas fa-times"></i> Remove Image
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 12px;">
                             <label for="photo-info">Photo information (metadata)</label>
-                            <textarea id="photo-info" name="photoInfo" rows="2" placeholder="e.g., Camera roll date, GPS, source link to verify when/where the photo was taken."></textarea>
+                            <textarea id="photo-info" name="photoInfo" rows="2" placeholder="e.g., when/where the photo was taken, source link."></textarea>
                         </div>
                     </div>
                 </div>
@@ -886,7 +898,6 @@
                         </div>
                     </div>
                     <textarea id="review-notes" name="reviewNotes" rows="2" placeholder="Optional note for your teacher (e.g., highlight what changed)."></textarea>
-                    <p class="helper-text">Flags sync to Supabase so coordinators know what needs attention.</p>
                     <div class="review-feedback" id="review-decision-indicator" role="status">No submission has been sent yet.</div>
                     <div class="review-feedback" id="teacher-feedback-display" hidden></div>
                 </div>

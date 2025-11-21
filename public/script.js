@@ -692,6 +692,7 @@ function mapDtoToActivity(dto) {
         createdAt: dto.createdAt,
         updatedAt: dto.updatedAt,
         photoInfo: dto.photo_info || dto.photoInfo || '',
+        photoInfoImage: dto.photo_info_image || dto.photoInfoImage || null,
         assets: Array.isArray(dto.assets) ? dto.assets : [],
         reviewFlag: normalizeReviewFlag(dto.review_flag || dto.reviewFlag),
         reviewDecision: normalizeReviewDecision(dto.teacher_decision || dto.reviewDecision),
@@ -811,6 +812,10 @@ function buildActivitySnapshot(activity) {
     if (!activity) {
         return { student_name: studentName };
     }
+    const normalizedPhotoInfoImage =
+        activity.photoInfoImage && typeof activity.photoInfoImage === 'string'
+            ? toEmbeddableImageUrl(activity.photoInfoImage)
+            : null;
     return {
         title: activity.title || 'Untitled activity',
         student_name: studentName,
@@ -825,7 +830,8 @@ function buildActivitySnapshot(activity) {
         reviewNotes: activity.reviewNotes || '',
         assets: Array.isArray(activity.assets) ? activity.assets : [],
         headerImage: activity.headerImage || null,
-        photoInfo: activity.photoInfo || ''
+        photoInfo: activity.photoInfo || '',
+        photoInfoImage: normalizedPhotoInfoImage
     };
 }
 
@@ -3308,6 +3314,7 @@ async function handleActivityFormSubmit(e) {
         learningOutcomes: Array.isArray(learningOutcomes) ? [...learningOutcomes] : [],
         reviewFlag: selectedReviewFlag,
         reviewNotes,
+        photoInfoImageUrl: (form.elements['photoInfoImageUrl']?.value || '').trim(),
         photoInfo,
         reviewDecision: determineReviewDecision(existingActivity, selectedReviewFlag),
         teacherNotes: existingActivity?.teacherNotes || '',
@@ -3323,6 +3330,10 @@ async function handleActivityFormSubmit(e) {
     if (requiresApproval) {
         alert('To mark as Completed, please get teacher approval first.');
         formValues.status = 'ongoing';
+    }
+
+    if (formValues.photoInfoImageUrl) {
+        formValues.photoInfoImageUrl = toEmbeddableImageUrl(formValues.photoInfoImageUrl);
     }
 
     try {
@@ -3376,6 +3387,7 @@ async function saveActivity(values, { isEditing }) {
         rating: Number.isFinite(values.rating) && values.rating > 0 ? values.rating : null,
         difficulty: Number.isFinite(values.difficulty) ? values.difficulty : null,
         photo_info: values.photoInfo || null,
+        photo_info_image: values.photoInfoImageUrl || null,
         reviewFlag: normalizeReviewFlag(values.reviewFlag),
         review_flag: normalizeReviewFlag(values.reviewFlag),
         reviewNotes: values.reviewNotes || null,
@@ -3440,6 +3452,7 @@ async function saveActivity(values, { isEditing }) {
             rating: Number.isFinite(values.rating) && values.rating > 0 ? values.rating : null,
             difficulty: Number.isFinite(values.difficulty) ? values.difficulty : null,
             photoInfo: values.photoInfo || '',
+            photoInfoImage: values.photoInfoImageUrl || null,
             headerImage: headerImageForLocal,
             headerImagePath: headerDescriptor?.path || previousActivity?.headerImagePath || null,
             updatedAt: new Date().toISOString(),
@@ -3560,6 +3573,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const removeImageBtn = document.getElementById('remove-image');
     const imagePreview = document.getElementById('image-preview');
     const imagePreviewImg = document.getElementById('image-preview-img');
+    const photoInfoImageInput = document.getElementById('photo-info-image');
+    const loadPhotoInfoImageBtn = document.getElementById('load-photo-info-image');
+    const removePhotoInfoImageBtn = document.getElementById('remove-photo-info-image');
+    const photoInfoPreview = document.getElementById('photo-info-preview');
+    const photoInfoPreviewImg = document.getElementById('photo-info-preview-img');
 
     function showImagePreview(src) {
         if (!imagePreview || !imagePreviewImg) return;
@@ -3597,6 +3615,35 @@ document.addEventListener('DOMContentLoaded', function() {
         img.src = finalUrl;
     }
 
+    function handlePhotoInfoImageUrl() {
+        if (!photoInfoImageInput) return;
+        const rawValue = photoInfoImageInput.value || '';
+        const normalizedUrl = rawValue.trim();
+        if (!normalizedUrl) {
+            alert('Please enter an image URL');
+            return;
+        }
+        const finalUrl = toEmbeddableImageUrl(normalizedUrl);
+        try {
+            new URL(finalUrl);
+        } catch (_error) {
+            alert('Please enter a valid URL');
+            return;
+        }
+        const img = new Image();
+        img.onload = function() {
+            if (photoInfoPreview && photoInfoPreviewImg) {
+                photoInfoPreviewImg.src = finalUrl;
+                photoInfoPreview.style.display = 'block';
+            }
+            photoInfoImageInput.value = finalUrl;
+        };
+        img.onerror = function() {
+            alert('Could not load image from the provided URL. Please check the URL and try again.');
+        };
+        img.src = finalUrl;
+    }
+
     if (loadImageUrlBtn) {
         loadImageUrlBtn.addEventListener('click', handleImageUrl);
     }
@@ -3613,12 +3660,42 @@ document.addEventListener('DOMContentLoaded', function() {
     if (removeImageBtn) {
         removeImageBtn.addEventListener('click', resetHeaderImageInputs);
     }
+
+    if (loadPhotoInfoImageBtn) {
+        loadPhotoInfoImageBtn.addEventListener('click', handlePhotoInfoImageUrl);
+    }
+
+    if (photoInfoImageInput) {
+        photoInfoImageInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                handlePhotoInfoImageUrl();
+            }
+        });
+    }
+
+    if (removePhotoInfoImageBtn) {
+        removePhotoInfoImageBtn.addEventListener('click', function() {
+            if (photoInfoPreview) {
+                photoInfoPreview.style.display = 'none';
+            }
+            if (photoInfoPreviewImg) {
+                photoInfoPreviewImg.src = '';
+            }
+            if (photoInfoImageInput) {
+                photoInfoImageInput.value = '';
+            }
+        });
+    }
 });
 
 function resetHeaderImageInputs() {
     const imagePreview = document.getElementById('image-preview');
     const imagePreviewImg = document.getElementById('image-preview-img');
     const imageUrlInput = document.getElementById('image-url-input');
+    const photoInfoImageInput = document.getElementById('photo-info-image');
+    const photoInfoPreview = document.getElementById('photo-info-preview');
+    const photoInfoPreviewImg = document.getElementById('photo-info-preview-img');
 
     if (imagePreview) {
         imagePreview.style.display = 'none';
@@ -3628,6 +3705,15 @@ function resetHeaderImageInputs() {
     }
     if (imageUrlInput) {
         imageUrlInput.value = '';
+    }
+    if (photoInfoPreview) {
+        photoInfoPreview.style.display = 'none';
+    }
+    if (photoInfoPreviewImg) {
+        photoInfoPreviewImg.src = '';
+    }
+    if (photoInfoImageInput) {
+        photoInfoImageInput.value = '';
     }
 
     selectedHeaderImageUrl = null;
