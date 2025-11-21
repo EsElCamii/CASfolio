@@ -984,6 +984,36 @@ async function refreshReviewStatusesFromSupabase() {
     }
 }
 
+let reviewStatusRefreshTimer = null;
+let reviewStatusRefreshInFlight = false;
+
+async function triggerReviewStatusRefresh() {
+    if (reviewStatusRefreshInFlight) return;
+    reviewStatusRefreshInFlight = true;
+    try {
+        await refreshReviewStatusesFromSupabase();
+    } catch (error) {
+        console.warn('Unable to refresh review statuses from Supabase', error);
+    } finally {
+        reviewStatusRefreshInFlight = false;
+    }
+}
+
+function startReviewStatusPolling() {
+    if (reviewStatusRefreshTimer) {
+        clearInterval(reviewStatusRefreshTimer);
+    }
+    // Initial run
+    triggerReviewStatusRefresh();
+    // Poll every 30 seconds
+    reviewStatusRefreshTimer = setInterval(triggerReviewStatusRefresh, 30000);
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            triggerReviewStatusRefresh();
+        }
+    });
+}
+
 function normalizeReviewFlag(flag) {
     if (flag === 'pending_review' || flag === 'pending_verification') {
         return 'pending_review';
@@ -3788,6 +3818,7 @@ async function initializeApp() {
         initializePortfolioQuestionnaire();
         initializeSelectControls();
         initializeTheme();
+        startReviewStatusPolling();
     }
 }
 
