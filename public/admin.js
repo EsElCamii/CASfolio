@@ -302,6 +302,11 @@
         const dashboard = document.getElementById('admin-dashboard');
         if (loginPanel) loginPanel.hidden = show;
         if (dashboard) dashboard.hidden = !show;
+        if (show) {
+            document.body.classList.remove('login-only');
+        } else {
+            document.body.classList.add('login-only');
+        }
     }
 
     async function hydrateDashboard() {
@@ -315,6 +320,7 @@
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        document.body.classList.add('login-only');
         const loginForm = document.getElementById('admin-login-form');
         const refreshBtn = document.getElementById('admin-refresh');
         const logoutBtn = document.getElementById('admin-logout');

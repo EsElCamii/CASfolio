@@ -1182,6 +1182,14 @@ a:focus-visible {
     padding: 2.5rem 1.25rem;
 }
 
+.admin-shell.login-only .admin-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
 .admin-hero {
     padding: 0.5rem 0 1.25rem;
     text-align: center;
@@ -1441,21 +1449,25 @@ a:focus-visible {
     font-size: 0.75rem;
     font-weight: 500;
     border-radius: 9999px;
+    border: 1px solid var(--border);
 }
 
 .badge.creativity {
     background: #f3e8ff;
     color: #7c3aed;
+    border-color: rgba(124, 58, 237, 0.2);
 }
 
 .badge.activity {
     background: #dcfce7;
     color: #16a34a;
+    border-color: rgba(22, 163, 74, 0.25);
 }
 
 .badge.service {
     background: #dbeafe;
     color: #2563eb;
+    border-color: rgba(37, 99, 235, 0.25);
 }
 
 .activity-date {
