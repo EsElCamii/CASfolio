@@ -172,6 +172,17 @@
         }
     }
 
+    async function deleteArchivedReview(activityId) {
+        const client = getSupabaseClient();
+        if (!client) {
+            throw new Error('Supabase client is not configured.');
+        }
+        const { error } = await client.from('cas_activity_reviews').delete().eq('activity_id', activityId);
+        if (error) {
+            throw error;
+        }
+    }
+
     function renderActivities(rows) {
         const body = document.getElementById('admin-activities-body');
         const emptyState = document.getElementById('admin-empty-state');
@@ -268,7 +279,10 @@
                             <button class="btn btn-danger btn-sm" data-action="reject" data-activity-id="${row.activity_id}">Reject</button>
                             ${
                                 row.archived
-                                    ? `<button class="btn btn-ghost btn-sm" data-action="restore" data-activity-id="${row.activity_id}">Restore</button>`
+                                    ? `<div class="admin-row-actions">
+                                        <button class="btn btn-ghost btn-sm" data-action="restore" data-activity-id="${row.activity_id}">Restore</button>
+                                        <button class="btn btn-danger btn-sm" data-action="delete" data-activity-id="${row.activity_id}">Delete</button>
+                                    </div>`
                                     : `<button class="btn btn-ghost btn-sm" data-action="archive" data-activity-id="${row.activity_id}">Archive</button>`
                             }
                         </div>
@@ -382,6 +396,11 @@
                     await updateArchiveState(activityId, true);
                 } else if (action === 'restore') {
                     await updateArchiveState(activityId, false);
+                } else if (action === 'delete') {
+                    if (!confirm('Delete this archived review from the queue?')) {
+                        return;
+                    }
+                    await deleteArchivedReview(activityId);
                 } else {
                     await updateReviewDecision(activityId, action === 'approve' ? 'approved' : 'rejected', note);
                 }

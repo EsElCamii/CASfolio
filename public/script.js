@@ -1759,7 +1759,6 @@ function renderActivityCard(activity) {
                         <i class="fas fa-arrow-right"></i>
                     </button>
                 </div>
-                ${renderReviewBadges(activity)}
             </div>
         </div>
     `;
@@ -1796,7 +1795,6 @@ function renderTimeline() {
                     <span class="activity-hours" data-testid="text-timeline-hours-${activity.id}">${activity.totalHours} hours</span>
                 </div>
                 <p class="timeline-description" data-testid="text-timeline-description-${activity.id}">${activity.description}</p>
-                ${renderReviewBadges(activity)}
                 <button class="btn btn-ghost" onclick="viewActivityDetail('${activity.id}')" data-testid="button-timeline-view-${activity.id}">
                     View Details
                 </button>
@@ -3319,6 +3317,12 @@ async function handleActivityFormSubmit(e) {
     if (!formValues.title) {
         alert('Activity title is required.');
         return;
+    }
+
+    const requiresApproval = formValues.status === 'completed' && formValues.reviewDecision !== 'approved';
+    if (requiresApproval) {
+        alert('To mark as Completed, please get teacher approval first.');
+        formValues.status = 'ongoing';
     }
 
     try {
