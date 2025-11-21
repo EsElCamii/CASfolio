@@ -3108,14 +3108,8 @@ function viewActivityDetail(activityId) {
     const activity = currentActivities.find(a => a.id === activityId);
     if (!activity) return;
 
-    const reflections = currentReflections.filter(r => r.activityId === activityId);
     const modal = document.getElementById('activity-detail-modal');
     const content = document.getElementById('activity-detail-content');
-    const outcomeLabels = Array.isArray(activity.learningOutcomes)
-        ? activity.learningOutcomes
-            .map((value) => getLearningOutcomeDisplay(value).label)
-            .filter((label) => typeof label === 'string' && label.trim() !== '')
-        : [];
     const ratingMarkup = Number.isFinite(activity.rating) && activity.rating > 0
         ? Array.from({ length: 5 }).map((_, index) => `<i class="fas fa-star${index < Math.round(activity.rating) ? '' : ' inactive'}"></i>`).join('')
         : null;
@@ -3134,42 +3128,14 @@ function viewActivityDetail(activityId) {
                     <p class="activity-detail-description" data-testid="text-activity-description">${activity.description}</p>
                 </div>
 
-                ${activity.challengeDescription ? `
-                    <div class="challenge-section">
-                        <h3>Challenge Faced</h3>
-                        <p data-testid="text-challenge-description">${activity.challengeDescription}</p>
-                    </div>
-                ` : ''}
-
-                <div class="learning-outcomes-section">
-                    <h3>Learning Outcomes</h3>
-                    <div class="learning-outcomes-tags">
-                        ${outcomeLabels.map((outcome, index) => `
-                            <span class="badge" data-testid="badge-outcome-${index}">${escapeHtml(outcome)}</span>
-                        `).join('')}
-                    </div>
+            ${activity.challengeDescription ? `
+                <div class="challenge-section">
+                    <h3>Challenge Faced</h3>
+                    <p data-testid="text-challenge-description">${activity.challengeDescription}</p>
                 </div>
+            ` : ''}
 
                 ${renderReviewSummaryBlock(activity)}
-
-                <div class="reflections-section">
-                    <h3>Reflections</h3>
-                    ${reflections.length > 0 ? `
-                        <div>
-                            ${reflections.map(reflection => `
-                                <div class="reflection-item" data-testid="reflection-${reflection.id}">
-                                    <div class="reflection-item-header">
-                                        <h4 class="reflection-item-title" data-testid="text-reflection-title-${reflection.id}">${reflection.title}</h4>
-                                        <span class="reflection-item-date" data-testid="text-reflection-date-${reflection.id}">${formatFullDate(reflection.createdAt)}</span>
-                                    </div>
-                                    <p class="reflection-item-content" data-testid="text-reflection-content-${reflection.id}">${reflection.content}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    ` : `
-                        <p data-testid="text-no-reflections">No reflections have been added for this activity yet.</p>
-                    `}
-                </div>
             </div>
 
             <div class="activity-sidebar">
